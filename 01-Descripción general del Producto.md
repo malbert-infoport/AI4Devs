@@ -8,6 +8,7 @@
 4. [Flujos de Proceso de Negocio](#flujos-de-proceso-de-negocio)
 5. [Modelo de Datos Conceptual](#modelo-de-datos-conceptual)
 6. [Estrategia de Optimización y Rendimiento](#estrategia-de-optimización-y-rendimiento)
+7. (Identificación y Clasificación de Stakeholders)(#identificación-y-clasificación-de-stakeholders)
 
 ---
 
@@ -265,7 +266,7 @@ A continuación, se presentan las entidades principales que maneja InfoportOneAd
 erDiagram
     ORGANIZATION ||--o{ APP_ACCESS : "tiene acceso a"
     ORGANIZATION {
-        uuid SecurityCompanyId "Identificador Inmutable Global"
+        int SecurityCompanyId "Identificador Inmutable Global"
         string Nombre "Nombre Comercial"
         string Estado "Activo / Inactivo"
     }
@@ -280,7 +281,6 @@ erDiagram
     
     APP_ROLE_DEFINITION {
         string RoleName "Nombre del Rol (ej: Editor)"
-        list Permissions "Lista de Permisos Funcionales"
         bool Deprecated "Estado de vigencia"
     }
     
@@ -330,3 +330,38 @@ La validación de seguridad en tiempo de ejecución se basa en el estándar *JWT
 
 4. **Auditoría Asíncrona
 El registro de auditoría no bloquea la operación principal. Se procesa en segundo plano para asegurar una experiencia de usuario fluida para el administrador.
+
+## 7. Identificación y Clasificación de Stakeholders
+
+A continuación, se presenta la lista de partes interesadas clave para el proyecto **InfoportOneAdmon**, clasificadas según su rol, interés y nivel de influencia en la plataforma de administración centralizada.
+
+---
+
+### Partes Interesadas Primarias (Usuarios y Decisiones)
+
+| Categoría | Stakeholder | Interés Principal | Impacto de InfoportOneAdmon |
+| :--- | :--- | :--- | :--- |
+| **Usuarios Directos / Operacionales** | **Administradores de la Organización Propietaria** | Ejecutar el *onboarding* de nuevos clientes y la gestión del catálogo maestro de roles. | Son los **usuarios finales** de la plataforma. Necesitan una interfaz eficiente y un 100% de disponibilidad para garantizar el servicio a los clientes. |
+| **Compradores / Financiadores** | **Dirección Ejecutiva (CEO, CTO, Sponsors del Proyecto)** | Retorno de la inversión (ROI), escalabilidad del ecosistema y control centralizado del negocio B2B. | **Aprueban el presupuesto** y definen la estrategia del modelo multi-organización. Son los responsables de negocio. |
+| **Fabricantes / Desarrollo** | **Equipo de Desarrollo de InfoportOneAdmon** | Definición técnica, estabilidad del código, correcta integración con Keycloak y ActiveMQ Artemis. | Responsables de la **implementación técnica** y del mantenimiento. Son clave para la calidad y el rendimiento. |
+| **Asistencia al Cliente** | **Equipo de Soporte y Operaciones (Tier 2/3)** | Diagnóstico rápido de problemas de acceso, autenticación, y estado (activo/inactivo) de una organización cliente. | Necesitan **herramientas de búsqueda y registros de auditoría claros** para reducir el tiempo de resolución (MTTR) de las incidencias de clientes. |
+
+---
+
+### Partes Interesadas Secundarias (Consumidores y Proveedores)
+
+| Categoría | Stakeholder | Interés Principal | Impacto de InfoportOneAdmon |
+| :--- | :--- | :--- | :--- |
+| **Socios Internos (Apps)** | **Equipos de Desarrollo de Aplicaciones Satélite** | Consumo estable de la API de roles y del bus de eventos de **ActiveMQ Artemis**. Validación del `SecurityCompanyId` en el token. | Son **consumidores de la información maestra** de InfoportOneAdmon. La estabilidad de este sistema es crucial para su desarrollo y operación. |
+| **Socios Externos / Proveedores** | **Proveedores de Tecnología (Keycloak, ActiveMQ Artemis)** | Garantizar la estabilidad y el soporte de los componentes clave de infraestructura orquestados por InfoportOneAdmon. | El proyecto depende de la salud y el rendimiento de estos servicios de terceros. |
+| **Usuarios Finales (de las Organizaciones Clientes)** | **Usuarios finales de las Apps Satélite** | Acceso ininterrumpido (SSO) y correcta asignación de roles y permisos funcionales. | Su experiencia de acceso y seguridad está determinada por la **configuración orquestada** a través de InfoportOneAdmon, aunque no interactúan directamente con él. |
+
+---
+
+### Partes Interesadas de Gobierno y Mercado
+
+| Categoría | Stakeholder | Interés Principal | Impacto de InfoportOneAdmon |
+| :--- | :--- | :--- | :--- |
+| **Instancias Reguladoras** | **Asesoría Legal y Equipo de Seguridad (CISO)** | Garantizar el *compliance* (cumplimiento) de la segregación de datos por organización y la trazabilidad de todos los cambios administrativos. | El sistema debe proveer la **evidencia de auditoría** (logs) necesaria para demostrar el aislamiento de tenants y el control de acceso. |
+| **Marketing y Ventas** | **Equipo de Ventas B2B y Marketing** | Capacidad de promocionar y asegurar un proceso de *onboarding* de clientes rápido, estandarizado y de alta seguridad a nuevos prospectos. | La eficiencia del módulo de `Gestión de Organizaciones` es un **argumento de venta (USP)** fundamental para la adquisición de nuevos clientes. |
+| **Minoristas / Distribuidores** | **N/A** | N/A. | El proyecto **InfoportOneAdmon** es un sistema B2B interno de gestión administrativa y no tiene relación con el canal minorista o distribución física. |
