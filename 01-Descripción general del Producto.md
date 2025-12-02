@@ -104,55 +104,54 @@ Mecanismo de comunicación asíncrona que mantiene la coherencia entre InfoportO
 
 El siguiente diagrama ilustra cómo InfoportOneAdmon orquesta la seguridad y los datos maestros, sirviendo a las aplicaciones del ecosistema.
 
-```mermaid
 graph TB
     subgraph "Cliente (Admin Propietario)"
         A1[Frontend Administración]
         A2[OAuth2 Client]
     end
-    
+
     subgraph "Gestor de Identidad"
         K1["Keycloak<br/>(Realm Único)"]
         K2["Admin API"]
     end
-    
+
     subgraph "InfoportOneAdmon (Núcleo)"
         S1["API de Gestión<br/>(Orgs, Roles, Apps)"]
         S2["Bus de Eventos<br/>Publisher"]
         S3["Catálogo Maestro<br/>de Roles"]
     end
-    
+
     subgraph "Infraestructura de Mensajería"
         E1["ActiveMQ Artemis<br/>(Topics & Queues)"]
     end
-    
+
     subgraph "Persistencia Core"
         D1["Base de Datos<br/>InfoportOneAdmon"]
     end
-    
+
     subgraph "Ecosistema de Aplicaciones"
         AP1["App Satélite 1<br/>(Gestión de sus Usuarios)"]
         AP2["App Satélite 2<br/>(Gestión de sus Usuarios)"]
     end
-    
+
     %% Relaciones
     A1 --> A2
     A2 -- "Autenticación Admin" --> K1
     A2 -- "Gestión" --> S1
-    
+
     S1 -- "Provisionamiento" --> K2
     K2 -- "Configura" --> K1
-    
+
     S1 -- "Persiste Datos" --> D1
     S1 -- "Publica Cambios" --> S2
     S2 -- "Envía Mensajes" --> E1
-    
+
     E1 -- "Notifica Eventos" --> AP1
     E1 -- "Notifica Eventos" --> AP2
-    
+
     AP1 -- "Consulta Catálogo Roles" --> S1
     AP2 -- "Consulta Catálogo Roles" --> S1
-    
+
     %% Estilos
     style K1 fill:#4A90E2,color:#fff
     style S1 fill:#7ED321,color:#fff
