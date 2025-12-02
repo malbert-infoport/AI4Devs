@@ -104,6 +104,7 @@ Mecanismo de comunicación asíncrona que mantiene la coherencia entre InfoportO
 
 El siguiente diagrama ilustra cómo InfoportOneAdmon orquesta la seguridad y los datos maestros, sirviendo a las aplicaciones del ecosistema.
 
+```mermaid
 graph TB
     subgraph Cliente_Admin[Admin Propietario]
         A1[Frontend Administración]
@@ -156,6 +157,7 @@ graph TB
     style S1 fill:#7ED321,color:#fff
     style E1 fill:#F5A623,color:#fff
     style D1 fill:#BD10E0,color:#fff
+```
 
 ## Flujos de Proceso de Negocio
 
@@ -163,6 +165,7 @@ graph TB
 
 Este proceso es ejecutado exclusivamente por el personal de la Organización Propietaria cuando se cierra un contrato con un nuevo cliente.
 
+```mermaid
 graph TD
     Start([Inicio: Admin Propietario solicita Alta]) --> Validar[Validar Datos y Unicidad de Nombre]
     
@@ -183,11 +186,13 @@ graph TD
     subgraph "Procesamiento Asíncrono (Apps Satélite)"
     Event -->|Consumo| App1[App crea estructura local si es necesario]
     end
+```
 
 ### 2. Definición de Nuevo Rol en una Aplicación
 
 El administrador define un nuevo perfil funcional que estará disponible para una aplicación específica.
 
+```mermaid
 graph TD
     Start([Inicio: Admin define Nuevo Rol]) --> SelectApp[Seleccionar Aplicación Destino]
     
@@ -205,11 +210,13 @@ graph TD
     Publish -->|Consumo| AppListener[App recibe definición]
     AppListener --> AppCache[App actualiza su caché de roles locales]
     end
+```
 
 ### 3. Registro de Nueva Aplicación en el Ecosistema
 
 Proceso técnico para dar de alta una nueva aplicación satélite y permitirle interactuar con Keycloak.
 
+```mermaid
 graph TD
     Start([Inicio: Registrar Nueva App]) --> Validate[Validar ID de Aplicación]
     
@@ -223,11 +230,13 @@ graph TD
     
     Roles_Init --> Notify[Notificar 'ApplicationRegistered']
     Notify --> End([Fin: App Lista para Conectar])
+```
 
 ### 4. Autenticación y Autorización (Vista de Usuario Final)
 
 Cómo un usuario de una Organización Cliente accede a una App Satélite. InfoportOneAdmon no participa activamente en el login (solo configuró el entorno previamente), pero su configuración es vital.
 
+```mermaid
 graph TD
     User([Usuario Final]) --> Login[Intento de Login en App Satélite]
     Login --> Redirect[Redirección a Keycloak]
@@ -246,11 +255,13 @@ graph TD
     LocalAuth --> Access{¿Tiene Permisos?}
     Access -->|Sí| Grant[Acceso Permitido]
     Access -->|No| Deny[Acceso Denegado 403]
+```
 
 ## Modelo de Datos Conceptual
 
 A continuación, se presentan las entidades principales que maneja InfoportOneAdmon. Este modelo no busca detallar tipos de datos SQL, sino las relaciones de negocio.
 
+```mermaid
 erDiagram
     ORGANIZATION ||--o{ APP_ACCESS : "tiene acceso a"
     ORGANIZATION {
@@ -280,6 +291,7 @@ erDiagram
     
     AUDIT_LOG }o--|| ORGANIZATION : "registra cambios sobre"
     AUDIT_LOG }o--|| APPLICATION : "registra cambios sobre"
+```
 
 ### Entidades Clave
 
