@@ -104,8 +104,9 @@ Mecanismo de comunicación asíncrona que mantiene la coherencia entre InfoportO
 
 El siguiente diagrama ilustra cómo InfoportOneAdmon orquesta la seguridad y los datos maestros, sirviendo a las aplicaciones del ecosistema.
 
+```mermaid
 graph TB
-    subgraph Cliente_Admin[Cliente (Admin Propietario)]
+    subgraph Cliente_Admin[Admin Propietario]
         A1[Frontend Administración]
         A2[OAuth2 Client]
     end
@@ -115,10 +116,9 @@ graph TB
         K2["Admin API"]
     end
     
-    subgraph InfoportOneAdmon[InfoportOneAdmon (Núcleo)]
-        S1["API de Gestión<br/>(Orgs, Roles, Apps)"]
+    subgraph InfoportOneAdmon[InfoportOneAdmon]
+        S1["Backend Administración<br/>(Orgs, Roles, Apps)"]
         S2["Bus de Eventos<br/>Publisher"]
-        S3["Catálogo Maestro<br/>de Roles"]
     end
     
     subgraph Infra_Mensajeria[Infraestructura de Mensajería]
@@ -158,7 +158,6 @@ graph TB
     style E1 fill:#F5A623,color:#fff
     style D1 fill:#BD10E0,color:#fff
 
-
 ## Flujos de Proceso de Negocio
 
 ### 1. Alta de Nueva Organización (Onboarding)
@@ -170,7 +169,7 @@ graph TD
     Start([Inicio: Admin Propietario solicita Alta]) --> Validar[Validar Datos y Unicidad de Nombre]
     
     Validar -->|Nombre Duplicado| Error[Retornar Error]
-    Validar -->|Datos Válidos| GenID[Generar SecurityCompanyId (UUID)]
+    Validar -->|Datos Válidos| GenID[Generar SecurityCompanyId]
     
     GenID --> KC_Step[Provisionar en Keycloak]
     KC_Step --> KC_Group[Crear Grupo Raíz '/orgs/cliente']
@@ -191,6 +190,7 @@ graph TD
 
 El administrador define un nuevo perfil funcional que estará disponible para una aplicación específica.
 
+```mermaid
 graph TD
     Start([Inicio: Admin define Nuevo Rol]) --> SelectApp[Seleccionar Aplicación Destino]
     
@@ -213,6 +213,7 @@ graph TD
 
 Proceso técnico para dar de alta una nueva aplicación satélite y permitirle interactuar con Keycloak.
 
+```mermaid
 graph TD
     Start([Inicio: Registrar Nueva App]) --> Validate[Validar ID de Aplicación]
     
@@ -231,9 +232,10 @@ graph TD
 
 Cómo un usuario de una Organización Cliente accede a una App Satélite. InfoportOneAdmon no participa activamente en el login (solo configuró el entorno previamente), pero su configuración es vital.
 
+```mermaid
 graph TD
     User([Usuario Final]) --> Login[Intento de Login en App Satélite]
-    Login --> Redirect[Redirección a Keycloak (PKCE)]
+    Login --> Redirect[Redirección a Keycloak]
     
     Redirect --> Auth[Usuario introduce credenciales]
     Auth --> ValidKC[Keycloak Valida Identidad]
@@ -254,6 +256,7 @@ graph TD
 
 A continuación, se presentan las entidades principales que maneja InfoportOneAdmon. Este modelo no busca detallar tipos de datos SQL, sino las relaciones de negocio.
 
+```mermaid
 erDiagram
     ORGANIZATION ||--o{ APP_ACCESS : "tiene acceso a"
     ORGANIZATION {
