@@ -2,17 +2,17 @@
 
 ## 📚 Tabla de Contenidos
 
-1. [Descripción General del Producto](#descripción-general-del-producto)
-2. [Funcionalidades Principales](#funcionalidades-principales)
-3. [Arquitectura Lógica del Sistema](#arquitectura-lógica-del-sistema)
-4. [Flujos de Proceso de Negocio](#flujos-de-proceso-de-negocio)
-5. [Modelo de Datos Conceptual](#modelo-de-datos-conceptual)
-6. [Estrategia de Optimización y Rendimiento](#estrategia-de-optimización-y-rendimiento)
-7. [Identificación y Clasificación de Stakeholders](#7-identificación-y-clasificación-de-stakeholders)
-8. [Componentes Principales y Sitemaps](#8-componentes-principales-y-sitemaps)
-9. [Diseño y Experiencia del Usuario (UX/UI)](#9-dise%C3%B1o-y-experiencia-del-usuario-uxui)
-10. [Requisitos Técnicos](#10-requisitos-t%C3%A9cnicos)
-11. [Planificación del Proyecto (MVP de 30 Horas)](#11-planificaci%C3%B3n-del-proyecto-mvp-de-30-horas)
+1. [📝 Descripción General del Producto](#-descripción-general-del-producto)
+2. [⚙️ Funcionalidades Principales](#️-funcionalidades-principales)
+3. [🏗️ Arquitectura Lógica del Sistema](#️-arquitectura-lógica-del-sistema)
+4. [🔀 Flujos de Proceso de Negocio](#-flujos-de-proceso-de-negocio)
+5. [🗃️ Modelo de Datos Conceptual](#️-modelo-de-datos-conceptual)
+6. [🚀 Estrategia de Optimización y Rendimiento](#️-estrategia-de-optimización-y-rendimiento)
+7. [👥 Identificación y Clasificación de Stakeholders](#-identificación-y-clasificación-de-stakeholders)
+8. [🧱 Componentes Principales y Sitemaps](#️-componentes-principales-y-sitemaps)
+9. [🎨 Diseño y Experiencia del Usuario (UX/UI)](#-diseño-y-experiencia-del-usuario-uxui)
+10. [🛠️ Requisitos Técnicos](#️-requisitos-técnicos)
+11. [🗓️ Planificación del Proyecto (MVP de 30 Horas)](#️-planificación-del-proyecto-mvp-de-30-horas)
 
 ---
 
@@ -333,7 +333,7 @@ La validación de seguridad en tiempo de ejecución se basa en el estándar *JWT
 4. **Auditoría Asíncrona
 El registro de auditoría no bloquea la operación principal. Se procesa en segundo plano para asegurar una experiencia de usuario fluida para el administrador.
 
-## 👥 7. Identificación y Clasificación de Stakeholders
+## 👥 Identificación y Clasificación de Stakeholders
 
 A continuación, se presenta la lista de partes interesadas clave para el proyecto **InfoportOneAdmon**, clasificadas según su rol, interés y nivel de influencia en la plataforma de administración centralizada.
 
@@ -368,7 +368,7 @@ A continuación, se presenta la lista de partes interesadas clave para el proyec
 | **Marketing y Ventas** | **Equipo de Ventas B2B y Marketing** | Capacidad de promocionar y asegurar un proceso de *onboarding* de clientes rápido, estandarizado y de alta seguridad a nuevos prospectos. | La eficiencia del módulo de `Gestión de Organizaciones` es un **argumento de venta (USP)** fundamental para la adquisición de nuevos clientes. |
 | **Minoristas / Distribuidores** | **N/A** | N/A. | El proyecto **InfoportOneAdmon** es un sistema B2B interno de gestión administrativa y no tiene relación con el canal minorista o distribución física. |
 
-## 🧱 8. Componentes Principales y Sitemaps
+## 🧱 Componentes Principales y Sitemaps
 
 ### 8.1. Componentes Principales (Estructura Lógica)
 
@@ -406,7 +406,7 @@ graph TD
     D --> D3(Gestión de Credenciales OAuth2)
 ```
 
-## 🎨 9. Diseño y Experiencia del Usuario (UX/UI)
+## 🎨 Diseño y Experiencia del Usuario (UX/UI)
 
 El diseño de **InfoportOneAdmon** se centrará en la **usabilidad para el rol especializado de administración**, priorizando la seguridad y la claridad sobre la estética visual avanzada. La audiencia son usuarios *expertos* que ejecutan tareas críticas.
 
@@ -426,7 +426,7 @@ El diseño de **InfoportOneAdmon** se centrará en la **usabilidad para el rol e
 | **Feedback del Sistema** | Notificaciones **asíncronas** de éxito/error. Por ejemplo, "Organización creada, sincronizando en Keycloak...". | Informar al usuario sobre los procesos que se ejecutan en segundo plano (arquitectura Event-Driven) para evitar la percepción de lentitud. |
 | **Usabilidad Móvil** | **Prioridad Baja (Administración)**. La interfaz se diseñará y optimizará primariamente para **Desktop** (resoluciones de 1920x1080 o superior), dado que es una aplicación de back-office de uso especializado. | Concentrar recursos en la experiencia de escritorio del administrador donde se realizan las tareas más complejas. |
 
-## 🛠️ 10. Requisitos Técnicos
+## 🛠️ Requisitos Técnicos
 
 ### 10.1. Stack Tecnológico Principal
 
@@ -456,7 +456,7 @@ El core de **InfoportOneAdmon** debe construirse sobre tecnologías probadas y e
     * 🧱 **Aislamiento de Datos**: El diseño de la base de datos debe ser inherentemente *Tenant-Aware* o *Tenant-Safe* para garantizar que el `SecurityCompanyId` sea el factor principal de aislamiento, cumpliendo con la necesidad de segregación de datos.
     * 🧾 **Auditoría (ISO 27001)**: El registro de auditoría (`AuditLog`) debe ser inmutable y registrar el *antes y el después* de los datos de todas las operaciones críticas (creación, modificación, desactivación). Esto es un requisito obligatorio para demostrar el control interno sobre el sistema.
 
-## 🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)
+## 🗓️ Planificación del Proyecto (MVP de 30 Horas)
 
 Dada la restricción de tiempo impuesta (30 horas) para la fase de definición e implementación del **PMV (Producto Mínimo Viable)**, el alcance del proyecto se reducirá a lo estrictamente necesario para validar el flujo más crítico y fundamental: **La creación exitosa de una Organización (Tenant) y su correcta orquestación de seguridad**.
 
