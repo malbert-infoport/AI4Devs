@@ -1,6 +1,6 @@
-# InfoportOneAdmon - Sistema de Gestión Centralizada de Organizaciones y Roles
+# 🧭 InfoportOneAdmon - Sistema de Gestión Centralizada de Organizaciones y Roles
 
-## Tabla de Contenidos
+## 📚 Tabla de Contenidos
 
 1. [Descripción General del Producto](#descripción-general-del-producto)
 2. [Funcionalidades Principales](#funcionalidades-principales)
@@ -16,9 +16,9 @@
 
 ---
 
-## Descripción General del Producto
+## 📝 Descripción General del Producto
 
-### Visión del Producto
+### 🌟 Visión del Producto
 
 **InfoportOneAdmon** es la plataforma administrativa centralizada ("Back-Office") diseñada exclusivamente para que la **Organización Propietaria** del ecosistema gestione el ciclo de vida de los clientes (Organizaciones) y la seguridad transversal de las aplicaciones satélites.
 
@@ -26,7 +26,7 @@ A diferencia de modelos SaaS de auto-servicio, en este ecosistema **las organiza
 
 **Misión**: Centralizar la complejidad administrativa (altas de clientes, seguridad OAuth2, catálogo de roles) para que las aplicaciones de negocio (CRM, ERP, etc.) puedan centrarse exclusivamente en su lógica funcional y en la gestión de sus propios usuarios.
 
-### Alcance y Responsabilidades
+### 🎯 Alcance y Responsabilidades
 
 InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 
@@ -34,11 +34,11 @@ InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 2.  **Catálogo Maestro de Roles**: Definición única de qué roles existen en cada aplicación.
 3.  **Gobierno de Identidad**: Orquestación de Keycloak para la seguridad de las aplicaciones.
 
-**PRINCIPIO CLAVE DE RESPONSABILIDAD**:
+**🔑 PRINCIPIO CLAVE DE RESPONSABILIDAD**:
 * **InfoportOneAdmon**: Define *quién* es el cliente (Organización) y *qué* roles existen (Definiciones).
 * **Aplicaciones Satélite**: Gestionan *quiénes* son los usuarios finales y *qué* roles tienen asignados.
 
-### Principios de Diseño
+### 🧩 Principios de Diseño
 
 | Principio | Descripción | Justificación de Negocio |
 |-----------|-------------|--------------------------|
@@ -50,61 +50,60 @@ InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 
 ---
 
-## Funcionalidades Principales
+## ⚙️ Funcionalidades Principales
 
-### 1. Gestión de Organizaciones (Clientes)
+### 1️⃣ Gestión de Organizaciones (Clientes)
 
-**Descripción**:
+**📝 Descripción**:
 Este módulo permite a los administradores de la Organización Propietaria gestionar el ciclo de vida completo de las empresas clientes que utilizarán el ecosistema de aplicaciones. Su objetivo es centralizar el alta administrativa y técnica en un solo paso, evitando configuraciones manuales en sistemas de terceros (como Keycloak).
 
-**Capacidades**:
-* **Onboarding de Clientes**: Alta de nueva organización, generando automáticamente su estructura de seguridad (Grupos en Keycloak) y su identificador único de seguridad (`SecurityCompanyId`).
-* **Gestión de Configuración**: Modificación de datos corporativos y configuraciones globales del tenant.
-* **Kill-Switch (Desactivación)**: Capacidad de bloquear el acceso de una organización completa al ecosistema de forma inmediata en caso de impago o baja del servicio.
-* **Auditoría de Tenant**: Trazabilidad completa de cuándo se creó o modificó una organización.
+**🧠 Capacidades**:
+* ✅ **Onboarding de Clientes**: Alta de nueva organización, generando automáticamente su estructura de seguridad (Grupos en Keycloak) y su identificador único de seguridad (`SecurityCompanyId`).
+* 🛠️ **Gestión de Configuración**: Modificación de datos corporativos y configuraciones globales del tenant.
+* 🔌 **Kill-Switch (Desactivación)**: Capacidad de bloquear el acceso de una organización completa al ecosistema de forma inmediata en caso de impago o baja del servicio.
+* 🧾 **Auditoría de Tenant**: Trazabilidad completa de cuándo se creó o modificó una organización.
 
-### 2. Gestión de Definiciones de Roles (Catálogo)
+### 2️⃣ Gestión de Definiciones de Roles (Catálogo)
 
-**Descripción**:
+**📝 Descripción**:
 Funciona como un repositorio maestro de roles. Permite definir qué "perfiles" existen dentro de cada aplicación (ej: "Vendedor", "Gerente", "Auditor") y qué permisos técnicos conllevan gestionados desde las propias aplicaciones. Esto evita que los roles se definan "hardcoded" dentro del código de las aplicaciones, permitiendo cambios dinámicos.
 
-**Capacidades**:
-* **Creación de Catálogo**: Definir nuevos roles para una aplicación específica.
-* **Deprecación**: Marcar roles como obsoletos para evitar nuevas asignaciones, guiando la migración hacia nuevos roles.
-* **Consulta de Roles**: Endpoint público para que las aplicaciones descarguen su lista actualizada de roles disponibles.
+**🧠 Capacidades**:
+* 📘 **Creación de Catálogo**: Definir nuevos roles para una aplicación específica.
+* 🧪 **Deprecación**: Marcar roles como obsoletos para evitar nuevas asignaciones, guiando la migración hacia nuevos roles.
+* 🔎 **Consulta de Roles**: Endpoint público para que las aplicaciones descarguen su lista actualizada de roles disponibles.
 
-### 3. Gestión de Aplicaciones (Ecosistema)
+### 3️⃣ Gestión de Aplicaciones (Ecosistema)
 
-**Descripción**:
+**📝 Descripción**:
 Permite registrar nuevas aplicaciones satélite en el ecosistema. Al registrar una app, InfoportOneAdmon se encarga de toda la "fontanería" de seguridad OAuth2, entregando a la aplicación las credenciales necesarias para operar.
 
-**Capacidades**:
-* **Registro de Aplicación**: Alta de nueva app (ej: "Módulo de Finanzas"), generando automáticamente el `client_id` y `client_secret` en Keycloak.
-* **Gestión de Secretos**: Rotación y administración segura de credenciales OAuth2.
-* **Control de Acceso**: Definir si una aplicación está activa o en mantenimiento para todo el ecosistema.
+**🧠 Capacidades**:
+* 🆕 **Registro de Aplicación**: Alta de nueva app (ej: "Módulo de Finanzas"), generando automáticamente el `client_id` y `client_secret` en Keycloak.
+* 🔐 **Gestión de Secretos**: Rotación y administración segura de credenciales OAuth2.
+* 🚦 **Control de Acceso**: Definir si una aplicación está activa o en mantenimiento para todo el ecosistema.
 
-### 4. Integración Transparente con Keycloak
+### 4️⃣ Integración Transparente con Keycloak
 
-**Descripción**:
+**📝 Descripción**:
 InfoportOneAdmon abstrae la complejidad de Keycloak. Los administradores no necesitan entrar a la consola de Keycloak; InfoportOneAdmon traduce las acciones de negocio (ej: "Crear Cliente") en comandos técnicos hacia el servidor de identidad.
 
-**Capacidades**:
-* **Sincronización de Estructuras**: Creación automática de grupos raíz (`/orgs/{nombre}`) y atributos de seguridad.
-* **Configuración de Claims**: Garantiza que los tokens emitidos incluyan siempre el `SecurityCompanyId`, vital para que las aplicaciones sepan a qué datos puede acceder un usuario.
+**🧠 Capacidades**:
+* 🔄 **Sincronización de Estructuras**: Creación automática de grupos raíz (`/orgs/{nombre}`) y atributos de seguridad.
+* 🧩 **Configuración de Claims**: Garantiza que los tokens emitidos incluyan siempre el `SecurityCompanyId`, vital para que las aplicaciones sepan a qué datos puede acceder un usuario.
 
-### 5. Arquitectura Orientada a Eventos (ActiveMQ Artemis)
+### 5️⃣ Arquitectura Orientada a Eventos (ActiveMQ Artemis)
 
-**Descripción**:
+**📝 Descripción**:
 Mecanismo de comunicación asíncrona que mantiene la coherencia entre InfoportOneAdmon y las aplicaciones satélite. Cuando ocurre un cambio administrativo, se emite un evento para que las aplicaciones interesadas reaccionen.
 
-**Eventos Principales**:
+**📣 Eventos Principales**:
 * `OrganizationCreated` / `Updated` / `Deactivated`
 * `ApplicationRegistered`
 * `RoleCreated` / `Updated` / `Deprecated`
 
----
 
-## Arquitectura Lógica del Sistema
+## 🏗️ Arquitectura Lógica del Sistema
 
 El siguiente diagrama ilustra cómo InfoportOneAdmon orquesta la seguridad y los datos maestros, sirviendo a las aplicaciones del ecosistema.
 
@@ -163,9 +162,9 @@ graph TB
     style D1 fill:#BD10E0,color:#fff
 ```
 
-## Flujos de Proceso de Negocio
+## 🔀 Flujos de Proceso de Negocio
 
-### 1. Alta de Nueva Organización (Onboarding)
+### 1️⃣ Alta de Nueva Organización (Onboarding)
 
 Este proceso es ejecutado exclusivamente por el personal de la Organización Propietaria cuando se cierra un contrato con un nuevo cliente.
 
@@ -192,7 +191,7 @@ graph TD
     end
 ```
 
-### 2. Definición de Nuevo Rol en una Aplicación
+### 2️⃣ Definición de Nuevo Rol en una Aplicación
 
 El administrador define un nuevo perfil funcional que estará disponible para una aplicación específica.
 
@@ -216,7 +215,7 @@ graph TD
     end
 ```
 
-### 3. Registro de Nueva Aplicación en el Ecosistema
+### 3️⃣ Registro de Nueva Aplicación en el Ecosistema
 
 Proceso técnico para dar de alta una nueva aplicación satélite y permitirle interactuar con Keycloak.
 
@@ -236,7 +235,7 @@ graph TD
     Notify --> End([Fin: App Lista para Conectar])
 ```
 
-### 4. Autenticación y Autorización (Vista de Usuario Final)
+### 4️⃣ Autenticación y Autorización (Vista de Usuario Final)
 
 Cómo un usuario de una Organización Cliente accede a una App Satélite. InfoportOneAdmon no participa activamente en el login (solo configuró el entorno previamente), pero su configuración es vital.
 
@@ -261,7 +260,7 @@ graph TD
     Access -->|No| Deny[Acceso Denegado 403]
 ```
 
-## Modelo de Datos Conceptual
+## 🗃️ Modelo de Datos Conceptual
 
 A continuación, se presentan las entidades principales que maneja InfoportOneAdmon. Este modelo no busca detallar tipos de datos SQL, sino las relaciones de negocio.
 
@@ -296,7 +295,7 @@ erDiagram
     AUDIT_LOG }o--|| APPLICATION : "registra cambios sobre"
 ```
 
-### Entidades Clave
+### 🧱 Entidades Clave
 
 1.  **Organization (Organización): Representa al cliente legal. Su atributo más crítico es el SecurityCompanyId, que es el pegamento de seguridad entre Keycloak, InfoportOneAdmon y las Apps Satélite.
 
@@ -306,7 +305,7 @@ erDiagram
 
 4.  **AuditLog: Registro inmutable de todas las operaciones realizadas por los administradores propietarios.
 
-## Estrategia de Optimización y Rendimiento
+## 🚀 Estrategia de Optimización y Rendimiento
 
 Aunque InfoportOneAdmon es un sistema de administración (tráfico bajo comparado con las apps satélite), su disponibilidad es crítica. Se aplican las siguientes estrategias no funcionales:
 
@@ -334,13 +333,13 @@ La validación de seguridad en tiempo de ejecución se basa en el estándar *JWT
 4. **Auditoría Asíncrona
 El registro de auditoría no bloquea la operación principal. Se procesa en segundo plano para asegurar una experiencia de usuario fluida para el administrador.
 
-## 7. Identificación y Clasificación de Stakeholders
+## 👥 7. Identificación y Clasificación de Stakeholders
 
 A continuación, se presenta la lista de partes interesadas clave para el proyecto **InfoportOneAdmon**, clasificadas según su rol, interés y nivel de influencia en la plataforma de administración centralizada.
 
 ---
 
-### Partes Interesadas Primarias (Usuarios y Decisiones)
+### 🧑‍💼 Partes Interesadas Primarias (Usuarios y Decisiones)
 
 | Categoría | Stakeholder | Interés Principal | Impacto de InfoportOneAdmon |
 | :--- | :--- | :--- | :--- |
@@ -351,7 +350,7 @@ A continuación, se presenta la lista de partes interesadas clave para el proyec
 
 ---
 
-### Partes Interesadas Secundarias (Consumidores y Proveedores)
+### 🤝 Partes Interesadas Secundarias (Consumidores y Proveedores)
 
 | Categoría | Stakeholder | Interés Principal | Impacto de InfoportOneAdmon |
 | :--- | :--- | :--- | :--- |
@@ -361,7 +360,7 @@ A continuación, se presenta la lista de partes interesadas clave para el proyec
 
 ---
 
-### Partes Interesadas de Gobierno y Mercado
+### 🏛️ Partes Interesadas de Gobierno y Mercado
 
 | Categoría | Stakeholder | Interés Principal | Impacto de InfoportOneAdmon |
 | :--- | :--- | :--- | :--- |
@@ -369,7 +368,7 @@ A continuación, se presenta la lista de partes interesadas clave para el proyec
 | **Marketing y Ventas** | **Equipo de Ventas B2B y Marketing** | Capacidad de promocionar y asegurar un proceso de *onboarding* de clientes rápido, estandarizado y de alta seguridad a nuevos prospectos. | La eficiencia del módulo de `Gestión de Organizaciones` es un **argumento de venta (USP)** fundamental para la adquisición de nuevos clientes. |
 | **Minoristas / Distribuidores** | **N/A** | N/A. | El proyecto **InfoportOneAdmon** es un sistema B2B interno de gestión administrativa y no tiene relación con el canal minorista o distribución física. |
 
-## 8. Componentes Principales y Sitemaps
+## 🧱 8. Componentes Principales y Sitemaps
 
 ### 8.1. Componentes Principales (Estructura Lógica)
 
@@ -407,16 +406,16 @@ graph TD
     D --> D3(Gestión de Credenciales OAuth2)
 ```
 
-## 9. Diseño y Experiencia del Usuario (UX/UI)
+## 🎨 9. Diseño y Experiencia del Usuario (UX/UI)
 
 El diseño de **InfoportOneAdmon** se centrará en la **usabilidad para el rol especializado de administración**, priorizando la seguridad y la claridad sobre la estética visual avanzada. La audiencia son usuarios *expertos* que ejecutan tareas críticas.
 
 ### 9.1. Principios de Usabilidad
 
-* **Claridad en Aislamiento**: Cada acción relacionada con una organización (tenant) debe mostrar claramente el `SecurityCompanyId` afectado para evitar errores de gestión. El identificador único debe ser visible en el contexto de cualquier operación de modificación o eliminación.
-* **Diseño Orientado al Dato (Data-Driven)**: Interfaz basada en tablas de datos filtrables, ordenables y paginadas. El administrador pasa la mayor parte del tiempo revisando listas de organizaciones, roles y logs.
-* **Flujos Lineales para Tareas Críticas**: El proceso de **"Crear Nueva Organización"** será un asistente (wizard) paso a paso, ya que es una operación de alta criticidad que debe ser auditable y minimizando la posibilidad de omisión de datos.
-* **Minimalismo Funcional**: Evitar decoraciones innecesarias. La interfaz debe ser rápida y responsiva, enfocada en la eficiencia del flujo de trabajo del administrador.
+* 🔍 **Claridad en Aislamiento**: Cada acción relacionada con una organización (tenant) debe mostrar claramente el `SecurityCompanyId` afectado para evitar errores de gestión. El identificador único debe ser visible en el contexto de cualquier operación de modificación o eliminación.
+* 📊 **Diseño Orientado al Dato (Data-Driven)**: Interfaz basada en tablas de datos filtrables, ordenables y paginadas. El administrador pasa la mayor parte del tiempo revisando listas de organizaciones, roles y logs.
+* 🧭 **Flujos Lineales para Tareas Críticas**: El proceso de **"Crear Nueva Organización"** será un asistente (wizard) paso a paso, ya que es una operación de alta criticidad que debe ser auditable y minimizando la posibilidad de omisión de datos.
+* ✨ **Minimalismo Funcional**: Evitar decoraciones innecesarias. La interfaz debe ser rápida y responsiva, enfocada en la eficiencia del flujo de trabajo del administrador.
 
 ### 9.2. Especificaciones de Diseño (Estándares)
 
@@ -427,7 +426,7 @@ El diseño de **InfoportOneAdmon** se centrará en la **usabilidad para el rol e
 | **Feedback del Sistema** | Notificaciones **asíncronas** de éxito/error. Por ejemplo, "Organización creada, sincronizando en Keycloak...". | Informar al usuario sobre los procesos que se ejecutan en segundo plano (arquitectura Event-Driven) para evitar la percepción de lentitud. |
 | **Usabilidad Móvil** | **Prioridad Baja (Administración)**. La interfaz se diseñará y optimizará primariamente para **Desktop** (resoluciones de 1920x1080 o superior), dado que es una aplicación de back-office de uso especializado. | Concentrar recursos en la experiencia de escritorio del administrador donde se realizan las tareas más complejas. |
 
-## 10. Requisitos Técnicos
+## 🛠️ 10. Requisitos Técnicos
 
 ### 10.1. Stack Tecnológico Principal
 
@@ -444,20 +443,20 @@ El core de **InfoportOneAdmon** debe construirse sobre tecnologías probadas y e
 
 ### 10.2. Aspectos Técnicos Críticos
 
-* **API y Estructura de Datos**:
-    * **Interactividad (REST)**: La API de InfoportOneAdmon debe ser 100% RESTful, desacoplada y utilizar versiones (ej. `/v1/`).
-    * **Paginación Obligatoria**: Todos los *endpoints* que devuelvan listas de recursos (Organizaciones, Roles, Logs) deben implementar la **Paginación Obligatoria** (`skip`/`take` o similar) para evitar problemas de rendimiento y sobrecarga de la base de datos.
-    * **Caching**: Implementar una capa de caché de solo lectura (ej. Redis) para la consulta del Catálogo de Roles, ya que será un *endpoint* de alta concurrencia consultado por las aplicaciones satélite.
+* **📡 API y Estructura de Datos**:
+    * 🔗 **Interactividad (REST)**: La API de InfoportOneAdmon debe ser 100% RESTful, desacoplada y utilizar versiones (ej. `/v1/`).
+    * 📄 **Paginación Obligatoria**: Todos los *endpoints* que devuelvan listas de recursos (Organizaciones, Roles, Logs) deben implementar la **Paginación Obligatoria** (`skip`/`take` o similar) para evitar problemas de rendimiento y sobrecarga de la base de datos.
+    * 🧠 **Caching**: Implementar una capa de caché de solo lectura (ej. Redis) para la consulta del Catálogo de Roles, ya que será un *endpoint* de alta concurrencia consultado por las aplicaciones satélite.
 
-* **Seguridad y Confidencialidad**:
-    * **Almacenamiento de Secretos**: Todas las credenciales sensibles (ej. `client_secret` de las Apps) deben almacenarse **encriptadas en reposo** utilizando un almacén de secretos dedicado (como Azure Key Vault, AWS Secrets Manager o HashiCorp Vault).
-    * **Orquestación Segura**: La comunicación entre InfoportOneAdmon y Keycloak (vía Admin API) debe realizarse siempre a través de un canal seguro (TLS/HTTPS).
+* **🔐 Seguridad y Confidencialidad**:
+    * 🗝️ **Almacenamiento de Secretos**: Todas las credenciales sensibles (ej. `client_secret` de las Apps) deben almacenarse **encriptadas en reposo** utilizando un almacén de secretos dedicado (como Azure Key Vault, AWS Secrets Manager o HashiCorp Vault).
+    * 🔒 **Orquestación Segura**: La comunicación entre InfoportOneAdmon y Keycloak (vía Admin API) debe realizarse siempre a través de un canal seguro (TLS/HTTPS).
 
-* **Normativas y Compliance**:
-    * **Aislamiento de Datos**: El diseño de la base de datos debe ser inherentemente *Tenant-Aware* o *Tenant-Safe* para garantizar que el `SecurityCompanyId` sea el factor principal de aislamiento, cumpliendo con la necesidad de segregación de datos.
-    * **Auditoría (ISO 27001)**: El registro de auditoría (`AuditLog`) debe ser inmutable y registrar el *antes y el después* de los datos de todas las operaciones críticas (creación, modificación, desactivación). Esto es un requisito obligatorio para demostrar el control interno sobre el sistema.
+* **📏 Normativas y Compliance**:
+    * 🧱 **Aislamiento de Datos**: El diseño de la base de datos debe ser inherentemente *Tenant-Aware* o *Tenant-Safe* para garantizar que el `SecurityCompanyId` sea el factor principal de aislamiento, cumpliendo con la necesidad de segregación de datos.
+    * 🧾 **Auditoría (ISO 27001)**: El registro de auditoría (`AuditLog`) debe ser inmutable y registrar el *antes y el después* de los datos de todas las operaciones críticas (creación, modificación, desactivación). Esto es un requisito obligatorio para demostrar el control interno sobre el sistema.
 
-## 11. Planificación del Proyecto (MVP de 30 Horas)
+## 🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)
 
 Dada la restricción de tiempo impuesta (30 horas) para la fase de definición e implementación del **PMV (Producto Mínimo Viable)**, el alcance del proyecto se reducirá a lo estrictamente necesario para validar el flujo más crítico y fundamental: **La creación exitosa de una Organización (Tenant) y su correcta orquestación de seguridad**.
 
