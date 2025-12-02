@@ -9,6 +9,10 @@
 5. [Modelo de Datos Conceptual](#modelo-de-datos-conceptual)
 6. [Estrategia de Optimización y Rendimiento](#estrategia-de-optimización-y-rendimiento)
 7. [Identificación y Clasificación de Stakeholders](#7-identificación-y-clasificación-de-stakeholders)
+8. [Componentes Principales y Sitemaps](#8-componentes-principales-y-sitemaps)
+9. [Diseño y Experiencia del Usuario (UX/UI)](#9-dise%C3%B1o-y-experiencia-del-usuario-uxui)
+10. [Requisitos Técnicos](#10-requisitos-t%C3%A9cnicos)
+11. [Planificación del Proyecto (MVP de 30 Horas)](#11-planificaci%C3%B3n-del-proyecto-mvp-de-30-horas)
 
 ---
 
@@ -397,7 +401,6 @@ graph TD
     
     C --> C1(Lista de Roles por Aplicación)
     C --> C2(Crear Nuevo Rol)
-    C --> C3(Mapeo de Permisos)
     
     D --> D1(Lista de Aplicaciones)
     D --> D2(Registrar Nueva App)
@@ -468,7 +471,7 @@ El PMV de 30 horas se enfocará exclusivamente en el **Flujo 1: Alta de Nueva Or
 | **Desacoplamiento** | Publicación del evento `OrganizationCreated` en **ActiveMQ Artemis**. |
 | **Visibilidad** | Persistencia de los datos de la Organización en la Base de Datos Core y registro del evento en el Log de Auditoría. |
 
-### 11.2. Hitos y Asignación de Horas (30h)
+### 11.2. Hitos y Asignación de Horas (PMV) (30h)
 
 La planificación se divide en cinco fases secuenciales y limitadas, que deben cumplirse para considerar el PMV como finalizado.
 
@@ -480,3 +483,15 @@ La planificación se divide en cinco fases secuenciales y limitadas, que deben c
 | **Fase 4: Mensajería (ActiveMQ Artemis)** | Bus de Eventos | **5h** | Fase 2 | Integración del productor. El evento `OrganizationCreated` se publica con éxito y es visible en el broker de mensajes. |
 | **Fase 5: Test y Documentación** | Transversal | **3h** | Fases 2, 3, 4 | Flujo completo de *Onboarding* validado de extremo a extremo. Creación de tests unitarios/integración mínimos y documentación de la API del PMV finalizada. |
 | **TOTAL** | | **30 Horas** | | **PMV Aceptado** |
+
+### 11.3. Fases Restantes Tras el PMV (Hoja de Ruta Completa)
+
+Una vez completado y aceptado el PMV (Flujo de Onboarding de Organización), el proyecto se enfocará en las siguientes fases, priorizando las funcionalidades administrativas críticas y los datos maestros (Catálogo de Roles y Apps).
+
+| Fase | Objetivo Principal | Módulos Clave | Hitos a Completar |
+| :--- | :--- | :--- | :--- |
+| **Fase 6** | **Gestión Completa del Ciclo de Vida de la Organización** | Módulo Organizaciones, Orquestación Keycloak | 1. Implementación de la funcionalidad **Actualizar Datos** de la Organización. 2. Desarrollo del **Kill-Switch (Desactivación)** y su correspondiente sincronización en Keycloak (bloqueo de grupo). 3. Publicación del evento crítico `OrganizationDeactivated` en ActiveMQ Artemis. |
+| **Fase 7** | **Catálogo Maestro de Roles (Definición)** | Módulo Catálogo de Roles | 1. Implementación de la API para **Crear y Modificar** la definición de Roles y sus Permisos. 2. API de consulta pública (lectura) para que las Apps Satélite descarguen su catálogo de roles. 3. Implementación de los eventos `RoleCreated` y `RoleUpdated` en ActiveMQ Artemis. |
+| **Fase 8** | **Gestión de Aplicaciones y Credenciales** | Módulo de Aplicaciones, Orquestación Keycloak | 1. Implementación de la funcionalidad para **Registrar una Nueva Aplicación** en el ecosistema. 2. Orquestación Keycloak para generar el `client_id` y `client_secret` de la App. 3. Implementación segura del almacén de secretos (cifrado en reposo del `client_secret`). |
+| **Fase 9** | **Operaciones y Cumplimiento (Compliance)** | Módulo de Auditoría y Logs, Transversal | 1. Finalización de la implementación del **Log de Auditoría Inmutable** para todas las operaciones críticas (Organizaciones, Roles, Apps). 2. Desarrollo de la interfaz de consulta para los equipos de Soporte. 3. Implementación de la capa de caché (ej. Redis) para el *endpoint* de consulta de Roles, cumpliendo el CA 4.1. |
+| **Fase 10** | **Pruebas de Aceptación y Estabilidad** | Transversal | 1. Pruebas de Carga/Estrés en la API de Roles (para verificar la estrategia de caché). 2. Pruebas de Resiliencia del Bus de Eventos (ActiveMQ Artemis). 3. Documentación técnica completa para consumo de la API y los eventos. 4. **Pruebas de Aceptación del Usuario (UAT)** por parte de los Administradores Propietarios. |
