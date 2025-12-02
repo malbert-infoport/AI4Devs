@@ -2,17 +2,17 @@
 
 ## 📚 Tabla de Contenidos
 
-1. [📝 1. Descripción General del Producto](#📝-1-descripción-general-del-producto)
-2. [⚙️ 2. Funcionalidades Principales](#️-2-funcionalidades-principales)
-3. [🏗️ 3. Arquitectura Lógica del Sistema](#️-3-arquitectura-lógica-del-sistema)
+1. [📝 1. Descripción General del Producto](#-1-descripción-general-del-producto)
+2. [⚙️ 2. Funcionalidades Principales](#%EF%B8%8F-2-funcionalidades-principales)
+3. [🏗️ 3. Arquitectura Lógica del Sistema](#%EF%B8%8F-3-arquitectura-lógica-del-sistema)
 4. [🔀 4. Flujos de Proceso de Negocio](#-4-flujos-de-proceso-de-negocio)
-5. [🗃️ 5. Modelo de Datos Conceptual](#️-5-modelo-de-datos-conceptual)
-6. [🚀 6. Estrategia de Optimización y Rendimiento](#️-6-estrategia-de-optimización-y-rendimiento)
+5. [🗃️ 5. Modelo de Datos Conceptual](#%EF%B8%8F-5-modelo-de-datos-conceptual)
+6. [🚀 6. Estrategia de Optimización y Rendimiento](#-6-estrategia-de-optimización-y-rendimiento)
 7. [👥 7. Identificación y Clasificación de Stakeholders](#-7-identificación-y-clasificación-de-stakeholders)
-8. [🧱 8. Componentes Principales y Sitemaps](#️-8-componentes-principales-y-sitemaps)
+8. [🧱 8. Componentes Principales y Sitemaps](#-8-componentes-principales-y-sitemaps)
 9. [🎨 9. Diseño y Experiencia del Usuario (UX/UI)](#-9-diseño-y-experiencia-del-usuario-uxui)
-10. [🛠️ 10. Requisitos Técnicos](#️-10-requisitos-técnicos)
-11. [🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)](#️-11-planificación-del-proyecto-mvp-de-30-horas)
+10. [🛠️ 10. Requisitos Técnicos](#%EF%B8%8F-10-requisitos-técnicos)
+11. [🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)](#%EF%B8%8F-11-planificación-del-proyecto-mvp-de-30-horas)
 
 ---
 
