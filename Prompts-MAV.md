@@ -30,3 +30,13 @@ Prompt3: (Definición del producto)
 Prompt4: (Definición de Producto)
 - Rol: Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 - Objetivo: En base al contexto de este hilo me gustaria que me definas en codificación .md un nuevo punto para mi informe con los Stakeholders: Identifica a todas las partes interesadas, incluyendo usuarios, compradores, fabricantes, asistencia al cliente, marketing y ventas, socios externos, instancias reguladoras, minoristas, entre otros.
+
+Prompt 5: (Definición de Producto)
+- Rol: Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+- Objetivo: Añádeme en base al contexto del proyecto los siguientes puntos:
+	- Componentes Principales y Sitemaps: Detalla la estructura y organización del producto, incluyendo sus componentes principales y cómo se relacionan entre sí
+	- Diseño y Experiencia del Usuario: Incluye especificaciones sobre el diseño del producto y la experiencia del usuario, asegurando que el producto sea usable y estéticamente agradable.
+	- Requisitos Técnicos: Detalla los aspectos técnicos necesarios para el desarrollo del producto, incluyendo hardware, software, interactividad, personalización y normativas.
+	- Planificación del Proyecto: Proporciona información sobre plazos, hitos y dependencias, crucial para la planificación y gestión efectiva del proyecto. Esta debe estar acotada a un plazo de 30 horas que son más o menos las horas dedicadas a realziar este proyecto mediante IA. Esto debe ser tenido en cuenta para determinar el PMV de este proyecto.
+	- Criterios de aceptación: Define los estándares y condiciones bajo los cuales el producto será aceptado tras su finalización.
+	
