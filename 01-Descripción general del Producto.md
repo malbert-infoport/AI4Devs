@@ -435,11 +435,12 @@ El core de **InfoportOneAdmon** debe construirse sobre tecnologías probadas y e
 
 | Requisito | Especificación | Justificación |
 | :--- | :--- | :--- |
-| **Lenguaje/Runtime** | ASP.NET Core (preferiblemente C#) o Java/Spring Boot. | Entornos robustos, con alto rendimiento en microservicios y excelente soporte para la construcción de APIs REST. |
-| **Base de Datos** | PostgreSQL o SQL Server. | Se requiere un motor de base de datos relacional para garantizar la integridad transaccional (ACID) y la capacidad de realizar auditoría detallada y transacciones de alta criticidad. |
+| **Backend Lenguaje/Runtime** | ASP.NET Core C#. Framework Helix6. | Entornos robustos, con alto rendimiento en microservicios y excelente soporte para la construcción de APIs REST. |
+| **Frontend Lenguaje/Runtime** | Angular 20. | Cliente SPA muy adecuado para e desarrollo en este proyecto. |
+| **Base de Datos** | PostgreSQL. | Se requiere un motor de base de datos relacional para garantizar la integridad transaccional (ACID) y la capacidad de realizar auditoría detallada y transacciones de alta criticidad. |
 | **Servicio de Identidad** | **Keycloak** (Configurado como un Realm Único llamado `InfoportOne`). | Estándar de facto para OpenID Connect y OAuth2, necesario para la seguridad transversal de todo el ecosistema de aplicaciones satélite. |
 | **Mensajería** | **ActiveMQ Artemis**. | Bus de mensajería empresarial para la arquitectura Event-Driven. Garantiza la entrega asíncrona confiable de eventos críticos (ej. `OrganizationDeactivated`). |
-| **Despliegue** | Contenedores Docker (Orquestación con Kubernetes/AKS/EKS). | Máxima escalabilidad horizontal, resiliencia y despliegue automatizado para un servicio de la plataforma Core. |
+| **Despliegue** | Contenedores Docker. | Máxima escalabilidad horizontal, resiliencia y despliegue automatizado para un servicio de la plataforma Core. |
 
 ### 10.2. Aspectos Técnicos Críticos
 
