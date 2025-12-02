@@ -1,4 +1,4 @@
-Prompt 1: 
+Prompt 1: (Definición del producto)
 - Rol: Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 - Objetivo: Realizar una descripción general del proyecto en formato .md, lo más detallada posible, para la gestión de organizaciones con toda la funcionalidad que debe cubrir para permitir crear organizaciones cuyos usuarios puedan acceder a las distintas aplicaciones del ecosistema. Esta documentación deberá cubrir:
 		- Una descripción breve del proyecto de organizaciones 
@@ -19,4 +19,10 @@ Prompt 1:
 		- La idea es que las aplicaciones del ecosistema y el propio proyecto de organizaciones se desplieguen mediante contenedores en la nube o on premise.
 		- Se deben tener en cuenta las premisas de desarrollo o de arquitectura que reduzcan los costes del proyecto en la nube tales como las transacciones realizadas a base de datos, accesos a disco, número de contenedores a incluir en la arquitectura, etc.
 		
-Prompt 2: Quiero que vuelvas a generar la documentación teniendo en cuenta que el proyecto de organizaciones no gestiona los usuarios, son las aplicaciones quienes lo hacen y las que determinan cada rol que permisos de acceso efectivos tiene la propia aplicación. Desde el proyecto de organizaciones solo se gestionanrán que roles tiene cada aplicación par que la propia aplicación de de alta usuarios con sus roles asociados mediante el proyecto de organizaciones. 
+Prompt 2: (Definición del producto)
+- Rol: Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+- Objetivo: Volver a generar la documentación teniendo en cuenta que el proyecto de organizaciones no gestiona los usuarios, son las aplicaciones quienes lo hacen y las que determinan cada rol que permisos de acceso efectivos tiene la propia aplicación. Desde el proyecto de organizaciones solo se gestionanrán que roles tiene cada aplicación par que la propia aplicación de de alta usuarios con sus roles asociados mediante el proyecto de organizaciones.
+
+Prompt3: (Definición del producto)
+- Rol: Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+- Objetivo: Revisa la documentación completa ya generada que te he indico a continuación para añadir una descripción a las funcionalidades principales, al menos al nivel superior de la funcionalidad indicando el sentido de la misma. Quiero que sustituyas rabbitmq por ActiveMq Artemis y todas sus apariciones en los diagramas. Y toda referencia a SGOR como nombre de proyecto pase a ser InfoportOneAdmon. En este punto de definición del proyecto no quiero que te centres en el como sino en el que, no es necesario poner ejemplos json para los claims ni el patrón de suscripción a roles. Los flujos definidos creo que quedarian más claros si los diseñas como diagramas de flujo en uml en mermaid.También debe quedar muy claro que este proyecto de administración de organizaciones esta pensado no para que las organizaciones se suscriban, habrá una organización propietaria del ecosistema de aplicaciones que se encargará de crear la nueva organización y de gestionarlo todo desde InfoportOneAdmon.
