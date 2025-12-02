@@ -8,7 +8,7 @@
 4. [Flujos de Proceso de Negocio](#flujos-de-proceso-de-negocio)
 5. [Modelo de Datos Conceptual](#modelo-de-datos-conceptual)
 6. [Estrategia de Optimización y Rendimiento](#estrategia-de-optimización-y-rendimiento)
-7. (Identificación y Clasificación de Stakeholders)(#identificación-y-clasificación-de-stakeholders)
+7. [Identificación y Clasificación de Stakeholders](#identificación-y-clasificación-de-stakeholders)
 
 ---
 
