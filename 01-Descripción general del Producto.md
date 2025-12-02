@@ -41,7 +41,7 @@ InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 | **Administración Centralizada** | Gestión exclusiva por la Organización Propietaria | Control total sobre el onboarding de clientes y licencias. |
 | **Single Realm** | Un único realm (InfoportOne) en Keycloak | Simplifica la gestión de identidades y permite SSO real. |
 | **Usuarios Descentralizados** | Las Apps crean sus propios usuarios | Permite a cada aplicación escalar y gestionar sus usuarios sin cuellos de botella centrales. |
-| **Roles como Catálogo** | InfoportOneAdmon define, Apps asignan | Asegura coherencia en los nombres y permisos de los roles, pero flexibilidad en la asignación. |
+| **Roles como Catálogo** | InfoportOneAdmon define, Apps asignan | Asegura coherencia en los nombres y flexibilidad en la asignación. |
 | **Event-Driven** | Uso de ActiveMQ Artemis | Garantiza que los cambios administrativos se propaguen a las apps sin acoplamiento fuerte. |
 
 ---
@@ -62,11 +62,10 @@ Este módulo permite a los administradores de la Organización Propietaria gesti
 ### 2. Gestión de Definiciones de Roles (Catálogo)
 
 **Descripción**:
-Funciona como un repositorio maestro de roles. Permite definir qué "perfiles" existen dentro de cada aplicación (ej: "Vendedor", "Gerente", "Auditor") y qué permisos técnicos conllevan. Esto evita que los roles se definan "hardcoded" dentro del código de las aplicaciones, permitiendo cambios dinámicos.
+Funciona como un repositorio maestro de roles. Permite definir qué "perfiles" existen dentro de cada aplicación (ej: "Vendedor", "Gerente", "Auditor") y qué permisos técnicos conllevan gestionados desde las propias aplicaciones. Esto evita que los roles se definan "hardcoded" dentro del código de las aplicaciones, permitiendo cambios dinámicos.
 
 **Capacidades**:
-* **Creación de Catálogo**: Definir nuevos roles para una aplicación específica con su lista de permisos granulares.
-* **Evolución de Roles**: Modificar los permisos asociados a un rol existente (ej: agregar el permiso "borrar_facturas" al rol "Gerente"). Los cambios se notifican a las apps.
+* **Creación de Catálogo**: Definir nuevos roles para una aplicación específica.
 * **Deprecación**: Marcar roles como obsoletos para evitar nuevas asignaciones, guiando la migración hacia nuevos roles.
 * **Consulta de Roles**: Endpoint público para que las aplicaciones descarguen su lista actualizada de roles disponibles.
 
@@ -197,7 +196,7 @@ El administrador define un nuevo perfil funcional que estará disponible para un
 graph TD
     Start([Inicio: Admin define Nuevo Rol]) --> SelectApp[Seleccionar Aplicación Destino]
     
-    SelectApp --> Define[Definir Nombre y Permisos]
+    SelectApp --> Define[Definir Nombre]
     Define --> DB_Check[Verificar si el rol ya existe en catálogo]
     
     DB_Check -->|Ya Existe| Error[Error: Rol Duplicado]
@@ -375,7 +374,7 @@ El sistema **InfoportOneAdmon** se compone de tres módulos internos de aplicaci
 | Componente | Rol en el Ecosistema | Interacción con Otros Sistemas |
 | :--- | :--- | :--- |
 | **Módulo de Organizaciones** | Gestiona el ciclo de vida de los clientes (alta, activación, desactivación). | Escribe en la Base de Datos. Utiliza el **Servicio de Orquestación** para interactuar con Keycloak. |
-| **Módulo Catálogo de Roles** | Define y almacena las plantillas de roles y permisos para cada aplicación satélite. | Publica eventos `RoleUpdated` en **ActiveMQ Artemis**. |
+| **Módulo Catálogo de Roles** | Define y almacena las plantillas de roles. | Publica eventos `RoleUpdated` en **ActiveMQ Artemis**. |
 | **Módulo de Aplicaciones** | Registra nuevas aplicaciones satélite y gestiona sus credenciales OAuth2 (`client_id`, `client_secret`). | Utiliza el **Servicio de Orquestación** para dar de alta clientes en Keycloak. |
 | **Servicio de Orquestación Keycloak** | Microservicio interno que traduce las acciones de negocio (ej. "Crear Org") en llamadas administrativas a Keycloak. | **Keycloak Admin API**. |
 | **ActiveMQ Artemis** | Bus de mensajería empresarial. Garantiza la entrega asíncrona y la coherencia de datos entre InfoportOneAdmon y las aplicaciones satélite. | **Aplicaciones Satélite** (Consumidores) y **InfoportOneAdmon** (Productor). |
