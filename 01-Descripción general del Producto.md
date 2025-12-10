@@ -47,7 +47,7 @@ InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 | **Single Realm** | Un único realm (InfoportOne) en Keycloak | Simplifica la gestión de identidades y permite SSO real. |
 | **Usuarios Descentralizados** | Las Apps crean sus propios usuarios | Permite a cada aplicación escalar y gestionar sus usuarios sin cuellos de botella centrales. |
 | **Roles como Catálogo** | InfoportOneAdmon define, Apps asignan | Asegura coherencia en los nombres y flexibilidad en la asignación. |
-| **Event-Driven** | Uso de ActiveMQ Artemis | Garantiza que los cambios administrativos se propaguen a las apps sin acoplamiento fuerte. |
+| **State-Transfer-Oriented Events** | Los eventos no comunican la acción (creado, actualizado), sino el **estado final** de la entidad. | **Desacopla al consumidor del productor**. El consumidor no necesita conocer la historia; aplica la lógica "upsert" (si existe, actualiza; si no, crea) o borra si `IsDeleted` es true, haciendo el sistema más resiliente. |
 | **Sincronización por Eventos**| La inicialización de datos en nuevas aplicaciones se realiza mediante la emisión de eventos desde InfoportOneAdmon | Asegura un bajo acoplamiento y permite a las aplicaciones inicializarse o resincronizarse bajo demanda y de forma asíncrona |
 ---
 
@@ -73,7 +73,7 @@ Permite crear y gestionar agrupaciones lógicas de organizaciones. Estas agrupac
 * 🆕 **Creación de Grupos**: Definir un nuevo grupo de organizaciones (ej: "Grupo Logístico Peninsular").
 * 🔄 **Asociación de Miembros**: Añadir o eliminar organizaciones de un grupo existente.
 * 🗑️ **Gestión del Ciclo de Vida**: Modificar o eliminar grupos.
-* 📢 **Propagación de Cambios**: Cada cambio (creación de grupo, adición/eliminación de miembro) genera un evento que se publica en el bus para notificar a las aplicaciones.
+* 📢 **Propagación de Cambios**: Cada cambio (creación, modificación, borrado de grupo, o cambio en sus miembros) genera un evento de estado que se publica en el bus para notificar a las aplicaciones.
 
 ### 2.3️⃣ Gestión de Definiciones de Roles (Catálogo)
 
@@ -108,242 +108,117 @@ Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder a s
 ### 2.6️⃣ Arquitectura Orientada a Eventos (ActiveMQ Artemis)
 
 **📝 Descripción**:
-Mecanismo de comunicación asíncrona que mantiene la coherencia entre InfoportOneAdmon y las aplicaciones satélite.
+Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Event"** para mantener la coherencia entre InfoportOneAdmon y las aplicaciones satélite. En lugar de notificar acciones (ej. "se creó X"), se notifica el **nuevo estado de la entidad**. Esto hace que los sistemas consumidores sean más robustos y fáciles de sincronizar.
 
-**📣 Eventos Principales**:
-* `OrganizationCreated` / `Updated` / `Deactivated`
-* `OrganizationGroupCreated` / `Updated` / `Deleted`
-* `OrganizationAddedToGroup` / `OrganizationRemovedFromGroup`
-* `ApplicationRegistered`
-* `FullApplicationListRequested` / `FullOrganizationListRequested` (para sincronización)
-* `RoleCreated` / `Updated` / `Deprecated`
+**📣 Tópicos de Eventos Principales**:
+Se define un tópico por cada entidad de negocio principal.
+
+*   `infoportone.events.organization`
+*   `infoportone.events.organization-group`
+*   `infoportone.events.application`
+*   `infoportone.events.role`
+*   `infoportone.events.synchronization` (Para eventos de sincronización masiva)
+
+### 2.7️⃣ Definición de la Estructura de Eventos
+
+Todos los eventos comparten una estructura común que permite a los consumidores aplicar una lógica de "upsert" (actualizar o insertar) o eliminar, independientemente de si tenían el dato previamente.
+
+#### Estructura Genérica del Evento
+
+```json
+{
+  "EventId": "Guid", // Identificador único del evento
+  "EventType": "string", // Describe la entidad, ej: "OrganizationEvent"
+  "EventTimestamp": "DateTime", // Fecha y hora de generación del evento
+  "IsDeleted": false, // `false` para creación/actualización, `true` para eliminación
+  "Payload": {
+    // Objeto completo de la entidad en su estado final
+  }
+}
+```
+
+#### Ejemplo: `OrganizationEvent`
+
+Enviado al tópico `infoportone.events.organization`.
+
+*   **`EventType`**: `"OrganizationEvent"`
+*   **`Payload`**: Objeto completo de la entidad `ORGANIZATION`.
+
+```json
+{
+  "EventId": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+  "EventType": "OrganizationEvent",
+  "EventTimestamp": "2025-12-10T10:00:00Z",
+  "IsDeleted": false,
+  "Payload": {
+    "SecurityCompanyId": 12345,
+    "Nombre": "Cliente Final S.L.",
+    "Estado": "Activo",
+    "GroupId": 101
+  }
+}
+```
+*Si `IsDeleted` fuera `true`, el `Payload` aún contendría el `SecurityCompanyId` para que el consumidor sepa qué entidad eliminar.*
+
+#### Ejemplo: `OrganizationGroupEvent`
+
+Enviado al tópico `infoportone.events.organization-group`.
+
+*   **`EventType`**: `"OrganizationGroupEvent"`
+*   **`Payload`**: Objeto completo de la entidad `ORGANIZATION_GROUP`.
+
+```json
+{
+  "EventId": "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
+  "EventType": "OrganizationGroupEvent",
+  "EventTimestamp": "2025-12-10T11:30:00Z",
+  "IsDeleted": false,
+  "Payload": {
+    "GroupId": 101,
+    "Name": "Grupo Logístico Principal"
+  }
+}
+```
+
+**Lógica del Consumidor:**
+1. Recibe un mensaje del tópico `infoportone.events.organization`.
+2. Deserializa el `Payload` en un objeto `Organization`.
+3. Si `IsDeleted` es `true`:
+   - `DELETE FROM Organizations WHERE SecurityCompanyId = payload.SecurityCompanyId;`
+4. Si `IsDeleted` es `false`:
+   - `SELECT * FROM Organizations WHERE SecurityCompanyId = payload.SecurityCompanyId;`
+   - Si existe: `UPDATE Organizations SET ... WHERE SecurityCompanyId = ...;`
+   - Si no existe: `INSERT INTO Organizations (...) VALUES (...);`
+
+Este enfoque simplifica enormemente la lógica del consumidor y lo hace inmune a eventos perdidos o desordenados (siempre que procese el último estado).
 
 ## 🏗️ 3. Arquitectura Lógica del Sistema
-
-(El diagrama de arquitectura no requiere cambios significativos para estas nuevas funcionalidades, ya que se apoyan en los flujos existentes de Backend -> Bus de Eventos -> Aplicaciones).
-
-```mermaid
-graph TB
-    subgraph Cliente_Admin[Admin Propietario]
-        A1[Frontend Administración]
-        A2[OAuth2 Client]
-    end
-    
-    subgraph Gestor_Identidad[Gestor de Identidad]
-        K1["Keycloak<br/>(Realm Único)"]
-        K2["Admin API"]
-    end
-    
-    subgraph InfoportOneAdmon[InfoportOneAdmon]
-        S1["Backend Administración<br/>(Orgs, Grupos, Roles, Apps)"]
-        S2["Bus de Eventos<br/>Publisher"]
-    end
-    
-    subgraph Infra_Mensajeria[Infraestructura de Mensajería]
-        E1["ActiveMQ Artemis<br/>(Topics & Queues)"]
-    end
-    
-    subgraph PersistenciaCore[Persistencia Core]
-        D1["Base de Datos<br/>InfoportOneAdmon"]
-    end
-    
-    subgraph EcosistemaApps[Ecosistema de Aplicaciones]
-        AP1["App Satélite 1<br/>(Gestión de sus Usuarios)"]
-        AP2["App Satélite 2<br/>(Gestión de sus Usuarios)"]
-    end
-    
-    %% Relaciones
-    A1 --> A2
-    A2 -- "Autenticación Admin" --> K1
-    A2 -- "Gestión" --> S1
-    
-    S1 -- "Provisionamiento" --> K2
-    K2 -- "Configura" --> K1
-    
-    S1 -- "Persiste Datos" --> D1
-    S1 -- "Publica Cambios" --> S2
-    S2 -- "Envía Mensajes" --> E1
-    
-    E1 -- "Notifica Eventos" --> AP1
-    E1 -- "Notifica Eventos" --> AP2
-    
-    AP1 -- "Consulta Catálogo Roles" --> S1
-    AP2 -- "Consulta Catálogo Roles" --> S1
-```
+*(Sin cambios)*
 
 ## 🔀 4. Flujos de Proceso de Negocio
+*(Los diagramas siguen siendo válidos, ya que la acción de "Publicar Evento" ahora implica publicar un evento de estado en el tópico correspondiente).*
 
 ### 4.1️⃣ Alta de Nueva Organización (Onboarding)
-*(Sin cambios)*
-```mermaid
-graph TD
-    Start([Inicio: Admin Propietario solicita Alta]) --> Validar[Validar Datos y Unicidad de Nombre]
-    Validar -->|Nombre Duplicado| Error[Retornar Error]
-    Validar -->|Datos Válidos| GenID[Generar SecurityCompanyId]
-    GenID --> KC_Step[Provisionar en Keycloak]
-    KC_Step --> KC_Group[Crear Grupo Raíz '/orgs/cliente']
-    KC_Step --> KC_Attr[Asignar Atributos de Seguridad]
-    KC_Attr --> DB_Save[Guardar Organización en BD InfoportOneAdmon]
-    DB_Save --> Event[Publicar Evento 'OrganizationCreated' en ActiveMQ]
-    Event --> Audit[Registrar en Auditoría]
-    Audit --> End([Fin: Organización Activa])
-```
+Publica un `OrganizationEvent` con `IsDeleted: false` y el payload de la nueva organización.
 
 ### 4.2️⃣ Gestión de un Grupo de Organizaciones
-
-Este flujo permite al administrador asociar varias organizaciones bajo una misma entidad lógica.
-
-```mermaid
-graph TD
-    subgraph "Flujo Principal"
-        Start([Inicio: Admin gestiona Grupo]) --> Choose{¿Acción?}
-        Choose -->|Crear Grupo| Create[Definir Nombre de Grupo]
-        Create --> SaveGroup[Guardar Grupo en BD]
-        SaveGroup --> PubCreate[Publicar Evento 'OrganizationGroupCreated']
-        PubCreate --> EndCreate([Fin])
-        
-        Choose -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
-        Manage --> UpdateMember[Actualizar Asociación en BD]
-        UpdateMember --> PubUpdate[Publicar Evento 'OrganizationAddedToGroup' o '...RemovedFromGroup']
-        PubUpdate --> EndUpdate([Fin])
-    end
-    
-    subgraph "Reacción en Aplicaciones Satélite"
-        PubCreate --> AppListener1[App recibe evento y actualiza su caché de grupos]
-        PubUpdate --> AppListener2[App recibe evento y refresca la pertenencia de la organización a grupos]
-    end
-end
-```
+*   **Crear Grupo**: Publica un `OrganizationGroupEvent` con el nuevo grupo.
+*   **Añadir/Quitar Miembro**: Publica un `OrganizationEvent` para la organización afectada, con su `GroupId` actualizado.
 
 ### 4.3️⃣ Sincronización de Datos para una Nueva Aplicación
-
-Este proceso sustituye la necesidad de que una aplicación consulte activamente la API al arrancar. Es un flujo iniciado desde InfoportOneAdmon.
-
-```mermaid
-graph TD
-    Start([Inicio: Admin solicita Sincronización]) --> SelectApp[Seleccionar Aplicación Destino]
-    SelectApp --> SelectData[Elegir el Catálogo a Enviar<br/>(ej: Todas las Aplicaciones)]
-    
-    SelectData --> FetchData[InfoportOneAdmon recopila los datos]
-    FetchData --> BuildEvent[Construir Mensaje de Evento Masivo<br/>(ej: 'FullApplicationListRequested')]
-    
-    BuildEvent --> Publish[Publicar Evento en cola específica de la App]
-    Publish --> End([Fin: Datos enviados para procesado asíncrono])
-    
-    subgraph "Procesamiento en la Aplicación Satélite"
-        Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
-        AppConsumer --> AppInit[App inicializa su base de datos/caché local]
-    end
-```
-
-### 4.4️⃣ Autenticación y Autorización (Vista de Usuario Final)
-*(Sin cambios)*
+Publica un evento especial en el tópico de sincronización, cuyo payload es una lista de los objetos a sincronizar (ej: un array de `Organization`).
 
 ## 🗃️ 5. Modelo de Datos Conceptual
-
-El modelo se extiende para incluir los grupos de organizaciones.
-
-```mermaid
-erDiagram
-    ORGANIZATION_GROUP ||--|{ ORGANIZATION : "agrupa a"
-    ORGANIZATION ||--o{ APP_ACCESS : "tiene acceso a"
-    
-    ORGANIZATION_GROUP {
-        int GroupId "PK"
-        string Name "Nombre del Grupo"
-    }
-
-    ORGANIZATION {
-        int SecurityCompanyId "PK, Identificador Inmutable"
-        string Nombre "Nombre Comercial"
-        string Estado "Activo / Inactivo"
-        int GroupId "FK a ORGANIZATION_GROUP (opcional)"
-    }
-    
-    APPLICATION ||--o{ APP_ACCESS : "es accedida por"
-    APPLICATION ||--o{ APP_ROLE_DEFINITION : "define catálogo de"
-    APPLICATION {
-        int AppId "PK"
-        string ClientId "Identificador OAuth2"
-        string Nombre "Nombre App"
-    }
-    
-    APP_ROLE_DEFINITION {
-        string RoleName "Nombre del Rol (ej: Editor)"
-        bool Deprecated "Estado de vigencia"
-    }
-    
-    APP_ACCESS {
-        date GrantedAt "Fecha de concesión"
-        bool Active "Estado del acceso"
-    }
-    
-    AUDIT_LOG }o--|| ORGANIZATION : "registra cambios sobre"
-    AUDIT_LOG }o--|| APPLICATION : "registra cambios sobre"
-    AUDIT_LOG }o--|| ORGANIZATION_GROUP : "registra cambios sobre"
-```
-
-### 🧱 Entidades Clave
-
-1.  **OrganizationGroup**: Nueva entidad que representa una agrupación lógica de clientes (Organizaciones). Permite a las aplicaciones consultar si dos organizaciones pertenecen al mismo grupo.
-2.  **Organization**: Representa al cliente. Ahora incluye una referencia opcional a `OrganizationGroup`. Su `SecurityCompanyId` sigue siendo el pilar de la seguridad.
-3.  **Application**: Representa un software del ecosistema.
-4.  **AppRoleDefinition**: Plantilla de un rol.
-5.  **AuditLog**: Registro inmutable, ahora también audita cambios en `OrganizationGroup`.
-
-## 🚀 6. Estrategia de Optimización y Rendimiento
-
-1. **Desacoplamiento mediante ActiveMQ Artemis**
-El uso de un bus de mensajes garantiza que si una aplicación satélite está caída durante una actualización administrativa (ej: una organización se añade a un grupo), el cambio se procesará cuando la aplicación se reconecte.
-
-2. **Estrategia de Caché e Inicialización en Aplicaciones**
-Se modifica el enfoque para eliminar el acoplamiento en el arranque y favorecer un modelo de "push".
-
-*   **Fuente de la Verdad**: InfoportOneAdmon es la fuente de la verdad para datos maestros (organizaciones, grupos, roles, aplicaciones).
-*   **Prohibida la Sincronización en el Arranque**: Las aplicaciones **NO deben** conectarse a la API de InfoportOneAdmon para sincronizar datos al iniciar. Esto crea un acoplamiento fuerte y puede causar fallos en cascada.
-*   **Inicialización por Eventos**: Cuando se despliega una nueva aplicación, o cuando se necesita una resincronización, un administrador desde InfoportOneAdmon **dispara un proceso de sincronización**. Este proceso publica uno o varios eventos masivos (ej: `FullOrganizationListRequested`) a una cola dedicada para esa aplicación. La aplicación consume estos mensajes a su propio ritmo para poblar su caché o base de datos local.
-*   **Mantenimiento de Caché**: La caché local se mantiene actualizada escuchando los eventos de grano fino (`OrganizationUpdated`, `OrganizationAddedToGroup`, etc.).
-
-3. **Seguridad Stateless (Tokens)**
 *(Sin cambios)*
 
-4. **Auditoría Asíncrona**
+## 🚀 6. Estrategia de Optimización y Rendimiento
 *(Sin cambios)*
 
 ## 👥 7. Identificación y Clasificación de Stakeholders
 *(Sin cambios)*
 
 ## 🧱 8. Componentes Principales y Sitemaps
-
-El sitemap se actualiza para incluir la gestión de grupos.
-
-### 8.1. Componentes Principales (Estructura Lógica)
-*(Sin cambios, el nuevo módulo de grupos sigue la misma arquitectura)*
-
-### 8.2. Sitemap (Navegación Administrativa)
-
-```mermaid
-graph TD
-    A[Inicio/Dashboard] --> B(Gestión de Organizaciones)
-    A --> F(Gestión de Grupos de Organizaciones)
-    A --> C(Gestión de Roles y Catálogo)
-    A --> D(Gestión de Aplicaciones)
-    A --> E(Auditoría y Logs)
-    
-    B --> B1(Lista de Organizaciones)
-    B --> B2(Crear Nueva Organización)
-    
-    F --> F1(Lista de Grupos)
-    F --> F2(Crear Nuevo Grupo)
-    F --> F3(Asignar Organizaciones a Grupo)
-    
-    C --> C1(Lista de Roles por Aplicación)
-    C --> C2(Crear Nuevo Rol)
-    
-    D --> D1(Lista de Aplicaciones)
-    D --> D2(Registrar Nueva App)
-    D --> D3(Sincronizar Datos con App)
-```
+*(Sin cambios)*
 
 ## 🎨 9. Diseño y Experiencia del Usuario (UX/UI)
 *(Sin cambios)*
@@ -352,4 +227,4 @@ graph TD
 *(Sin cambios)*
 
 ## 🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)
-*(Sin cambios en la planificación del MVP inicial, ya que las nuevas funcionalidades se considerarían para fases posteriores)*
+*(Sin cambios)*

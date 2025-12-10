@@ -63,3 +63,10 @@
 -   **Objetivo:** quiero que analices primero la documentanción del producto que estoy definendo y a continuación apliques sobre el mismo los siguientes cambios en la documentación y diagramas correspondiente a los siguientes criterios:
     -   Las organizaciones deben poder agruparse en grupos de organizaciones para que desde las aplicaciones se puedan realizar funcionalidades entre las organizaciones de un mismo grupo. Esto debe ser mantenible y generar eventos que lo comuniquen a los servicios.
     -   En el documento se explica que las aplicaciones cuando arranquen se conectarán vía api a InfoportOne para sincronizar datos. Esto NO debe ser así. Cuando se despliegue una aplicación y se quiera sincronizar datos con la misma desde InfoportOne debe haber una funcionalidad que permita enviar por ejemplo para las aplicaciones el listado completo de aplicaciones mediante eventos a la cola a la que esté suscrita la aplicación destinataria. Este será un método de sincronización de datos o de inicialización de datos para una aplicación nueva.
+
+---
+
+## Prompt 7: (Definición de Producto)
+
+-   **Rol:** Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+-	**Objetivo:** He visto que en la definición de eventos aparecen los sufijos added, created, updated, deleted y creo que la aplicación satélite receptora no tiene porque estar en el mismo estado sus tablas que las de InfoportOne. Por ejemplo podria haber una actualización de una organización en InfoportOne pero si la aplicación satélite no tiene todavia organizaciones se trataría de crear una nueva organización en la aplciación satélite. Por tanto me gustaría que se definan eventos generales para cada entidad del tipo OrganizacionEvent Este evento tendrá una propiedad tipo OrganizationEvent, una fecha de creación, un flag IsDeleted para indicar si ha sido borrado en origen y las propiedades de la Organización. El resto de eventos seguirian una estructura similar. Puedes incluir en la documentación la definicación de los eventos.
