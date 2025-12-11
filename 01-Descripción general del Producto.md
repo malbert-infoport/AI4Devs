@@ -194,7 +194,7 @@ Este enfoque simplifica enormemente la lógica del consumidor y lo hace inmune a
 
 ## 🏗️ 3. Arquitectura Lógica del Sistema
 
-El siguiente diagrama ilustra cómo InfoportOneAdmon orquesta la seguridad y los datos maestros, sirviendo a las aplicaciones del ecosistema.
+El siguiente diagrama ilustra cómo InfoportOneAdmon orquesta la seguridad y los datos maestros, sirviendo a las aplicaciones del ecosistema. **Nota importante**: Las aplicaciones satélite **nunca** invocan directamente a InfoportOneAdmon; toda la comunicación de datos maestros se realiza exclusivamente mediante eventos a través de ActiveMQ Artemis, garantizando un desacoplamiento total.
 
 ```mermaid
 graph TB
@@ -224,31 +224,39 @@ graph TB
     subgraph EcosistemaApps[Ecosistema de Aplicaciones]
         AP1["App Satélite 1<br/>(Gestión de sus Usuarios)"]
         AP2["App Satélite 2<br/>(Gestión de sus Usuarios)"]
+        C1["Caché/BD Local<br/>App 1"]
+        C2["Caché/BD Local<br/>App 2"]
     end
     
-    %% Relaciones
+    %% Relaciones Administrativas
     A1 --> A2
     A2 -- "Autenticación Admin" --> K1
     A2 -- "Gestión" --> S1
     
+    %% Orquestación con Keycloak
     S1 -- "Provisionamiento" --> K2
     K2 -- "Configura" --> K1
     
+    %% Persistencia y Eventos
     S1 -- "Persiste Datos" --> D1
-    S1 -- "Publica Cambios" --> S2
+    S1 -- "Publica Eventos de Estado" --> S2
     S2 -- "Envía Mensajes" --> E1
     
-    E1 -- "Notifica Eventos" --> AP1
-    E1 -- "Notifica Eventos" --> AP2
+    %% Consumo de Eventos por Apps (ÚNICA VÍA DE COMUNICACIÓN)
+    E1 -- "Eventos de Estado<br/>(Orgs, Grupos, Roles, Apps)" --> AP1
+    E1 -- "Eventos de Estado<br/>(Orgs, Grupos, Roles, Apps)" --> AP2
     
-    AP1 -- "Consulta Catálogo Roles" --> S1
-    AP2 -- "Consulta Catálogo Roles" --> S1
+    %% Apps mantienen caché local
+    AP1 -- "Actualiza" --> C1
+    AP2 -- "Actualiza" --> C2
     
     %% Estilos
     style K1 fill:#4A90E2,color:#fff
     style S1 fill:#7ED321,color:#fff
     style E1 fill:#F5A623,color:#fff
     style D1 fill:#BD10E0,color:#fff
+    style C1 fill:#50E3C2,color:#000
+    style C2 fill:#50E3C2,color:#000
 ```
 
 ## 🔀 4. Flujos de Proceso de Negocio
