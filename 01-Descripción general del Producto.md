@@ -277,21 +277,21 @@ graph TD
 ```mermaid
 graph TD
     subgraph "Flujo Principal"
-        Start([Inicio: Admin gestiona Grupo]) --> Choose{¿Acción?}
+        Start([Inicio: Admin gestiona Grupo]) --> Choose{Accion?}
         Choose -->|Crear Grupo| Create[Definir Nombre de Grupo]
         Create --> SaveGroup[Guardar Grupo en BD]
         SaveGroup --> PubCreate[Publicar 'OrganizationGroupEvent']
         PubCreate --> EndCreate([Fin])
         
-        Choose -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
-        Manage --> UpdateMember[Actualizar Asociación en BD]
+        Choose -->|Anadir/Quitar Miembro| Manage[Seleccionar Grupo y Organizacion]
+        Manage --> UpdateMember[Actualizar Asociacion en BD]
         UpdateMember --> PubUpdate[Publicar 'OrganizationEvent' para el miembro]
         PubUpdate --> EndUpdate([Fin])
     end
     
-    subgraph "Reacción en Aplicaciones Satélite"
-        PubCreate --> AppListener1[App aplica lógica upsert para el grupo]
-        PubUpdate --> AppListener2[App aplica lógica upsert para la organización]
+    subgraph "Reaccion en Aplicaciones Satelite"
+        PubCreate --> AppListener1[App aplica logica upsert para el grupo]
+        PubUpdate --> AppListener2[App aplica logica upsert para la organizacion]
     end
 end
 ```
@@ -301,18 +301,18 @@ Publica un evento especial en el tópico de sincronización, cuyo payload es una
 
 ```mermaid
 graph TD
-    Start([Inicio: Admin solicita Sincronización]) --> SelectApp[Seleccionar Aplicación Destino]
-    SelectApp --> SelectData[Elegir el Catálogo a Enviar<br/>(ej: Todas las Aplicaciones)]
+    Start([Inicio: Admin solicita Sincronizacion]) --> SelectApp[Seleccionar Aplicacion Destino]
+    SelectApp --> SelectData[Elegir el Catalogo a Enviar<br/>(ej: Todas las Aplicaciones)]
     
     SelectData --> FetchData[InfoportOneAdmon recopila los datos]
     FetchData --> BuildEvent[Construir Mensaje de Evento Masivo]
     
-    BuildEvent --> Publish[Publicar Evento en cola específica de la App]
-    Publish --> End([Fin: Datos enviados para procesado asíncrono])
+    BuildEvent --> Publish[Publicar Evento en cola especifica de la App]
+    Publish --> End([Fin: Datos enviados para procesado asincrono])
     
-    subgraph "Procesamiento en la Aplicación Satélite"
+    subgraph "Procesamiento en la Aplicacion Satelite"
         Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
-        AppConsumer --> AppInit[App inicializa su base de datos/caché local]
+        AppConsumer --> AppInit[App inicializa su base de datos/cache local]
     end
 ```
 
@@ -524,7 +524,7 @@ El core de **InfoportOneAdmon** debe construirse sobre tecnologías probadas y e
 | **Frontend Lenguaje/Runtime** | Angular 20. | Cliente SPA muy adecuado para e desarrollo en este proyecto. |
 | **Base de Datos** | PostgreSQL. | Se requiere un motor de base de datos relacional para garantizar la integridad transaccional (ACID) y la capacidad de realizar auditoría detallada y transacciones de alta criticidad. |
 | **Servicio de Identidad** | **Keycloak** (Configurado como un Realm Único llamado `InfoportOne`). | Estándar de facto para OpenID Connect y OAuth2, necesario para la seguridad transversal de todo el ecosistema de aplicaciones satélite. |
-| **Mensajería** | **ActiveMQ Artemis**. | Bus de mensajería empresarial para la arquitectura Event-Driven. Garantiza la entrega asíncrona confiable de eventos críticos (ej. `OrganizationDeactivated`). |
+| **Mensajería** | **ActiveMQ Artemis**. | Bus de mensajería empresarial para la arquitectura Event-Driven. Garantiza la entrega asíncrona confiable de eventos críticos. |
 | **Despliegue** | Contenedores Docker. | Máxima escalabilidad horizontal, resiliencia y despliegue automatizado para un servicio de la plataforma Core. |
 
 ### 10.2. Aspectos Técnicos Críticos
