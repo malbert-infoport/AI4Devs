@@ -210,6 +210,7 @@ Todos los eventos usan una estructura común. Importante: el campo `Payload` con
 ```json
 {
     "EventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "TraceId": "00000000-0000-4000-8000-000000000000",
     "EventType": "string",
     "EventTimestamp": "2025-12-10T10:00:00Z",
     "Payload": [
@@ -223,6 +224,7 @@ Todos los eventos usan una estructura común. Importante: el campo `Payload` con
 
 Notas:
 - `EventId`: identificador único del evento **debe ser un GUID/UUID (v4 preferido)**. Los productores deben generar un UUID válido para evitar colisiones y permitir trazabilidad.
+- `TraceId`: identificador (GUID/UUID) que permite correlacionar eventos causados por una misma operación o flujo. Cuando un consumidor genere nuevos eventos derivados de uno recibido, debe propagar el `TraceId` original al nuevo evento para mantener la causalidad y facilitar el rastreo.
 - `EventType`: nombre que describe el evento (ej.: `OrganizationEvent`, `UserEvent`).
 - `Payload`: lista de objetos completos donde cada objeto contiene su propio `IsDeleted`.
 
@@ -237,6 +239,7 @@ Ejemplo con un solo elemento en el `Payload`:
 ```json
 {
     "EventId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "TraceId": "11111111-2222-4fff-8888-aaaaaaaaaaaa",
     "EventType": "OrganizationEvent",
     "EventTimestamp": "2025-12-10T10:00:00Z",
     "Payload": [
@@ -324,6 +327,7 @@ graph TD
 ```json
 {
     "EventId": "27b3c8d2-1f1a-4b5d-9c3e-f3b3a5b6c7d8",
+    "TraceId": "11111111-2222-4fff-8888-aaaaaaaaaaaa",
     "EventType": "OrganizationGroupEvent",
     "EventTimestamp": "2025-12-10T11:30:00Z",
     "Payload": [
