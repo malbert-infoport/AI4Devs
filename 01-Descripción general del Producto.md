@@ -211,6 +211,7 @@ Todos los eventos usan una estructura común. Importante: el campo `Payload` con
 {
     "EventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "TraceId": "00000000-0000-4000-8000-000000000000",
+    "OriginApplicationId": 100,
     "EventType": "string",
     "EventTimestamp": "2025-12-10T10:00:00Z",
     "Payload": [
@@ -240,6 +241,7 @@ Ejemplo con un solo elemento en el `Payload`:
 {
     "EventId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
     "TraceId": "11111111-2222-4fff-8888-aaaaaaaaaaaa",
+    "OriginApplicationId": 100,
     "EventType": "OrganizationEvent",
     "EventTimestamp": "2025-12-10T10:00:00Z",
     "Payload": [
@@ -292,6 +294,8 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `IsDeleted` (bool): `true` si la aplicación debe considerarse eliminada o deshabilitada.
 
 - **Role** (en `RoleEvent`):
+- **Role** (en `RoleEvent`):
+    - `RolId` (int): Identificador único del rol (PK dentro de InfoportOne).
     - `RoleName` (string): Nombre único del rol dentro de la aplicación.
     - `ApplicationId` (int): Referencia a la aplicación propietaria del rol.
     - `Deprecated` (bool): Marca si el rol está obsoleto.
@@ -303,6 +307,7 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Email` (string): Correo electrónico.
     - `SecurityCompanyId` (int): Organización a la que pertenece el usuario.
     - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
+    - `Rols` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
     - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
 
 Estas definiciones permiten a los consumidores deserializar de forma segura cada elemento del `Payload` y aplicar la lógica por objeto (upsert o delete) usando el flag `IsDeleted`.
@@ -324,22 +329,7 @@ graph TD
     DB_Save --> Event[Publicar Evento de Estado en ActiveMQ]
     Event --> Audit[Registrar en Auditoría]
     Audit --> End([Fin: Organización Activa])
-```json
-{
-    "EventId": "27b3c8d2-1f1a-4b5d-9c3e-f3b3a5b6c7d8",
-    "TraceId": "11111111-2222-4fff-8888-aaaaaaaaaaaa",
-    "EventType": "OrganizationGroupEvent",
-    "EventTimestamp": "2025-12-10T11:30:00Z",
-    "Payload": [
-        {
-            "GroupId": 101,
-            "Name": "Grupo Logístico Principal",
-            "IsDeleted": false
-        }
-    ]
-}
-```
-        
+       
         Choose -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
         Manage --> UpdateMember[Actualizar Asociación en BD]
         UpdateMember --> PubUpdate[Publicar 'OrganizationEvent' para el miembro]
@@ -411,6 +401,7 @@ Ejemplo de `UserEvent` (un solo usuario en la lista):
 ```json
 {
     "EventId": "9f8c5a7e-3b2d-4c6f-8a1b-0123456789ab",
+    "OriginApplicationId": 100,
     "EventType": "UserEvent",
     "EventTimestamp": "2025-12-11T09:00:00Z",
     "Payload": [
