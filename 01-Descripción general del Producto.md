@@ -207,7 +207,7 @@ Se publicará un tópico por entidad de negocio principal. Cada evento transport
 ### 4.2️⃣ Estructura Genérica de los Eventos
 Todos los eventos usan una estructura común. Importante: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Cada objeto dentro del `Payload` debe incluir la propiedad `IsDeleted` para indicar si ese elemento debe borrarse o procesarse como creación/actualización.
 
--```json
+```json
 {
     "EventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "EventType": "string",
