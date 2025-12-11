@@ -117,6 +117,8 @@ Se define un tópico por cada entidad de negocio principal. Para sincronizacione
 *   `infoportone.events.organization-group`
 *   `infoportone.events.application`
 *   `infoportone.events.role`
+*   `infoportone.events.user`  
+    - Tema: Eventos emitidos por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. El `Payload` será una lista de objetos `USER` y cada objeto debe incluir la referencia a la `SecurityCompanyId` de la organización a la que pertenece el usuario (un usuario solo puede pertenecer a una organización).
 
 ### 2.7️⃣ Definición de la Estructura de Eventos
 
@@ -134,7 +136,7 @@ Todos los eventos usan la misma estructura. **Importante**: el campo `Payload` c
     "IsDeleted": false, // `false` si los elementos no están marcados como eliminados (ver Payload)
     "Payload": [
         {
-            // Objeto completo de la entidad en su estado final
+            // Lista de objetos completos de la entidad en su estado final
         }
     ]
 }
@@ -256,6 +258,10 @@ graph TB
     %% Consumo de Eventos por Apps (ÚNICA VÍA DE COMUNICACIÓN)
     E1 -- "Eventos de Estado<br/>(Orgs, Grupos, Roles, Apps)" --> AP1
     E1 -- "Eventos de Estado<br/>(Orgs, Grupos, Roles, Apps)" --> AP2
+    %% Eventos de Usuario (Apps → Broker → InfoportOne)
+    AP1 -- "Publica UserEvents" --> E1
+    AP2 -- "Publica UserEvents" --> E1
+    E1 -- "Eventos de Usuario → Suscribe InfoportOne" --> S1
     
     %% Apps mantienen caché local
     AP1 -- "Actualiza" --> C1
@@ -358,6 +364,48 @@ graph TD
     Access -->|Sí| Grant[Acceso Permitido]
     Access -->|No| Deny[Acceso Denegado 403]
 ```
+
+### 4.5️⃣ Gestión de Usuarios desde Aplicaciones Satélite
+
+Las aplicaciones satélite gestionan sus propios usuarios. Cada vez que una aplicación crea, actualiza o elimina un usuario, publicará un evento en el tópico `infoportone.events.user` con un `Payload` que contiene una lista de objetos `USER`. InfoportOne se suscribe a este tópico para replicar los cambios necesarios en Keycloak mediante su Admin API.
+
+Reglas clave:
+- Un usuario pertenece a una única organización identificada por `SecurityCompanyId`.
+- El `Payload` es una lista; puede contener uno o varios usuarios (sincronización masiva o individual).
+
+Ejemplo de `UserEvent` (un solo usuario en la lista):
+
+```json
+{
+    "EventId": "u1b2c3d4-e5f6-1111-2222-333344445555",
+    "EventType": "UserEvent",
+    "EventTimestamp": "2025-12-11T09:00:00Z",
+    "Payload": [
+        {
+            "UserId": "user-123",
+            "Username": "maria.perez",
+            "Email": "maria.perez@cliente.com",
+            "SecurityCompanyId": 12345,
+            "IsDeleted": false,
+            "Attributes": {
+                "displayName": "María Pérez"
+            }
+        }
+    ]
+}
+```
+
+Lógica de consumidor (InfoportOne):
+1. Suscribirse al tópico `infoportone.events.user`.
+2. Deserializar `Payload` como una lista de objetos `USER`.
+3. Para cada usuario `u`:
+     - Si `u.IsDeleted` es `true`: eliminar o desactivar el usuario en Keycloak (`DELETE` o marcar `disabled`).
+     - Si `u.IsDeleted` es `false`:
+             - Buscar por `UserId` o `username` en Keycloak.
+             - Si existe: actualizar atributos y roles en Keycloak según lo recibido.
+             - Si no existe: crear el usuario en Keycloak y asignarle los atributos, además de asociarlo a la organización (mediante claim `SecurityCompanyId` o atributo en Keycloak).
+
+Nota: La sincronización debe ser idempotente y tolerante a reordenamientos; por ello cada evento contiene el estado final del/los usuarios.
 
 ## 🗃️ 5. Modelo de Datos Conceptual
 

@@ -70,3 +70,14 @@
 
 -   **Rol:** Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 -	**Objetivo:** He visto que en la definición de eventos aparecen los sufijos added, created, updated, deleted y creo que la aplicación satélite receptora no tiene porque estar en el mismo estado sus tablas que las de InfoportOne. Por ejemplo podria haber una actualización de una organización en InfoportOne pero si la aplicación satélite no tiene todavia organizaciones se trataría de crear una nueva organización en la aplciación satélite. Por tanto me gustaría que se definan eventos generales para cada entidad del tipo OrganizacionEvent Este evento tendrá una propiedad tipo OrganizationEvent, una fecha de creación, un flag IsDeleted para indicar si ha sido borrado en origen y las propiedades de la Organización. El resto de eventos seguirian una estructura similar. Puedes incluir en la documentación la definicación de los eventos.
+
+---
+
+## Prompt 8: (Gestión de Usuarios vía Eventos)
+
+-   **Rol:** Product Owner / Arquitecto Software experto en integraciones event-driven y gestión centralizada de organizaciones.
+-   **Objetivo:** Incluir en la documentación la gestión de usuarios por parte de las aplicaciones satélite mediante eventos: las aplicaciones publican `UserEvent` al broker cuando crean, actualizan o eliminan usuarios; InfoportOne se suscribe a `infoportone.events.user` y aplica los cambios en Keycloak usando su Admin API. El `Payload` será una lista de objetos `USER` y cada `USER` debe contener `SecurityCompanyId` (un usuario pertenece a una única organización). Actualiza los diagramas y flujos para reflejar este proceso.
+-   **Requisitos previos:**
+    - Las aplicaciones publican `UserEvent` con `Payload` como lista de usuarios.
+    - InfoportOne tiene credenciales para Keycloak Admin API y procesa los eventos de forma idempotente.
+    - La arquitectura de mensajería utilizada es ActiveMQ Artemis.
