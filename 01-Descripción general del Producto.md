@@ -301,22 +301,20 @@ Publica un evento especial en el tópico de sincronización, cuyo payload es una
 ```mermaid
 graph TD
     Start([Inicio: Admin solicita Sincronizacion]) --> SelectApp[Seleccionar Aplicacion Destino]
-    SelectApp --> SelectData[Elegir el Catalogo a Enviar<br/>(ej: Todas las Aplicaciones)]
+    SelectApp --> SelectData[[Elegir el Catálogo a Enviar<br/>Ej: Todas las Aplicaciones]]
     
     SelectData --> FetchData[InfoportOneAdmon recopila los datos]
     FetchData --> BuildEvent[Construir Mensaje de Evento Masivo]
     
-    BuildEvent --> Publish[Publicar Evento en cola especifica de la App]
+    BuildEvent --> Publish[Publicar Evento en cola específica de la App]
     Publish --> End([Fin: Datos enviados para procesado asincrono])
     
-    %% Alias para evitar conflicto al entrar al subgraph
     Publish -.-> PublishInSubgraph
     
-    subgraph "Procesamiento en la Aplicacion Satelite"
+    subgraph "Procesamiento en la Aplicación Satélite"
         PublishInSubgraph -->|Consumo| AppConsumer[La nueva App consume el evento]
         AppConsumer --> AppInit[App inicializa su base de datos/cache local]
     end
-
 ```
 
 ### 4.4️⃣ Autenticación y Autorización (Vista de Usuario Final)
