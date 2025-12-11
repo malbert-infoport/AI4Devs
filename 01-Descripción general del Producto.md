@@ -5,14 +5,15 @@
 1. [📝 1. Descripción General del Producto](#-1-descripción-general-del-producto)
 2. [⚙️ 2. Funcionalidades Principales](#%EF%B8%8F-2-funcionalidades-principales)
 3. [🏗️ 3. Arquitectura Lógica del Sistema](#%EF%B8%8F-3-arquitectura-lógica-del-sistema)
-4. [🔀 4. Flujos de Proceso de Negocio](#-4-flujos-de-proceso-de-negocio)
-5. [🗃️ 5. Modelo de Datos Conceptual](#%EF%B8%8F-5-modelo-de-datos-conceptual)
-6. [🚀 6. Estrategia de Optimización y Rendimiento](#-6-estrategia-de-optimización-y-rendimiento)
-7. [👥 7. Identificación y Clasificación de Stakeholders](#-7-identificación-y-clasificación-de-stakeholders)
-8. [🧱 8. Componentes Principales y Sitemaps](#-8-componentes-principales-y-sitemaps)
-9. [🎨 9. Diseño y Experiencia del Usuario (UX/UI)](#-9-diseño-y-experiencia-del-usuario-uxui)
-10. [🛠️ 10. Requisitos Técnicos](#%EF%B8%8F-10-requisitos-técnicos)
-11. [🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)](#%EF%B8%8F-11-planificación-del-proyecto-mvp-de-30-horas)
+4. [📡 4. Eventos y Modelo de Mensajería](#-4-eventos-y-modelo-de-mensajería)
+5. [🔀 5. Flujos de Proceso de Negocio](#-5-flujos-de-proceso-de-negocio)
+6. [🗃️ 6. Modelo de Datos Conceptual](#%EF%B8%8F-6-modelo-de-datos-conceptual)
+7. [🚀 7. Estrategia de Optimización y Rendimiento](#-7-estrategia-de-optimización-y-rendimiento)
+8. [👥 8. Identificación y Clasificación de Stakeholders](#-8-identificación-y-clasificación-de-stakeholders)
+9. [🧱 9. Componentes Principales y Sitemaps](#-9-componentes-principales-y-sitemaps)
+10. [🎨 10. Diseño y Experiencia del Usuario (UX/UI)](#-10-diseño-y-experiencia-del-usuario-uxui)
+11. [🛠️ 11. Requisitos Técnicos](#%EF%B8%8F-11-requisitos-técnicos)
+12. [🗓️ 12. Planificación del Proyecto (MVP de 30 Horas)](#%EF%B8%8F-12-planificación-del-proyecto-mvp-de-30-horas)
 
 ---
 
@@ -117,93 +118,7 @@ Se define un tópico por cada entidad de negocio principal. Para sincronizacione
 *   `infoportone.events.organization-group`
 *   `infoportone.events.application`
 *   `infoportone.events.role`
-*   `infoportone.events.user`  
-    - Tema: Eventos emitidos por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. El `Payload` será una lista de objetos `USER` y cada objeto debe incluir la referencia a la `SecurityCompanyId` de la organización a la que pertenece el usuario (un usuario solo puede pertenecer a una organización).
-
-### 2.7️⃣ Definición de la Estructura de Eventos
-
-Todos los eventos comparten una estructura común que permite a los consumidores aplicar una lógica de "upsert" (actualizar o insertar) o eliminar, independientemente de si tenían el dato previamente.
-
-#### Estructura Genérica del Evento
-
-Todos los eventos usan la misma estructura. **Importante**: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Para enviar un solo objeto basta con incluir un array con un único elemento. Esto permite reusar el mismo tópico para sincronizaciones masivas sin necesitar tópicos especiales.
-
-```json
-{
-    "EventId": "Guid", // Identificador único del evento
-    "EventType": "string", // Describe la entidad, ej: "OrganizationEvent"
-    "EventTimestamp": "DateTime", // Fecha y hora de generación del evento
-    "IsDeleted": false, // `false` si los elementos no están marcados como eliminados (ver Payload)
-    "Payload": [
-        {
-            // Lista de objetos completos de la entidad en su estado final
-        }
-    ]
-}
-```
-
-#### Ejemplo: `OrganizationEvent`
-
-Enviado al tópico `infoportone.events.organization`.
-
-* **`EventType`**: `"OrganizationEvent"`
-* **`Payload`**: Lista de objetos `ORGANIZATION` (puede contener uno o varios elementos).
-
-Ejemplo con un solo elemento en el `Payload`:
-
-```json
-{
-    "EventId": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-    "EventType": "OrganizationEvent",
-    "EventTimestamp": "2025-12-10T10:00:00Z",
-    "IsDeleted": false,
-    "Payload": [
-        {
-            "SecurityCompanyId": 12345,
-            "Nombre": "Cliente Final S.L.",
-            "Estado": "Activo",
-            "GroupId": 101
-        }
-    ]
-}
-```
-
-Si un elemento debe representar una eliminación, incluya `IsDeleted: true` en el propio objeto dentro del `Payload` o marque el evento a nivel del objeto (ver convención de implementación). La forma recomendada es incluir en cada objeto un flag `IsDeleted` para que el consumidor aplique la operación correcta por elemento.
-
-#### Ejemplo: `OrganizationGroupEvent`
-
-Enviado al tópico `infoportone.events.organization-group`.
-
-* **`EventType`**: `"OrganizationGroupEvent"`
-* **`Payload`**: Lista de objetos `ORGANIZATION_GROUP`.
-
-```json
-{
-    "EventId": "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
-    "EventType": "OrganizationGroupEvent",
-    "EventTimestamp": "2025-12-10T11:30:00Z",
-    "IsDeleted": false,
-    "Payload": [
-        {
-            "GroupId": 101,
-            "Name": "Grupo Logístico Principal"
-        }
-    ]
-}
-```
-
-**Lógica del Consumidor:**
-1. Recibe un mensaje del tópico `infoportone.events.organization`.
-2. Deserializa el `Payload` como una lista/array de objetos `Organization`.
-3. Para cada objeto `o` en `Payload`:
-    - Si `o.IsDeleted` es `true`:
-         - `DELETE FROM Organizations WHERE SecurityCompanyId = o.SecurityCompanyId;`
-    - Si `o.IsDeleted` es `false` (o no existe `IsDeleted`):
-         - `SELECT * FROM Organizations WHERE SecurityCompanyId = o.SecurityCompanyId;`
-         - Si existe: `UPDATE Organizations SET ... WHERE SecurityCompanyId = o.SecurityCompanyId;`
-         - Si no existe: `INSERT INTO Organizations (...) VALUES (...);`
-
-Este enfoque permite procesar sincronizaciones masivas (payloads con múltiples objetos) y simplifica la lógica del consumidor. Procesar el `Payload` como una lista hace que la aplicación sea inmune a eventos perdidos o desordenados, siempre que el consumidor aplique el estado final de cada objeto.
+*   `infoportone.events.user`
 
 ## 🏗️ 3. Arquitectura Lógica del Sistema
 
@@ -276,10 +191,143 @@ graph TB
     style C2 fill:#50E3C2,color:#000
 ```
 
-## 🔀 4. Flujos de Proceso de Negocio
+## 📡 4. Eventos y Modelo de Mensajería
 
-### 4.1️⃣ Alta de Nueva Organización (Onboarding)
-Publica un `OrganizationEvent` con `IsDeleted: false` y el payload de la nueva organización.
+En InfoportOneAdmon todos los mensajes de sincronización y notificación se realizan mediante eventos publicados en tópicos de ActiveMQ Artemis. Los eventos siguen un patrón de "State Transfer": se publica el estado final de las entidades y los consumidores aplican operaciones idempotentes (upsert/delete) por cada elemento del `Payload`.
+
+### 4.1️⃣ Tipos de Eventos
+Se publicará un tópico por entidad de negocio principal. Cada evento transporta un `Payload` que es una lista de objetos del tipo correspondiente. Los tipos principales son:
+
+- `infoportone.events.organization`: Eventos sobre organizaciones (clientes).
+- `infoportone.events.organization-group`: Eventos sobre grupos de organizaciones.
+- `infoportone.events.application`: Eventos sobre aplicaciones satélite.
+- `infoportone.events.role`: Eventos sobre definiciones de roles.
+- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. Cada objeto `USER` en el `Payload` debe incluir `SecurityCompanyId` (un usuario solo puede pertenecer a una organización) y el flag `IsDeleted`.
+
+### 4.2️⃣ Estructura Genérica de los Eventos
+Todos los eventos usan una estructura común. Importante: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Cada objeto dentro del `Payload` debe incluir la propiedad `IsDeleted` para indicar si ese elemento debe borrarse o procesarse como creación/actualización.
+
+```json
+{
+    "EventId": "ID-xxxx",             
+    "EventType": "string",            
+    "EventTimestamp": "2025-12-10T10:00:00Z",
+    "Payload": [
+        {
+            "<EntitySpecificFields>": "...",
+            "IsDeleted": false
+        }
+    ]
+}
+```
+
+Notas:
+- `EventId`: identificador único del evento (formato libre, evitar dependencias con GUIDs fijos en la documentación; aquí se usa `ID-xxxx` como marcador de posición para que los productores generen un identificador único).
+- `EventType`: nombre que describe el evento (ej.: `OrganizationEvent`, `UserEvent`).
+- `Payload`: lista de objetos completos donde cada objeto contiene su propio `IsDeleted`.
+
+### 4.3️⃣ Ejemplo: `OrganizationEvent`
+Enviado al tópico `infoportone.events.organization`.
+
+- **`EventType`**: `"OrganizationEvent"`
+- **`Payload`**: Lista de objetos `ORGANIZATION`.
+
+Ejemplo con un solo elemento en el `Payload`:
+
+```json
+{
+    "EventId": "ID-org-0001",
+    "EventType": "OrganizationEvent",
+    "EventTimestamp": "2025-12-10T10:00:00Z",
+    "Payload": [
+        {
+            "SecurityCompanyId": 12345,
+            "Nombre": "Cliente Final S.L.",
+            "Estado": "Activo",
+            "GroupId": 101,
+            "IsDeleted": false
+        }
+    ]
+}
+```
+
+Si un elemento debe representar una eliminación, incluya `"IsDeleted": true` en el propio objeto dentro del `Payload`.
+
+### 4.4️⃣ Ejemplo: `OrganizationGroupEvent`
+Enviado al tópico `infoportone.events.organization-group`.
+
+- **`EventType`**: `"OrganizationGroupEvent"`
+- **`Payload`**: Lista de objetos `ORGANIZATION_GROUP`.
+
+```json
+{
+    "EventId": "ID-group-0101",
+    "EventType": "OrganizationGroupEvent",
+    "EventTimestamp": "2025-12-10T11:30:00Z",
+    "Payload": [
+        {
+            "GroupId": 101,
+            "Name": "Grupo Logístico Principal",
+            "IsDeleted": false
+        }
+    ]
+}
+```
+
+### 4.5️⃣ Lógica del Consumidor
+1. Suscribirse al tópico correspondiente (ej.: `infoportone.events.organization`).
+2. Deserializar el `Payload` como una lista/array de objetos de la entidad.
+3. Para cada objeto `o` en `Payload`:
+     - Si `o.IsDeleted` es `true`:
+                - Ejecutar la operación de borrado/desactivación correspondiente (`DELETE` o marcar como `disabled`).
+     - Si `o.IsDeleted` es `false`:
+                - Buscar por el identificador de la entidad (ej.: `SecurityCompanyId` para Organization`).
+                - Si existe: `UPDATE` con los nuevos campos.
+                - Si no existe: `INSERT`.
+
+Este patrón permite procesar sincronizaciones masivas y simplifica la lógica del consumidor, que debe ser idempotente y tolerante a reordenamientos.
+
+### 4.6️⃣ Clases y Propiedades en el Payload (por Evento)
+Cada evento transporta en su `Payload` una lista de objetos cuya estructura depende de la entidad. Todas las clases deben incluir la propiedad `IsDeleted` (boolean) para indicar si el elemento debe ser eliminado o procesado como creación/actualización.
+
+- **Organization** (ejemplo de objeto dentro de `Payload` en `OrganizationEvent`):
+    - `SecurityCompanyId` (int): Identificador único inmutable de la organización.
+    - `Nombre` (string): Nombre comercial.
+    - `Estado` (string): Estado lógico (`Activo` / `Inactivo`).
+    - `GroupId` (int, opcional): Identificador del grupo al que pertenece.
+    - `IsDeleted` (bool): `true` si la organización debe eliminarse/desactivarse.
+
+- **OrganizationGroup** (en `OrganizationGroupEvent`):
+    - `GroupId` (int): Identificador del grupo.
+    - `Name` (string): Nombre del grupo.
+    - `IsDeleted` (bool): `true` si el grupo debe eliminarse.
+
+- **Application** (en `ApplicationEvent`):
+    - `AppId` (int): Identificador de la aplicación en InfoportOne.
+    - `ClientId` (string): Identificador OAuth2.
+    - `Nombre` (string): Nombre de la aplicación.
+    - `IsDeleted` (bool): `true` si la aplicación debe considerarse eliminada o deshabilitada.
+
+- **Role** (en `RoleEvent`):
+    - `RoleName` (string): Nombre único del rol dentro de la aplicación.
+    - `ApplicationId` (int): Referencia a la aplicación propietaria del rol.
+    - `Deprecated` (bool): Marca si el rol está obsoleto.
+    - `IsDeleted` (bool): `true` si el rol debe borrarse.
+
+- **User** (en `UserEvent`):
+    - `UserId` (string): Identificador único del usuario (puede ser legible por humanos o GUID generado por la app).
+    - `Username` (string): Nombre de usuario para login.
+    - `Email` (string): Correo electrónico.
+    - `SecurityCompanyId` (int): Organización a la que pertenece el usuario.
+    - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
+    - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
+
+Estas definiciones permiten a los consumidores deserializar de forma segura cada elemento del `Payload` y aplicar la lógica por objeto (upsert o delete) usando el flag `IsDeleted`.
+
+## 🔀 5. Flujos de Proceso de Negocio
+
+### 5.1️⃣ Alta de Nueva Organización (Onboarding)
+Publica un `OrganizationEvent` cuyo `Payload` contiene uno o varios objetos `Organization`. Cada objeto incluye su propio campo `IsDeleted` (`false` para una creación/actualización).
 
 ```mermaid
 graph TD
@@ -295,7 +343,7 @@ graph TD
     Audit --> End([Fin: Organización Activa])
 ```
 
-### 4.2️⃣ Gestión de un Grupo de Organizaciones
+### 5.2️⃣ Gestión de un Grupo de Organizaciones
 *   **Crear Grupo**: Publica un `OrganizationGroupEvent` con el nuevo grupo.
 *   **Añadir/Quitar Miembro**: Publica un `OrganizationEvent` para la organización afectada, con su `GroupId` actualizado.
 
@@ -320,27 +368,28 @@ graph TD
     end
 ```
 
-### 4.3️⃣ Sincronización de Datos para una Nueva Aplicación
+### 5.3️⃣ Sincronización de Datos para una Nueva Aplicación
 Cuando se necesita inicializar o resincronizar una aplicación, InfoportOneAdmon publica en el mismo tópico de la entidad un evento cuyo `Payload` contiene una lista de objetos (p. ej. múltiples `Organization`), que la aplicación consume para poblar su caché o base de datos local.
 
 ```mermaid
 graph TD
-    Start([Inicio: Admin solicita Sincronizacion]) --> SelectApp[Seleccionar Aplicacion Destino]
+    Start([Inicio: Admin solicita Sincronización]) --> SelectApp[Seleccionar Aplicación Destino]
     SelectApp --> SelectData[[Elegir el Catálogo a Enviar<br/>Ej: Organizaciones]]
 
     SelectData --> FetchData[InfoportOneAdmon recopila los datos]
     FetchData --> BuildEvent[Construir Evento con Payload (lista de objetos)]
 
-    BuildEvent --> Publish[Publicar Evento en el tópico de la Entidad (ej: infoportone.events.organization)]
-    Publish --> End([Fin: Datos enviados para procesado asincrono])
+    BuildEvent --> Publish[Publicar Evento en el tópico de la Entidad<br/>(ej: infoportone.events.organization)]
+    Publish --> End([Fin: Datos enviados para procesado asíncrono])
 
-    subgraph "Procesamiento en la Aplicación Satélite"
+    subgraph Procesamiento_en_la_Aplicación_Satélite
         Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
         AppConsumer --> AppInit[App inicializa su base de datos/cache local procesando la lista]
     end
+
 ```
 
-### 4.4️⃣ Autenticación y Autorización (Vista de Usuario Final)
+### 5.4️⃣ Autenticación y Autorización (Vista de Usuario Final)
 
 Cómo un usuario de una Organización Cliente accede a una App Satélite. InfoportOneAdmon no participa activamente en el login (solo configuró el entorno previamente), pero su configuración es vital.
 
@@ -365,7 +414,7 @@ graph TD
     Access -->|No| Deny[Acceso Denegado 403]
 ```
 
-### 4.5️⃣ Gestión de Usuarios desde Aplicaciones Satélite
+### 5.5️⃣ Gestión de Usuarios desde Aplicaciones Satélite
 
 Las aplicaciones satélite gestionan sus propios usuarios. Cada vez que una aplicación crea, actualiza o elimina un usuario, publicará un evento en el tópico `infoportone.events.user` con un `Payload` que contiene una lista de objetos `USER`. InfoportOne se suscribe a este tópico para replicar los cambios necesarios en Keycloak mediante su Admin API.
 
@@ -377,7 +426,7 @@ Ejemplo de `UserEvent` (un solo usuario en la lista):
 
 ```json
 {
-    "EventId": "u1b2c3d4-e5f6-1111-2222-333344445555",
+    "EventId": "ID-user-0001",
     "EventType": "UserEvent",
     "EventTimestamp": "2025-12-11T09:00:00Z",
     "Payload": [
@@ -407,7 +456,7 @@ Lógica de consumidor (InfoportOne):
 
 Nota: La sincronización debe ser idempotente y tolerante a reordenamientos; por ello cada evento contiene el estado final del/los usuarios.
 
-## 🗃️ 5. Modelo de Datos Conceptual
+## 🗃️ 6. Modelo de Datos Conceptual
 
 A continuación, se presentan las entidades principales que maneja InfoportOneAdmon, incluyendo la relación con los grupos de organizaciones.
 
@@ -459,7 +508,7 @@ erDiagram
 4.  **AppRoleDefinition**: Plantilla de un rol.
 5.  **AuditLog**: Registro inmutable, ahora también audita cambios en `OrganizationGroup`.
 
-## 🚀 6. Estrategia de Optimización y Rendimiento
+## 🚀 7. Estrategia de Optimización y Rendimiento
 
 1. **Desacoplamiento mediante ActiveMQ Artemis**
 El uso de un bus de mensajes empresarial garantiza que si una aplicación satélite está caída durante una actualización administrativa (ej: una organización se añade a un grupo), el cambio se procesará cuando la aplicación se reconecte.
@@ -481,7 +530,7 @@ La validación de seguridad en tiempo de ejecución se basa en el estándar *JWT
 4. **Auditoría Asíncrona**
 El registro de auditoría no bloquea la operación principal. Se procesa en segundo plano para asegurar una experiencia de usuario fluida para el administrador.
 
-## 👥 7. Identificación y Clasificación de Stakeholders
+## 👥 8. Identificación y Clasificación de Stakeholders
 
 A continuación, se presenta la lista de partes interesadas clave para el proyecto **InfoportOneAdmon**, clasificadas según su rol, interés y nivel de influencia en la plataforma de administración centralizada.
 
@@ -516,7 +565,7 @@ A continuación, se presenta la lista de partes interesadas clave para el proyec
 | **Marketing y Ventas** | **Equipo de Ventas B2B y Marketing** | Capacidad de promocionar y asegurar un proceso de *onboarding* de clientes rápido, estandarizado y de alta seguridad a nuevos prospectos. | La eficiencia del módulo de `Gestión de Organizaciones` es un **argumento de venta (USP)** fundamental para la adquisición de nuevos clientes. |
 | **Minoristas / Distribuidores** | **N/A** | N/A. | El proyecto **InfoportOneAdmon** es un sistema B2B interno de gestión administrativa y no tiene relación con el canal minorista o distribución física. |
 
-## 🧱 8. Componentes Principales y Sitemaps
+## 🧱 9. Componentes Principales y Sitemaps
 
 ### 8.1. Componentes Principales (Estructura Lógica)
 
@@ -558,7 +607,7 @@ graph TD
     D --> D3(Sincronizar Datos con App)
 ```
 
-## 🎨 9. Diseño y Experiencia del Usuario (UX/UI)
+## 🎨 10. Diseño y Experiencia del Usuario (UX/UI)
 
 El diseño de **InfoportOneAdmon** se centrará en la **usabilidad para el rol especializado de administración**, priorizando la seguridad y la claridad sobre la estética visual avanzada. La audiencia son usuarios *expertos* que ejecutan tareas críticas.
 
@@ -578,7 +627,7 @@ El diseño de **InfoportOneAdmon** se centrará en la **usabilidad para el rol e
 | **Feedback del Sistema** | Notificaciones **asíncronas** de éxito/error. Por ejemplo, "Organización creada, sincronizando en Keycloak...". | Informar al usuario sobre los procesos que se ejecutan en segundo plano (arquitectura Event-Driven) para evitar la percepción de lentitud. |
 | **Usabilidad Móvil** | **Prioridad Baja (Administración)**. La interfaz se diseñará y optimizará primariamente para **Desktop** (resoluciones de 1920x1080 o superior), dado que es una aplicación de back-office de uso especializado. | Concentrar recursos en la experiencia de escritorio del administrador donde se realizan las tareas más complejas. |
 
-## 🛠️ 10. Requisitos Técnicos
+## 🛠️ 11. Requisitos Técnicos
 
 ### 10.1. Stack Tecnológico Principal
 
@@ -608,7 +657,7 @@ El core de **InfoportOneAdmon** debe construirse sobre tecnologías probadas y e
     * 🧱 **Aislamiento de Datos**: El diseño de la base de datos debe ser inherentemente *Tenant-Aware* o *Tenant-Safe* para garantizar que el `SecurityCompanyId` sea el factor principal de aislamiento, cumpliendo con la necesidad de segregación de datos.
     - **Auditoría (ISO 27001)**: El registro de auditoría (`AuditLog`) debe ser inmutable y registrar el *antes y el después* de los datos de todas las operaciones críticas (creación, modificación, desactivación). Esto es un requisito obligatorio para demostrar el control interno sobre el sistema.
 
-## 🗓️ 11. Planificación del Proyecto (MVP de 30 Horas)
+## 🗓️ 12. Planificación del Proyecto (MVP de 30 Horas)
 
 Dada la restricción de tiempo impuesta (30 horas) para la fase de definición e implementación del **PMV (Producto Mínimo Viable)**, el alcance del proyecto se reducirá a lo estrictamente necesario para validar el flujo más crítico y fundamental: **La creación exitosa de una Organización (Tenant) y su correcta orquestación de seguridad**.
 
