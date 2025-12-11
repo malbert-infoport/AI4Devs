@@ -226,6 +226,7 @@ Todos los eventos usan una estructura común. Importante: el campo `Payload` con
 Notas:
 - `EventId`: identificador único del evento **debe ser un GUID/UUID (v4 preferido)**. Los productores deben generar un UUID válido para evitar colisiones y permitir trazabilidad.
 - `TraceId`: identificador (GUID/UUID) que permite correlacionar eventos causados por una misma operación o flujo. Cuando un consumidor genere nuevos eventos derivados de uno recibido, debe propagar el `TraceId` original al nuevo evento para mantener la causalidad y facilitar el rastreo.
+- `OriginApplicationId`: identificador (int) de la aplicación emisora del evento. Permite conocer qué aplicación generó el evento originalmente — útil para reglas de confianza, filtros de consumo, y para enrutar respuestas o eventos derivados de vuelta a la app origen.
 - `EventType`: nombre que describe el evento (ej.: `OrganizationEvent`, `UserEvent`).
 - `Payload`: lista de objetos completos donde cada objeto contiene su propio `IsDeleted`.
 
@@ -294,7 +295,6 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `IsDeleted` (bool): `true` si la aplicación debe considerarse eliminada o deshabilitada.
 
 - **Role** (en `RoleEvent`):
-- **Role** (en `RoleEvent`):
     - `RolId` (int): Identificador único del rol (PK dentro de InfoportOne).
     - `RoleName` (string): Nombre único del rol dentro de la aplicación.
     - `ApplicationId` (int): Referencia a la aplicación propietaria del rol.
@@ -319,30 +319,42 @@ Publica un `OrganizationEvent` cuyo `Payload` contiene uno o varios objetos `Org
 
 ```mermaid
 graph TD
-    Start([Inicio: Admin Propietario solicita Alta]) --> Validar[Validar Datos y Unicidad de Nombre]
-    Validar -->|Nombre Duplicado| Error[Retornar Error]
-    Validar -->|Datos Válidos| GenID[Generar SecurityCompanyId]
-    GenID --> KC_Step[Provisionar en Keycloak]
-    KC_Step --> KC_Group[Crear Grupo Raíz '/orgs/cliente']
-    KC_Step --> KC_Attr[Asignar Atributos de Seguridad]
-    KC_Attr --> DB_Save[Guardar Organización en BD InfoportOneAdmon]
-    DB_Save --> Event[Publicar Evento de Estado en ActiveMQ]
-    Event --> Audit[Registrar en Auditoría]
-    Audit --> End([Fin: Organización Activa])
-       
-        Choose -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
+    %% --- Proceso de Alta de Organización ---
+    subgraph Alta_de_Organización
+        Start([Inicio: Admin Propietario solicita Alta]) --> Validar[Validar Datos y Unicidad de Nombre]
+
+        Validar -->|Nombre Duplicado| Error[Retornar Error]
+        Validar -->|Datos Válidos| GenID[Generar SecurityCompanyId]
+
+        GenID --> KC_Step[Provisionar en Keycloak]
+        KC_Step --> KC_Group[Crear Grupo Raíz '/orgs/cliente']
+        KC_Step --> KC_Attr[Asignar Atributos de Seguridad]
+
+        KC_Attr --> DB_Save[Guardar Organización en BD InfoportOneAdmon]
+        DB_Save --> Event[Publicar Evento de Estado en ActiveMQ]
+        Event --> Audit[Registrar en Auditoría]
+        Audit --> End([Fin: Organización Activa])
+    end
+
+    %% --- Gestión de Miembros ---
+    subgraph Gestion_de_Miembros
+        Choose[Acción del Admin] -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
         Manage --> UpdateMember[Actualizar Asociación en BD]
         UpdateMember --> PubUpdate[Publicar 'OrganizationEvent' para el miembro]
-        PubUpdate --> EndUpdate([Fin])
+        PubUpdate --> EndUpdate([Fin Gestión Miembro])
     end
-    
-    subgraph "Reacción en Aplicaciones Satélite"
+
+    %% --- Reacción en Aplicaciones Satélite ---
+    subgraph Reacción_en_Aplicaciones_Satélite
+        Event --> PubCreate[Evento de creación recibido]
         PubCreate --> AppListener1[App aplica lógica upsert para el grupo]
+
         PubUpdate --> AppListener2[App aplica lógica upsert para la organización]
     end
+
 ```
 
-### 5.3️⃣ Sincronización de Datos para una Nueva Aplicación
+### 5.2️⃣ Sincronización de Datos para una Nueva Aplicación
 Cuando se necesita inicializar o resincronizar una aplicación, InfoportOneAdmon publica en el mismo tópico de la entidad un evento cuyo `Payload` contiene una lista de objetos (p. ej. múltiples `Organization`), que la aplicación consume para poblar su caché o base de datos local.
 
 ```mermaid
@@ -360,10 +372,9 @@ graph TD
         Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
         AppConsumer --> AppInit[App inicializa su base de datos/cache local procesando la lista]
     end
-
 ```
 
-### 5.4️⃣ Autenticación y Autorización (Vista de Usuario Final)
+### 5.3️⃣ Autenticación y Autorización (Vista de Usuario Final)
 
 Cómo un usuario de una Organización Cliente accede a una App Satélite. InfoportOneAdmon no participa activamente en el login (solo configuró el entorno previamente), pero su configuración es vital.
 
@@ -388,7 +399,7 @@ graph TD
     Access -->|No| Deny[Acceso Denegado 403]
 ```
 
-### 5.5️⃣ Gestión de Usuarios desde Aplicaciones Satélite
+### 5.4️⃣ Gestión de Usuarios desde Aplicaciones Satélite
 
 Las aplicaciones satélite gestionan sus propios usuarios. Cada vez que una aplicación crea, actualiza o elimina un usuario, publicará un evento en el tópico `infoportone.events.user` con un `Payload` que contiene una lista de objetos `USER`. InfoportOne se suscribe a este tópico para replicar los cambios necesarios en Keycloak mediante su Admin API.
 
