@@ -277,23 +277,22 @@ graph TD
 ```mermaid
 graph TD
     subgraph "Flujo Principal"
-        Start([Inicio: Admin gestiona Grupo]) --> Choose{Accion?}
+        Start([Inicio: Admin gestiona Grupo]) --> Choose{¿Acción?}
         Choose -->|Crear Grupo| Create[Definir Nombre de Grupo]
         Create --> SaveGroup[Guardar Grupo en BD]
         SaveGroup --> PubCreate[Publicar 'OrganizationGroupEvent']
         PubCreate --> EndCreate([Fin])
         
-        Choose -->|Anadir/Quitar Miembro| Manage[Seleccionar Grupo y Organizacion]
-        Manage --> UpdateMember[Actualizar Asociacion en BD]
+        Choose -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
+        Manage --> UpdateMember[Actualizar Asociación en BD]
         UpdateMember --> PubUpdate[Publicar 'OrganizationEvent' para el miembro]
         PubUpdate --> EndUpdate([Fin])
     end
     
-    subgraph "Reaccion en Aplicaciones Satelite"
-        PubCreate --> AppListener1[App aplica logica upsert para el grupo]
-        PubUpdate --> AppListener2[App aplica logica upsert para la organizacion]
+    subgraph "Reacción en Aplicaciones Satélite"
+        PubCreate --> AppListener1[App aplica lógica upsert para el grupo]
+        PubUpdate --> AppListener2[App aplica lógica upsert para la organización]
     end
-end
 ```
 
 ### 4.3️⃣ Sincronización de Datos para una Nueva Aplicación
@@ -310,10 +309,14 @@ graph TD
     BuildEvent --> Publish[Publicar Evento en cola especifica de la App]
     Publish --> End([Fin: Datos enviados para procesado asincrono])
     
+    %% Alias para evitar conflicto al entrar al subgraph
+    Publish -.-> PublishInSubgraph
+    
     subgraph "Procesamiento en la Aplicacion Satelite"
-        Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
+        PublishInSubgraph -->|Consumo| AppConsumer[La nueva App consume el evento]
         AppConsumer --> AppInit[App inicializa su base de datos/cache local]
     end
+
 ```
 
 ### 4.4️⃣ Autenticación y Autorización (Vista de Usuario Final)
