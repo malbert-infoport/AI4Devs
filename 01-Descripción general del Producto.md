@@ -94,7 +94,7 @@ Permite registrar nuevas aplicaciones satélite en el ecosistema, gestionando su
 * 🆕 **Registro de Aplicación**: Alta de nueva app, generando `client_id` y `client_secret`.
 * 🔐 **Gestión de Secretos**: Rotación y administración segura de credenciales.
 * 🚦 **Control de Acceso**: Definir si una aplicación está activa o en mantenimiento.
-* ✨ **Sincronización de Datos**: Funcionalidad para enviar catálogos completos (ej: de aplicaciones, de organizaciones) a una aplicación específica mediante eventos, útil para inicializar una nueva instancia.
+* ✨ **Sincronización de Datos**: Funcionalidad para enviar catálogos completos (ej: de aplicaciones, de organizaciones) publicando al mismo tópico de la entidad un evento cuyo `Payload` contiene una lista de objetos. Esto evita la necesidad de tópicos especiales de sincronización.
 
 ### 2.5️⃣ Integración Transparente con Keycloak
 
@@ -111,13 +111,12 @@ Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder a s
 Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Event"** para mantener la coherencia entre InfoportOneAdmon y las aplicaciones satélite. En lugar de notificar acciones (ej. "se creó X"), se notifica el **nuevo estado de la entidad**. Esto hace que los sistemas consumidores sean más robustos y fáciles de sincronizar.
 
 **📣 Tópicos de Eventos Principales**:
-Se define un tópico por cada entidad de negocio principal.
+Se define un tópico por cada entidad de negocio principal. Para sincronizaciones masivas se publica al mismo tópico de la entidad usando un `Payload` que contiene una lista de objetos.
 
 *   `infoportone.events.organization`
 *   `infoportone.events.organization-group`
 *   `infoportone.events.application`
 *   `infoportone.events.role`
-*   `infoportone.events.synchronization` (Para eventos de sincronización masiva)
 
 ### 2.7️⃣ Definición de la Estructura de Eventos
 
@@ -125,15 +124,19 @@ Todos los eventos comparten una estructura común que permite a los consumidores
 
 #### Estructura Genérica del Evento
 
+Todos los eventos usan la misma estructura. **Importante**: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Para enviar un solo objeto basta con incluir un array con un único elemento. Esto permite reusar el mismo tópico para sincronizaciones masivas sin necesitar tópicos especiales.
+
 ```json
 {
-  "EventId": "Guid", // Identificador único del evento
-  "EventType": "string", // Describe la entidad, ej: "OrganizationEvent"
-  "EventTimestamp": "DateTime", // Fecha y hora de generación del evento
-  "IsDeleted": false, // `false` para creación/actualización, `true` para eliminación
-  "Payload": {
-    // Objeto completo de la entidad en su estado final
-  }
+    "EventId": "Guid", // Identificador único del evento
+    "EventType": "string", // Describe la entidad, ej: "OrganizationEvent"
+    "EventTimestamp": "DateTime", // Fecha y hora de generación del evento
+    "IsDeleted": false, // `false` si los elementos no están marcados como eliminados (ver Payload)
+    "Payload": [
+        {
+            // Objeto completo de la entidad en su estado final
+        }
+    ]
 }
 ```
 
@@ -141,56 +144,64 @@ Todos los eventos comparten una estructura común que permite a los consumidores
 
 Enviado al tópico `infoportone.events.organization`.
 
-*   **`EventType`**: `"OrganizationEvent"`
-*   **`Payload`**: Objeto completo de la entidad `ORGANIZATION`.
+* **`EventType`**: `"OrganizationEvent"`
+* **`Payload`**: Lista de objetos `ORGANIZATION` (puede contener uno o varios elementos).
+
+Ejemplo con un solo elemento en el `Payload`:
 
 ```json
 {
-  "EventId": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-  "EventType": "OrganizationEvent",
-  "EventTimestamp": "2025-12-10T10:00:00Z",
-  "IsDeleted": false,
-  "Payload": {
-    "SecurityCompanyId": 12345,
-    "Nombre": "Cliente Final S.L.",
-    "Estado": "Activo",
-    "GroupId": 101
-  }
+    "EventId": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+    "EventType": "OrganizationEvent",
+    "EventTimestamp": "2025-12-10T10:00:00Z",
+    "IsDeleted": false,
+    "Payload": [
+        {
+            "SecurityCompanyId": 12345,
+            "Nombre": "Cliente Final S.L.",
+            "Estado": "Activo",
+            "GroupId": 101
+        }
+    ]
 }
 ```
-*Si `IsDeleted` fuera `true`, el `Payload` aún contendría el `SecurityCompanyId` para que el consumidor sepa qué entidad eliminar.*
+
+Si un elemento debe representar una eliminación, incluya `IsDeleted: true` en el propio objeto dentro del `Payload` o marque el evento a nivel del objeto (ver convención de implementación). La forma recomendada es incluir en cada objeto un flag `IsDeleted` para que el consumidor aplique la operación correcta por elemento.
 
 #### Ejemplo: `OrganizationGroupEvent`
 
 Enviado al tópico `infoportone.events.organization-group`.
 
-*   **`EventType`**: `"OrganizationGroupEvent"`
-*   **`Payload`**: Objeto completo de la entidad `ORGANIZATION_GROUP`.
+* **`EventType`**: `"OrganizationGroupEvent"`
+* **`Payload`**: Lista de objetos `ORGANIZATION_GROUP`.
 
 ```json
 {
-  "EventId": "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
-  "EventType": "OrganizationGroupEvent",
-  "EventTimestamp": "2025-12-10T11:30:00Z",
-  "IsDeleted": false,
-  "Payload": {
-    "GroupId": 101,
-    "Name": "Grupo Logístico Principal"
-  }
+    "EventId": "b2c3d4e5-f6a7-8901-2345-67890abcdef0",
+    "EventType": "OrganizationGroupEvent",
+    "EventTimestamp": "2025-12-10T11:30:00Z",
+    "IsDeleted": false,
+    "Payload": [
+        {
+            "GroupId": 101,
+            "Name": "Grupo Logístico Principal"
+        }
+    ]
 }
 ```
 
 **Lógica del Consumidor:**
 1. Recibe un mensaje del tópico `infoportone.events.organization`.
-2. Deserializa el `Payload` en un objeto `Organization`.
-3. Si `IsDeleted` es `true`:
-   - `DELETE FROM Organizations WHERE SecurityCompanyId = payload.SecurityCompanyId;`
-4. Si `IsDeleted` es `false`:
-   - `SELECT * FROM Organizations WHERE SecurityCompanyId = payload.SecurityCompanyId;`
-   - Si existe: `UPDATE Organizations SET ... WHERE SecurityCompanyId = ...;`
-   - Si no existe: `INSERT INTO Organizations (...) VALUES (...);`
+2. Deserializa el `Payload` como una lista/array de objetos `Organization`.
+3. Para cada objeto `o` en `Payload`:
+    - Si `o.IsDeleted` es `true`:
+         - `DELETE FROM Organizations WHERE SecurityCompanyId = o.SecurityCompanyId;`
+    - Si `o.IsDeleted` es `false` (o no existe `IsDeleted`):
+         - `SELECT * FROM Organizations WHERE SecurityCompanyId = o.SecurityCompanyId;`
+         - Si existe: `UPDATE Organizations SET ... WHERE SecurityCompanyId = o.SecurityCompanyId;`
+         - Si no existe: `INSERT INTO Organizations (...) VALUES (...);`
 
-Este enfoque simplifica enormemente la lógica del consumidor y lo hace inmune a eventos perdidos o desordenados (siempre que procese el último estado).
+Este enfoque permite procesar sincronizaciones masivas (payloads con múltiples objetos) y simplifica la lógica del consumidor. Procesar el `Payload` como una lista hace que la aplicación sea inmune a eventos perdidos o desordenados, siempre que el consumidor aplique el estado final de cada objeto.
 
 ## 🏗️ 3. Arquitectura Lógica del Sistema
 
@@ -304,24 +315,22 @@ graph TD
 ```
 
 ### 4.3️⃣ Sincronización de Datos para una Nueva Aplicación
-Publica un evento especial en el tópico de sincronización, cuyo payload es una lista de los objetos a sincronizar (ej: un array de `Organization`).
+Cuando se necesita inicializar o resincronizar una aplicación, InfoportOneAdmon publica en el mismo tópico de la entidad un evento cuyo `Payload` contiene una lista de objetos (p. ej. múltiples `Organization`), que la aplicación consume para poblar su caché o base de datos local.
 
 ```mermaid
 graph TD
     Start([Inicio: Admin solicita Sincronizacion]) --> SelectApp[Seleccionar Aplicacion Destino]
-    SelectApp --> SelectData[[Elegir el Catálogo a Enviar<br/>Ej: Todas las Aplicaciones]]
-    
+    SelectApp --> SelectData[[Elegir el Catálogo a Enviar<br/>Ej: Organizaciones]]
+
     SelectData --> FetchData[InfoportOneAdmon recopila los datos]
-    FetchData --> BuildEvent[Construir Mensaje de Evento Masivo]
-    
-    BuildEvent --> Publish[Publicar Evento en cola específica de la App]
+    FetchData --> BuildEvent[Construir Evento con Payload (lista de objetos)]
+
+    BuildEvent --> Publish[Publicar Evento en el tópico de la Entidad (ej: infoportone.events.organization)]
     Publish --> End([Fin: Datos enviados para procesado asincrono])
-    
-    Publish -.-> PublishInSubgraph
-    
+
     subgraph "Procesamiento en la Aplicación Satélite"
-        PublishInSubgraph -->|Consumo| AppConsumer[La nueva App consume el evento]
-        AppConsumer --> AppInit[App inicializa su base de datos/cache local]
+        Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
+        AppConsumer --> AppInit[App inicializa su base de datos/cache local procesando la lista]
     end
 ```
 
