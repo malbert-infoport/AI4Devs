@@ -207,10 +207,10 @@ Se publicará un tópico por entidad de negocio principal. Cada evento transport
 ### 4.2️⃣ Estructura Genérica de los Eventos
 Todos los eventos usan una estructura común. Importante: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Cada objeto dentro del `Payload` debe incluir la propiedad `IsDeleted` para indicar si ese elemento debe borrarse o procesarse como creación/actualización.
 
-```json
+-```json
 {
-    "EventId": "ID-xxxx",             
-    "EventType": "string",            
+    "EventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "EventType": "string",
     "EventTimestamp": "2025-12-10T10:00:00Z",
     "Payload": [
         {
@@ -222,7 +222,7 @@ Todos los eventos usan una estructura común. Importante: el campo `Payload` con
 ```
 
 Notas:
-- `EventId`: identificador único del evento (formato libre, evitar dependencias con GUIDs fijos en la documentación; aquí se usa `ID-xxxx` como marcador de posición para que los productores generen un identificador único).
+- `EventId`: identificador único del evento **debe ser un GUID/UUID (v4 preferido)**. Los productores deben generar un UUID válido para evitar colisiones y permitir trazabilidad.
 - `EventType`: nombre que describe el evento (ej.: `OrganizationEvent`, `UserEvent`).
 - `Payload`: lista de objetos completos donde cada objeto contiene su propio `IsDeleted`.
 
@@ -236,7 +236,7 @@ Ejemplo con un solo elemento en el `Payload`:
 
 ```json
 {
-    "EventId": "ID-org-0001",
+    "EventId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
     "EventType": "OrganizationEvent",
     "EventTimestamp": "2025-12-10T10:00:00Z",
     "Payload": [
@@ -321,20 +321,20 @@ graph TD
     DB_Save --> Event[Publicar Evento de Estado en ActiveMQ]
     Event --> Audit[Registrar en Auditoría]
     Audit --> End([Fin: Organización Activa])
+```json
+{
+    "EventId": "27b3c8d2-1f1a-4b5d-9c3e-f3b3a5b6c7d8",
+    "EventType": "OrganizationGroupEvent",
+    "EventTimestamp": "2025-12-10T11:30:00Z",
+    "Payload": [
+        {
+            "GroupId": 101,
+            "Name": "Grupo Logístico Principal",
+            "IsDeleted": false
+        }
+    ]
+}
 ```
-
-### 5.2️⃣ Gestión de un Grupo de Organizaciones
-*   **Crear Grupo**: Publica un `OrganizationGroupEvent` con el nuevo grupo.
-*   **Añadir/Quitar Miembro**: Publica un `OrganizationEvent` para la organización afectada, con su `GroupId` actualizado.
-
-```mermaid
-graph TD
-    subgraph "Flujo Principal"
-        Start([Inicio: Admin gestiona Grupo]) --> Choose{¿Acción?}
-        Choose -->|Crear Grupo| Create[Definir Nombre de Grupo]
-        Create --> SaveGroup[Guardar Grupo en BD]
-        SaveGroup --> PubCreate[Publicar 'OrganizationGroupEvent']
-        PubCreate --> EndCreate([Fin])
         
         Choose -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
         Manage --> UpdateMember[Actualizar Asociación en BD]
@@ -406,7 +406,7 @@ Ejemplo de `UserEvent` (un solo usuario en la lista):
 
 ```json
 {
-    "EventId": "ID-user-0001",
+    "EventId": "9f8c5a7e-3b2d-4c6f-8a1b-0123456789ab",
     "EventType": "UserEvent",
     "EventTimestamp": "2025-12-11T09:00:00Z",
     "Payload": [
