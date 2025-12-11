@@ -287,18 +287,20 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `GroupId` (int): Identificador del grupo.
     - `Name` (string): Nombre del grupo.
     - `IsDeleted` (bool): `true` si el grupo debe eliminarse.
+    - `Active` (bool): `true` si el grupo está activo.
 
 - **Application** (en `ApplicationEvent`):
     - `AppId` (int): Identificador de la aplicación en InfoportOne.
     - `ClientId` (string): Identificador OAuth2.
     - `Nombre` (string): Nombre de la aplicación.
     - `IsDeleted` (bool): `true` si la aplicación debe considerarse eliminada o deshabilitada.
+    - `Active` (bool): `true` si la aplicación está activa.
 
 - **Role** (en `RoleEvent`):
     - `RolId` (int): Identificador único del rol (PK dentro de InfoportOne).
     - `RoleName` (string): Nombre único del rol dentro de la aplicación.
     - `ApplicationId` (int): Referencia a la aplicación propietaria del rol.
-    - `Deprecated` (bool): Marca si el rol está obsoleto.
+    - `Active` (bool): `true` si el rol está activo (reemplaza Deprecated).
     - `IsDeleted` (bool): `true` si el rol debe borrarse.
 
 - **User** (en `UserEvent`):
@@ -309,6 +311,7 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
     - `Rols` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
     - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
+    - `Active` (bool): `true` si el usuario está activo (nunca enviado cuando IsDeleted=true).
 
 Estas definiciones permiten a los consumidores deserializar de forma segura cada elemento del `Payload` y aplicar la lógica por objeto (upsert o delete) usando el flag `IsDeleted`.
 
@@ -454,12 +457,13 @@ erDiagram
     ORGANIZATION_GROUP {
         int GroupId "PK"
         string Name "Nombre del Grupo"
+        bool Active "Estado lógico del grupo (true=activo)"
     }
 
     ORGANIZATION {
         int SecurityCompanyId "PK, Identificador Inmutable"
         string Nombre "Nombre Comercial"
-        string Estado "Activo / Inactivo"
+        bool Active "Activo / Inactivo"
         int GroupId "FK a ORGANIZATION_GROUP (opcional)"
     }
     
@@ -469,11 +473,12 @@ erDiagram
         int AppId "PK"
         string ClientId "Identificador OAuth2"
         string Nombre "Nombre App"
+        bool Active "Activo / Inactivo"
     }
     
     APP_ROLE_DEFINITION {
         string RoleName "Nombre del Rol (ej: Editor)"
-        bool Deprecated "Estado de vigencia"
+        bool Active "Estado de vigencia (true=activo)"
     }
     
     APP_ACCESS {
