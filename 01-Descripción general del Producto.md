@@ -366,12 +366,12 @@ graph TD
     SelectApp --> SelectData[[Elegir el Catálogo a Enviar<br/>Ej: Organizaciones]]
 
     SelectData --> FetchData[InfoportOneAdmon recopila los datos]
-    FetchData --> BuildEvent[Construir Evento con Payload (lista de objetos)]
+    FetchData --> BuildEvent[Construir Evento con Payload]
 
-    BuildEvent --> Publish[Publicar Evento en el tópico de la Entidad<br/>(ej: infoportone.events.organization)]
+    BuildEvent --> Publish[Publicar Evento en el topico de la Entidad]
     Publish --> End([Fin: Datos enviados para procesado asíncrono])
 
-    subgraph Procesamiento_en_la_Aplicación_Satélite
+    subgraph Aplicación
         Publish -->|Consumo| AppConsumer[La nueva App consume el evento]
         AppConsumer --> AppInit[App inicializa su base de datos/cache local procesando la lista]
     end
