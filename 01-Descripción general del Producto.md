@@ -202,7 +202,7 @@ Se publicará un tópico por entidad de negocio principal. Cada evento transport
 - `infoportone.events.organization-group`: Eventos sobre grupos de organizaciones.
 - `infoportone.events.application`: Eventos sobre aplicaciones satélite.
 - `infoportone.events.role`: Eventos sobre definiciones de roles.
-- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. Cada objeto `USER` en el `Payload` debe incluir `SecurityCompanyId` (un usuario solo puede pertenecer a una organización) y el flag `IsDeleted`.
+- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios.
 
 ### 4.2️⃣ Estructura Genérica de los Eventos
 Todos los eventos usan una estructura común. Importante: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Cada objeto dentro del `Payload` debe incluir la propiedad `IsDeleted` para indicar si ese elemento debe borrarse o procesarse como creación/actualización.
@@ -226,7 +226,7 @@ Notas:
 - `EventType`: nombre que describe el evento (ej.: `OrganizationEvent`, `UserEvent`).
 - `Payload`: lista de objetos completos donde cada objeto contiene su propio `IsDeleted`.
 
-### 4.3️⃣ Ejemplo: `OrganizationEvent`
+### 4.3️⃣ Ejemplo de Evento
 Enviado al tópico `infoportone.events.organization`.
 
 - **`EventType`**: `"OrganizationEvent"`
@@ -253,28 +253,8 @@ Ejemplo con un solo elemento en el `Payload`:
 
 Si un elemento debe representar una eliminación, incluya `"IsDeleted": true` en el propio objeto dentro del `Payload`.
 
-### 4.4️⃣ Ejemplo: `OrganizationGroupEvent`
-Enviado al tópico `infoportone.events.organization-group`.
 
-- **`EventType`**: `"OrganizationGroupEvent"`
-- **`Payload`**: Lista de objetos `ORGANIZATION_GROUP`.
-
-```json
-{
-    "EventId": "ID-group-0101",
-    "EventType": "OrganizationGroupEvent",
-    "EventTimestamp": "2025-12-10T11:30:00Z",
-    "Payload": [
-        {
-            "GroupId": 101,
-            "Name": "Grupo Logístico Principal",
-            "IsDeleted": false
-        }
-    ]
-}
-```
-
-### 4.5️⃣ Lógica del Consumidor
+### 4.4️⃣ Lógica del Consumidor
 1. Suscribirse al tópico correspondiente (ej.: `infoportone.events.organization`).
 2. Deserializar el `Payload` como una lista/array de objetos de la entidad.
 3. Para cada objeto `o` en `Payload`:
@@ -287,7 +267,7 @@ Enviado al tópico `infoportone.events.organization-group`.
 
 Este patrón permite procesar sincronizaciones masivas y simplifica la lógica del consumidor, que debe ser idempotente y tolerante a reordenamientos.
 
-### 4.6️⃣ Clases y Propiedades en el Payload (por Evento)
+### 4.5️⃣ Clases y Propiedades en el Payload (por Evento)
 Cada evento transporta en su `Payload` una lista de objetos cuya estructura depende de la entidad. Todas las clases deben incluir la propiedad `IsDeleted` (boolean) para indicar si el elemento debe ser eliminado o procesado como creación/actualización.
 
 - **Organization** (ejemplo de objeto dentro de `Payload` en `OrganizationEvent`):
