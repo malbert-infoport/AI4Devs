@@ -217,7 +217,8 @@ Todos los eventos usan una estructura común. Importante: el campo `Payload` con
     "Payload": [
         {
             "<EntitySpecificFields>": "...",
-            "IsDeleted": false
+            "IsDeleted": false,
+            "Active": true
         }
     ]
 }
