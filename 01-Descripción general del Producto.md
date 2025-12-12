@@ -279,9 +279,9 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
 - **Organization** (ejemplo de objeto dentro de `Payload` en `OrganizationEvent`):
     - `SecurityCompanyId` (int): Identificador único inmutable de la organización.
     - `Nombre` (string): Nombre comercial.
-    - `Estado` (string): Estado lógico (`Activo` / `Inactivo`).
     - `GroupId` (int, opcional): Identificador del grupo al que pertenece.
     - `IsDeleted` (bool): `true` si la organización debe eliminarse/desactivarse.
+    - `Active` (bool): `true` si la organización está activa.
 
 - **OrganizationGroup** (en `OrganizationGroupEvent`):
     - `GroupId` (int): Identificador del grupo.
@@ -300,8 +300,8 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `RolId` (int): Identificador único del rol (PK dentro de InfoportOne).
     - `RoleName` (string): Nombre único del rol dentro de la aplicación.
     - `ApplicationId` (int): Referencia a la aplicación propietaria del rol.
-    - `Active` (bool): `true` si el rol está activo (reemplaza Deprecated).
     - `IsDeleted` (bool): `true` si el rol debe borrarse.
+    - `Active` (bool): `true` si el rol está activo.
 
 - **User** (en `UserEvent`):
     - `UserId` (string): Identificador único del usuario (puede ser legible por humanos o GUID generado por la app).
