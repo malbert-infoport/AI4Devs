@@ -309,7 +309,7 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Active` (bool): `true` si la aplicación está activa.
     - **`Roles` (lista de `Role`)**: Lista de roles disponibles en la aplicación.
         - Cada `Role` contiene:
-            - `RolId` (int): Identificador único del rol.
+            - `RoleId` (int): Identificador único del rol.
             - `RoleName` (string): Nombre del rol (ej: "Editor", "Administrador").
             - `Active` (bool): Si el rol está activo.
             - `IsDeleted` (bool): Flag de eliminación del rol.
@@ -328,7 +328,7 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Email` (string): Correo electrónico. **Identificador único global del usuario** - usado por InfoportOne para detectar si un usuario ya existe en otras organizaciones y gestionar automáticamente la multi-organización.
     - `OriginCompanyId` (int): `SecurityCompanyId` de la organización desde la cual se crea o actualiza este usuario. Campo obligatorio que indica el contexto organizacional de la operación.
     - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
-    - `Roles` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
+    - `Roles` (array[int]): Lista de `RoleId` (enteros) asignados al usuario desde la aplicación de origen.
     - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
     - `Active` (bool): `true` si el usuario está activo (nunca enviado cuando IsDeleted=true).
 
@@ -601,7 +601,7 @@ erDiagram
     }
     
     APP_ROLE_DEFINITION {
-        int RolId "PK"
+        int RoleId "PK"
         string RoleName "Nombre del Rol (ej: Editor)"
         int ApplicationId "FK a APPLICATION"
         bool Active "Estado de vigencia (true=activo)"
