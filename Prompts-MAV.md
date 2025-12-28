@@ -111,3 +111,35 @@
         - Para cada módulo: los identificadores de las organizaciones que tienen acceso al mismo
     
     Actualiza toda la documentación para reflejar estos cambios: modelo de datos, eventos, casos de uso, diagramas, arquitectura de seguridad, y cualquier otra sección afectada.
+
+---
+
+## Prompt 10: (Simplificación y Optimización de Eventos)
+
+-   **Rol:** Arquitecto de Software especialista en arquitecturas event-driven y sistemas multi-organización.
+-   **Objetivo:** Simplificar y optimizar el modelo de eventos del sistema aplicando las siguientes correcciones arquitectónicas en toda la documentación:
+    
+    **Corrección 1: Consolidación del OrganizationEvent**
+    - Eliminar el evento `OrganizationGroupEvent` como evento independiente.
+    - El `OrganizationEvent` debe incluir una propiedad opcional `GroupId` que indica el grupo al que pertenece la organización.
+    - La entidad `OrganizationGroup` NO debe tener las propiedades `IsDeleted` ni `Active`.
+    - Las aplicaciones satélite determinarán automáticamente si mantener o eliminar un grupo basándose en si tienen organizaciones que pertenezcan a él al procesar los eventos de organizaciones.
+    
+    **Corrección 2: Consolidación del RoleEvent dentro de ApplicationEvent**
+    - Eliminar el evento `RoleEvent` como evento independiente y el tópico `infoportone.events.role`.
+    - El `ApplicationEvent` debe incluir la lista de roles (al igual que incluye los módulos) para indicar todos los roles vinculados a dicha aplicación.
+    - Esto simplifica el modelo de eventos y garantiza que roles y módulos siempre estén sincronizados con su aplicación.
+    
+    **Corrección 3: Simplificación del UserEvent**
+    - Eliminar la propiedad `CompanyIds` del payload del `UserEvent`.
+    - Mantener únicamente `OriginCompanyId` que indica desde qué organización se crea/actualiza el usuario.
+    - La vinculación de un usuario a múltiples organizaciones se gestiona automáticamente desde InfoportOne al detectar por el `Email` (identificador único global) que el usuario ya existe en otra organización.
+    - InfoportOne es responsable de fusionar y mantener actualizado el claim `c_ids` con todas las organizaciones del usuario.
+    
+    **Resultado esperado:**
+    - Reducción de tópicos de eventos: solo `organization`, `application` y `user`.
+    - Menor complejidad en las aplicaciones satélite al procesar eventos.
+    - Responsabilidad clara: InfoportOne gestiona la lógica de multi-organización de usuarios.
+    - Modelo de datos más limpio y consistente.
+    
+    Actualiza toda la documentación para reflejar estos cambios: modelo de eventos, estructura de payloads, diagramas de arquitectura, flujos de proceso, modelo de datos, y lista de tópicos.

@@ -72,23 +72,23 @@ Este módulo permite a los administradores de la Organización Propietaria gesti
 ### 2.2️⃣ Gestión de Grupos de Organizaciones
 
 **📝 Descripción**:
-Permite crear y gestionar agrupaciones lógicas de organizaciones. Estas agrupaciones son cruciales para las aplicaciones que necesitan implementar funcionalidades transversales entre varias organizaciones que pertenecen a un mismo "consorcio" o "holding".
+Permite agrupar organizaciones lógicamente (ej: consorcio, holding). **Importante**: Los grupos NO tienen eventos propios; se propagan como parte del `OrganizationEvent` mediante los campos `GroupId` y `GroupName`.
 
 **🧠 Capacidades**:
 * 🆕 **Creación de Grupos**: Definir un nuevo grupo de organizaciones (ej: "Grupo Logístico Peninsular").
-* 🔄 **Asociación de Miembros**: Añadir o eliminar organizaciones de un grupo existente.
-* 🗑️ **Gestión del Ciclo de Vida**: Modificar o eliminar grupos.
-* 📢 **Propagación de Cambios**: Cada cambio (creación, modificación, borrado de grupo, o cambio en sus miembros) genera un evento de estado que se publica en el bus para notificar a las aplicaciones.
+* 🔄 **Asociación de Miembros**: Asignar o modificar el `GroupId` de una organización.
+* 🗑️ **Gestión del Ciclo de Vida**: Modificar grupos. Las aplicaciones satélite eliminan automáticamente grupos sin organizaciones.
+* 📢 **Propagación de Cambios**: Los cambios en grupos se publican mediante `OrganizationEvent` (no existe `OrganizationGroupEvent`).
 
 ### 2.3️⃣ Gestión de Definiciones de Roles (Catálogo)
 
 **📝 Descripción**:
-Funciona como un repositorio maestro de roles. Permite definir qué "perfiles" existen dentro de cada aplicación (ej: "Vendedor", "Gerente").
+Define qué roles existen dentro de cada aplicación. **Importante**: Los roles se sincronizan como parte del `ApplicationEvent`, no tienen eventos independientes.
 
 **🧠 Capacidades**:
-* 📘 **Creación de Catálogo**: Definir nuevos roles para una aplicación.
-* 🧪 **Deprecación**: Marcar roles como obsoletos.
-* 🔎 **Consulta de Roles**: Endpoint para que las aplicaciones descarguen su lista de roles.
+* 📘 **Definición de Roles**: Definir roles para una aplicación (ej: "Vendedor", "Gerente", "Administrador").
+* 🧪 **Deprecación**: Marcar roles como obsoletos mediante el flag `Active`.
+* � **Sincronización**: Los roles se publican automáticamente con el `ApplicationEvent` (junto con módulos).
 
 ### 2.4️⃣ Gestión de Aplicaciones (Ecosistema)
 
@@ -131,9 +131,7 @@ Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Eve
 Se define un tópico por cada entidad de negocio principal. Para sincronizaciones masivas se publica al mismo tópico de la entidad usando un `Payload` que contiene una lista de objetos.
 
 *   `infoportone.events.organization`
-*   `infoportone.events.organization-group`
 *   `infoportone.events.application`
-*   `infoportone.events.role`
 *   `infoportone.events.user`
 
 ## 🏗️ 3. Arquitectura Lógica del Sistema
@@ -214,11 +212,9 @@ En InfoportOneAdmon todos los mensajes de sincronización y notificación se rea
 ### 4.1️⃣ Tipos de Eventos
 Se publicará un tópico por entidad de negocio principal. Cada evento transporta un `Payload` que es una lista de objetos del tipo correspondiente. Los tipos principales son:
 
-- `infoportone.events.organization`: Eventos sobre organizaciones (clientes).
-- `infoportone.events.organization-group`: Eventos sobre grupos de organizaciones.
-- `infoportone.events.application`: Eventos sobre aplicaciones satélite, **incluye módulos y permisos por organización**.
-- `infoportone.events.role`: Eventos sobre definiciones de roles.
-- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. **Ahora soporta usuarios multi-organización**.
+- `infoportone.events.organization`: Eventos sobre organizaciones (clientes). **Incluye información del grupo** al que pertenece la organización mediante `GroupId` opcional.
+- `infoportone.events.application`: Eventos sobre aplicaciones satélite. **Incluye módulos, roles y permisos** por organización.
+- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. **InfoportOne gestiona la multi-organización** automáticamente.
 
 ### 4.2️⃣ Estructura Genérica de los Eventos
 Todos los eventos usan una estructura común. Importante: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Cada objeto dentro del `Payload` debe incluir la propiedad `IsDeleted` para indicar si ese elemento debe borrarse o procesarse como creación/actualización.
@@ -296,15 +292,10 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
 - **Organization** (ejemplo de objeto dentro de `Payload` en `OrganizationEvent`):
     - `SecurityCompanyId` (int): Identificador único inmutable de la organización.
     - `Nombre` (string): Nombre comercial.
-    - `GroupId` (int, opcional): Identificador del grupo al que pertenece.
+    - `GroupId` (int, opcional): Identificador del grupo al que pertenece la organización. Las aplicaciones satélite determinarán automáticamente si crear/mantener/eliminar el grupo basado en este campo.
+    - `GroupName` (string, opcional): Nombre del grupo. Solo presente cuando `GroupId` tiene valor.
     - `IsDeleted` (bool): `true` si la organización debe eliminarse/desactivarse.
     - `Active` (bool): `true` si la organización está activa.
-
-- **OrganizationGroup** (en `OrganizationGroupEvent`):
-    - `GroupId` (int): Identificador del grupo.
-    - `Name` (string): Nombre del grupo.
-    - `IsDeleted` (bool): `true` si el grupo debe eliminarse.
-    - `Active` (bool): `true` si el grupo está activo.
 
 - **Application** (en `ApplicationEvent`):
     - `AppId` (int): Identificador de la aplicación en InfoportOne.
@@ -312,6 +303,12 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Nombre` (string): Nombre de la aplicación.
     - `IsDeleted` (bool): `true` si la aplicación debe considerarse eliminada o deshabilitada.
     - `Active` (bool): `true` si la aplicación está activa.
+    - **`Roles` (lista de `Role`)**: Lista de roles disponibles en la aplicación.
+        - Cada `Role` contiene:
+            - `RolId` (int): Identificador único del rol.
+            - `RoleName` (string): Nombre del rol (ej: "Editor", "Administrador").
+            - `Active` (bool): Si el rol está activo.
+            - `IsDeleted` (bool): Flag de eliminación del rol.
     - **`Modules` (lista de `Module`)**: Lista de módulos de la aplicación.
         - Cada `Module` contiene:
             - `ModuleId` (int): Identificador del módulo.
@@ -321,19 +318,11 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
             - **`OrganizationIds` (lista de int)**: IDs de organizaciones con acceso a este módulo.
             - `IsDeleted` (bool): Flag de eliminación del módulo.
 
-- **Role** (en `RoleEvent`):
-    - `RolId` (int): Identificador único del rol (PK dentro de InfoportOne).
-    - `RoleName` (string): Nombre único del rol dentro de la aplicación.
-    - `ApplicationId` (int): Referencia a la aplicación propietaria del rol.
-    - `IsDeleted` (bool): `true` si el rol debe borrarse.
-    - `Active` (bool): `true` si el rol está activo.
-
 - **User** (en `UserEvent`):
     - `UserId` (string): Identificador único del usuario (puede ser legible por humanos o GUID generado por la app).
     - `Username` (string): Nombre de usuario para login.
-    - `Email` (string): Correo electrónico. **Identificador único global del usuario** - usado para detectar si un usuario ya existe en otras organizaciones.
+    - `Email` (string): Correo electrónico. **Identificador único global del usuario** - usado por InfoportOne para detectar si un usuario ya existe en otras organizaciones y gestionar automáticamente la multi-organización.
     - `OriginCompanyId` (int): `SecurityCompanyId` de la organización desde la cual se crea o actualiza este usuario. Campo obligatorio que indica el contexto organizacional de la operación.
-    - `CompanyIds` (lista de int): Lista de `SecurityCompanyId` de todas las organizaciones a las que pertenece el usuario. Debe incluir siempre `OriginCompanyId`.
     - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
     - `Rols` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
     - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
@@ -355,30 +344,28 @@ graph TD
         Validar -->|Nombre Duplicado| Error[Retornar Error]
         Validar -->|Datos Válidos| GenID[Generar SecurityCompanyId]
 
-        GenID --> KC_Step[Provisionar en Keycloak]
+        GenID --> AssignGroup{¿Asignar a Grupo?}
+        AssignGroup -->|Sí| SetGroup[Asignar GroupId y GroupName]
+        AssignGroup -->|No| KC_Step[Provisionar en Keycloak]
+        SetGroup --> KC_Step
+
         KC_Step --> KC_Group[Crear Grupo Raíz '/orgs/cliente']
         KC_Step --> KC_Attr[Asignar Atributos de Seguridad]
 
         KC_Attr --> DB_Save[Guardar Organización en BD InfoportOneAdmon]
-        DB_Save --> Event[Publicar Evento de Estado en ActiveMQ]
+        DB_Save --> Event[Publicar OrganizationEvent con GroupId opcional]
         Event --> Audit[Registrar en Auditoría]
         Audit --> End([Fin: Organización Activa])
     end
 
-    %% --- Gestión de Miembros ---
-    subgraph Gestion_de_Miembros
-        Choose[Acción del Admin] -->|Añadir/Quitar Miembro| Manage[Seleccionar Grupo y Organización]
-        Manage --> UpdateMember[Actualizar Asociación en BD]
-        UpdateMember --> PubUpdate[Publicar 'OrganizationEvent' para el miembro]
-        PubUpdate --> EndUpdate([Fin Gestión Miembro])
-    end
-
     %% --- Reacción en Aplicaciones Satélite ---
     subgraph Reacción_en_Aplicaciones_Satélite
-        Event --> PubCreate[Evento de creación recibido]
-        PubCreate --> AppListener1[App aplica lógica upsert para el grupo]
-
-        PubUpdate --> AppListener2[App aplica lógica upsert para la organización]
+        Event --> PubCreate[Evento OrganizationEvent recibido]
+        PubCreate --> AppUpsert[App aplica lógica upsert para organización]
+        AppUpsert --> CheckGroup{¿Tiene GroupId?}
+        CheckGroup -->|Sí| GroupMaintain[Mantener/Crear grupo automáticamente]
+        CheckGroup -->|No| AppEnd([Fin procesamiento App])
+        GroupMaintain --> AppEnd
     end
 
 ```
@@ -433,11 +420,11 @@ graph TD
 Las aplicaciones satélite gestionan sus propios usuarios. Cada vez que una aplicación crea, actualiza o elimina un usuario, publicará un evento en el tópico `infoportone.events.user` con un `Payload` que contiene una lista de objetos `USER`. InfoportOne se suscribe a este tópico para replicar los cambios necesarios en Keycloak mediante su Admin API.
 
 Reglas clave:
-- Un usuario puede pertenecer a múltiples organizaciones identificadas por `CompanyIds` (lista de `SecurityCompanyId`).
 - El `OriginCompanyId` indica desde qué organización se está creando o actualizando el usuario (contexto de la operación).
-- El `Email` es el identificador único global del usuario. InfoportOne lo usa para detectar si el usuario ya existe en Keycloak, permitiendo la asociación a múltiples organizaciones.
+- El `Email` es el identificador único global del usuario. **InfoportOne lo usa automáticamente** para detectar si el usuario ya existe en Keycloak y gestionar su vinculación a múltiples organizaciones.
+- Las aplicaciones satélite **NO gestionan** la multi-organización; solo envían el usuario con su `OriginCompanyId`.
+- **InfoportOne es responsable** de fusionar organizaciones y mantener actualizado el claim `c_ids`.
 - El `Payload` es una lista; puede contener uno o varios usuarios (sincronización masiva o individual).
-- El claim personalizado `c_ids` se configura en Keycloak para incluir todos los `SecurityCompanyId` de las organizaciones del usuario.
 
 Ejemplo de `UserEvent` (un solo usuario en la lista):
 
@@ -453,7 +440,6 @@ Ejemplo de `UserEvent` (un solo usuario en la lista):
             "Username": "maria.perez",
             "Email": "maria.perez@cliente.com",
             "OriginCompanyId": 12345,
-            "CompanyIds": [12345, 67890],
             "IsDeleted": false,
             "Attributes": {
                 "displayName": "María Pérez"
@@ -472,13 +458,13 @@ Lógica de consumidor (InfoportOne):
              - **Buscar por `Email` en Keycloak** (identificador único global).
              - Si existe: 
                  - Actualizar atributos y roles.
-                 - **Fusionar** `u.CompanyIds` con las organizaciones existentes del usuario (unión de conjuntos).
-                 - Actualizar claim `c_ids` con la lista completa fusionada de organizaciones.
+                 - **Añadir** `u.OriginCompanyId` al conjunto de organizaciones del usuario (si no estaba ya).
+                 - Actualizar claim `c_ids` con la lista completa de organizaciones del usuario.
              - Si no existe: 
                  - Crear el usuario en Keycloak.
                  - Asignar los atributos, username y email.
-                 - Configurar el claim `c_ids` con la lista de organizaciones (`CompanyIds`).
-                 - Registrar `OriginCompanyId` como la organización de creación original (para auditoría).
+                 - Configurar el claim `c_ids` inicialmente con `[u.OriginCompanyId]`.
+                 - Registrar `OriginCompanyId` como la organización de creación original.
 
 Nota: La sincronización debe ser idempotente y tolerante a reordenamientos; por ello cada evento contiene el estado final del/los usuarios.
 
@@ -524,7 +510,6 @@ erDiagram
     ORGANIZATION_GROUP {
         int GroupId "PK"
         string Name "Nombre del Grupo"
-        bool Active "Estado lógico del grupo (true=activo)"
     }
 
     ORGANIZATION {
@@ -560,7 +545,9 @@ erDiagram
     }
     
     APP_ROLE_DEFINITION {
+        int RolId "PK"
         string RoleName "Nombre del Rol (ej: Editor)"
+        int ApplicationId "FK a APPLICATION"
         bool Active "Estado de vigencia (true=activo)"
     }
     
@@ -571,19 +558,18 @@ erDiagram
     
     AUDIT_LOG }o--|| ORGANIZATION : "registra cambios sobre"
     AUDIT_LOG }o--|| APPLICATION : "registra cambios sobre"
-    AUDIT_LOG }o--|| ORGANIZATION_GROUP : "registra cambios sobre"
     AUDIT_LOG }o--|| MODULE : "registra cambios sobre"
 ```
 
 ### 🧱 Entidades Clave
 
-1.  **OrganizationGroup**: Nueva entidad que representa una agrupación lógica de clientes (Organizaciones). Permite a las aplicaciones consultar si dos organizaciones pertenecen al mismo grupo.
-2.  **Organization**: Representa al cliente. Ahora incluye una referencia opcional a `OrganizationGroup`. Su `SecurityCompanyId` sigue siendo el pilar de la seguridad. Los usuarios pueden pertenecer a múltiples organizaciones.
-3.  **Application**: Representa un software del ecosistema. Puede contener múltiples módulos.
-4.  **Module**: Nuevo concepto que representa una funcionalidad o sección específica dentro de una aplicación. Permite configurar accesos granulares por organización.
-5.  **ModuleAccess**: Relación N:M que define qué organizaciones tienen acceso a qué módulos de una aplicación.
-6.  **AppRoleDefinition**: Plantilla de un rol.
-7.  **AuditLog**: Registro inmutable, ahora también audita cambios en `OrganizationGroup` y `Module`.
+1.  **OrganizationGroup**: Agrupación lógica de organizaciones. **No tiene eventos propios ni propiedades Active/IsDeleted**. Los grupos se mantienen implícitamente por las aplicaciones satélite basándose en el campo `GroupId` de las organizaciones.
+2.  **Organization**: Representa al cliente. Incluye referencia opcional a `OrganizationGroup` mediante `GroupId`. Su `SecurityCompanyId` sigue siendo el pilar de la seguridad. Los usuarios pueden pertenecer a múltiples organizaciones (gestionado por InfoportOne).
+3.  **Application**: Representa un software del ecosistema. **Contiene múltiples módulos y roles** que se sincronizan juntos en un solo evento.
+4.  **Module**: Funcionalidad o sección específica dentro de una aplicación. Permite configurar accesos granulares por organización.
+5.  **ModuleAccess**: Relación N:M que define qué organizaciones tienen acceso a qué módulos.
+6.  **AppRoleDefinition**: Plantilla de un rol. Se sincroniza como parte del `ApplicationEvent`.
+7.  **AuditLog**: Registro inmutable de cambios en Organization, Application y Module.
 
 ## 🚀 7. Estrategia de Optimización y Rendimiento
 
