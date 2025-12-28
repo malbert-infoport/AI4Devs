@@ -34,11 +34,12 @@ InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 1.  **Gestión de Inquilinos (Tenants)**: Control del ciclo de vida de las organizaciones clientes.
 2.  **Gestión de Grupos de Organizaciones**: Creación y mantenimiento de agrupaciones lógicas de organizaciones.
 3.  **Catálogo Maestro de Roles**: Definición única de qué roles existen en cada aplicación.
-4.  **Gobierno de Identidad**: Orquestación de Keycloak para la seguridad de las aplicaciones.
+4.  **Gestión de Módulos por Aplicación**: Configuración de funcionalidades modulares y su habilitación por organización.
+5.  **Gobierno de Identidad**: Orquestación de Keycloak con claims personalizados para la seguridad de las aplicaciones.
 
 **🔑 PRINCIPIO CLAVE DE RESPONSABILIDAD**:
-* **InfoportOneAdmon**: Define *quién* es el cliente (Organización), *cómo se agrupan* y *qué* roles existen (Definiciones).
-* **Aplicaciones Satélite**: Gestionan *quiénes* son los usuarios finales y *qué* roles tienen asignados.
+* **InfoportOneAdmon**: Define *quién* es el cliente (Organización), *cómo se agrupan*, *qué* roles existen (Definiciones), *qué* módulos tiene cada aplicación y *qué* organizaciones tienen acceso a cada módulo.
+* **Aplicaciones Satélite**: Gestionan *quiénes* son los usuarios finales, *qué* roles tienen asignados, y a *qué* organizaciones pertenecen (multi-organización).
 
 ### 🧩 Principios de Diseño
 
@@ -47,7 +48,10 @@ InfoportOneAdmon actúa como la **Fuente de la Verdad** para:
 | **Administración Centralizada** | Gestión exclusiva por la Organización Propietaria | Control total sobre el onboarding y la estructura de clientes. |
 | **Single Realm** | Un único realm (InfoportOne) en Keycloak | Simplifica la gestión de identidades y permite SSO real. |
 | **Usuarios Descentralizados** | Las Apps crean sus propios usuarios | Permite a cada aplicación escalar y gestionar sus usuarios sin cuellos de botella centrales. |
+| **Usuarios Multi-Organización** | Un usuario puede pertenecer a múltiples organizaciones | Permite flexibilidad para consultores, auditores y roles que trabajan para varias organizaciones del ecosistema. |
+| **Claims Personalizados** | No usar feature de Organizations de Keycloak; usar claim `c_ids` | Keycloak Organizations no soporta usuarios en múltiples organizaciones; los claims personalizados permiten esta flexibilidad. |
 | **Roles como Catálogo** | InfoportOneAdmon define, Apps asignan | Asegura coherencia en los nombres y flexibilidad en la asignación. |
+| **Módulos Configurables** | Permisos granulares por módulo de aplicación | Permite vender/habilitar funcionalidades específicas de cada app por organización. |
 | **State-Transfer-Oriented Events** | Los eventos no comunican la acción (creado, actualizado), sino el **estado final** de la entidad. | **Desacopla al consumidor del productor**. El consumidor no necesita conocer la historia; aplica la lógica "upsert" (si existe, actualiza; si no, crea) o borra si `IsDeleted` es true, haciendo el sistema más resiliente. |
 | **Sincronización por Eventos**| La inicialización de datos en nuevas aplicaciones se realiza mediante la emisión de eventos desde InfoportOneAdmon | Asegura un bajo acoplamiento y permite a las aplicaciones inicializarse o resincronizarse bajo demanda y de forma asíncrona |
 ---
@@ -97,16 +101,28 @@ Permite registrar nuevas aplicaciones satélite en el ecosistema, gestionando su
 * 🚦 **Control de Acceso**: Definir si una aplicación está activa o en mantenimiento.
 * ✨ **Sincronización de Datos**: Funcionalidad para enviar catálogos completos (ej: de aplicaciones, de organizaciones) publicando al mismo tópico de la entidad un evento cuyo `Payload` contiene una lista de objetos. Esto evita la necesidad de tópicos especiales de sincronización.
 
-### 2.5️⃣ Integración Transparente con Keycloak
+### 2.5️⃣ Gestión de Módulos por Aplicación
 
 **📝 Descripción**:
-Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder a su consola.
+Permite definir agrupaciones funcionales (módulos) dentro de cada aplicación y configurar qué organizaciones tienen acceso a cada módulo. Esto habilita un modelo de negocio flexible donde no todas las organizaciones contratan todas las funcionalidades de una aplicación.
 
 **🧠 Capacidades**:
-* 🔄 **Sincronización de Estructuras**: Creación automática de grupos y atributos en Keycloak.
-* 🧩 **Configuración de Claims**: Garantiza que los tokens incluyan el `SecurityCompanyId`.
+* 🧩 **Definición de Módulos**: Crear módulos para una aplicación (ej: "Módulo CRM", "Módulo Facturación", "Módulo Reporting Avanzado").
+* ⚙️ **Configuración de Acceso**: Asignar qué organizaciones tienen acceso a qué módulos (relación N:M).
+* 📢 **Propagación de Cambios**: Los cambios en módulos y sus asignaciones se publican en eventos ApplicationEvent.
+* 📊 **Visibilidad de Contratación**: Permite a las aplicaciones saber exactamente qué funcionalidades están habilitadas para cada organización.
 
-### 2.6️⃣ Arquitectura Orientada a Eventos (ActiveMQ Artemis)
+### 2.6️⃣ Integración Transparente con Keycloak
+
+**📝 Descripción**:
+Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder a su consola. **Importante:** No se utiliza la feature nativa de Organizations de Keycloak debido a que no soporta usuarios en múltiples organizaciones.
+
+**🧠 Capacidades**:
+* 🔄 **Sincronización de Usuarios**: Creación y actualización de usuarios en Keycloak basado en eventos de las aplicaciones.
+* 🧩 **Configuración de Claims Personalizados**: Garantiza que los tokens incluyan el claim `c_ids` (company ids) con la lista de organizaciones del usuario.
+* 🔑 **Mapeo de Protocol Mappers**: Configuración automática de mappers para incluir claims personalizados en tokens JWT.
+
+### 2.7️⃣ Arquitectura Orientada a Eventos (ActiveMQ Artemis)
 
 **📝 Descripción**:
 Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Event"** para mantener la coherencia entre InfoportOneAdmon y las aplicaciones satélite. En lugar de notificar acciones (ej. "se creó X"), se notifica el **nuevo estado de la entidad**. Esto hace que los sistemas consumidores sean más robustos y fáciles de sincronizar.
@@ -200,9 +216,9 @@ Se publicará un tópico por entidad de negocio principal. Cada evento transport
 
 - `infoportone.events.organization`: Eventos sobre organizaciones (clientes).
 - `infoportone.events.organization-group`: Eventos sobre grupos de organizaciones.
-- `infoportone.events.application`: Eventos sobre aplicaciones satélite.
+- `infoportone.events.application`: Eventos sobre aplicaciones satélite, **incluye módulos y permisos por organización**.
 - `infoportone.events.role`: Eventos sobre definiciones de roles.
-- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios.
+- `infoportone.events.user`: Eventos publicados por las aplicaciones satélite cuando crean, actualizan o eliminan usuarios. **Ahora soporta usuarios multi-organización**.
 
 ### 4.2️⃣ Estructura Genérica de los Eventos
 Todos los eventos usan una estructura común. Importante: el campo `Payload` contiene una lista (array) de objetos de la entidad correspondiente. Cada objeto dentro del `Payload` debe incluir la propiedad `IsDeleted` para indicar si ese elemento debe borrarse o procesarse como creación/actualización.
@@ -296,6 +312,14 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Nombre` (string): Nombre de la aplicación.
     - `IsDeleted` (bool): `true` si la aplicación debe considerarse eliminada o deshabilitada.
     - `Active` (bool): `true` si la aplicación está activa.
+    - **`Modules` (lista de `Module`)**: Lista de módulos de la aplicación.
+        - Cada `Module` contiene:
+            - `ModuleId` (int): Identificador del módulo.
+            - `ModuleName` (string): Nombre del módulo.
+            - `Description` (string): Descripción del módulo.
+            - `Active` (bool): Si el módulo está activo.
+            - **`OrganizationIds` (lista de int)**: IDs de organizaciones con acceso a este módulo.
+            - `IsDeleted` (bool): Flag de eliminación del módulo.
 
 - **Role** (en `RoleEvent`):
     - `RolId` (int): Identificador único del rol (PK dentro de InfoportOne).
@@ -307,8 +331,9 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
 - **User** (en `UserEvent`):
     - `UserId` (string): Identificador único del usuario (puede ser legible por humanos o GUID generado por la app).
     - `Username` (string): Nombre de usuario para login.
-    - `Email` (string): Correo electrónico.
-    - `SecurityCompanyId` (int): Organización a la que pertenece el usuario.
+    - `Email` (string): Correo electrónico. **Identificador único global del usuario** - usado para detectar si un usuario ya existe en otras organizaciones.
+    - `OriginCompanyId` (int): `SecurityCompanyId` de la organización desde la cual se crea o actualiza este usuario. Campo obligatorio que indica el contexto organizacional de la operación.
+    - `CompanyIds` (lista de int): Lista de `SecurityCompanyId` de todas las organizaciones a las que pertenece el usuario. Debe incluir siempre `OriginCompanyId`.
     - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
     - `Rols` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
     - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
@@ -391,7 +416,7 @@ graph TD
     Auth --> ValidKC[Keycloak Valida Identidad]
     
     ValidKC --> TokenGen[Generación de Token]
-    TokenGen --> Inject[Inyección de Claims: SecurityCompanyId]
+    TokenGen --> Inject[Inyección de Claims: c_ids array con SecurityCompanyIds]
     
     Inject --> Return[Retorno a App con Token]
     
@@ -408,8 +433,11 @@ graph TD
 Las aplicaciones satélite gestionan sus propios usuarios. Cada vez que una aplicación crea, actualiza o elimina un usuario, publicará un evento en el tópico `infoportone.events.user` con un `Payload` que contiene una lista de objetos `USER`. InfoportOne se suscribe a este tópico para replicar los cambios necesarios en Keycloak mediante su Admin API.
 
 Reglas clave:
-- Un usuario pertenece a una única organización identificada por `SecurityCompanyId`.
+- Un usuario puede pertenecer a múltiples organizaciones identificadas por `CompanyIds` (lista de `SecurityCompanyId`).
+- El `OriginCompanyId` indica desde qué organización se está creando o actualizando el usuario (contexto de la operación).
+- El `Email` es el identificador único global del usuario. InfoportOne lo usa para detectar si el usuario ya existe en Keycloak, permitiendo la asociación a múltiples organizaciones.
 - El `Payload` es una lista; puede contener uno o varios usuarios (sincronización masiva o individual).
+- El claim personalizado `c_ids` se configura en Keycloak para incluir todos los `SecurityCompanyId` de las organizaciones del usuario.
 
 Ejemplo de `UserEvent` (un solo usuario en la lista):
 
@@ -424,7 +452,8 @@ Ejemplo de `UserEvent` (un solo usuario en la lista):
             "UserId": "user-123",
             "Username": "maria.perez",
             "Email": "maria.perez@cliente.com",
-            "SecurityCompanyId": 12345,
+            "OriginCompanyId": 12345,
+            "CompanyIds": [12345, 67890],
             "IsDeleted": false,
             "Attributes": {
                 "displayName": "María Pérez"
@@ -440,11 +469,47 @@ Lógica de consumidor (InfoportOne):
 3. Para cada usuario `u`:
      - Si `u.IsDeleted` es `true`: eliminar o desactivar el usuario en Keycloak (`DELETE` o marcar `disabled`).
      - Si `u.IsDeleted` es `false`:
-             - Buscar por `UserId` o `username` en Keycloak.
-             - Si existe: actualizar atributos y roles en Keycloak según lo recibido.
-             - Si no existe: crear el usuario en Keycloak y asignarle los atributos, además de asociarlo a la organización (mediante claim `SecurityCompanyId` o atributo en Keycloak).
+             - **Buscar por `Email` en Keycloak** (identificador único global).
+             - Si existe: 
+                 - Actualizar atributos y roles.
+                 - **Fusionar** `u.CompanyIds` con las organizaciones existentes del usuario (unión de conjuntos).
+                 - Actualizar claim `c_ids` con la lista completa fusionada de organizaciones.
+             - Si no existe: 
+                 - Crear el usuario en Keycloak.
+                 - Asignar los atributos, username y email.
+                 - Configurar el claim `c_ids` con la lista de organizaciones (`CompanyIds`).
+                 - Registrar `OriginCompanyId` como la organización de creación original (para auditoría).
 
 Nota: La sincronización debe ser idempotente y tolerante a reordenamientos; por ello cada evento contiene el estado final del/los usuarios.
+
+### 5.5️⃣ Gestión de Módulos de Aplicación
+
+Las aplicaciones pueden estar organizadas en módulos funcionales. InfoportOneAdmon permite gestionar qué organizaciones tienen acceso a qué módulos de cada aplicación.
+
+```mermaid
+graph TD
+    Start([Inicio: Admin gestiona Módulos]) --> SelectApp[Seleccionar Aplicación]
+    SelectApp --> Action{Acción a Realizar}
+    
+    Action -->|Crear Módulo| CreateModule[Definir Nombre y Descripción del Módulo]
+    CreateModule --> SaveModule[Guardar Módulo en BD]
+    
+    Action -->|Configurar Acceso| SelectModule[Seleccionar Módulo]
+    SelectModule --> SelectOrgs[Seleccionar Organizaciones con Acceso]
+    SelectOrgs --> SaveAccess[Guardar Configuración de Acceso]
+    
+    SaveModule --> PublishEvent[Publicar ApplicationEvent]
+    SaveAccess --> PublishEvent
+    
+    PublishEvent --> UpdateApp[Apps Satélite actualizan configuración de módulos]
+    UpdateApp --> End([Fin: Módulos configurados])
+```
+
+Reglas clave:
+- Cada módulo pertenece a una aplicación específica.
+- Una organización puede tener acceso a todos, algunos o ninguno de los módulos de una aplicación.
+- El `ApplicationEvent` incluye la lista completa de módulos con sus organizaciones autorizadas (`OrganizationIds`).
+- Las aplicaciones satélite deben validar el acceso a módulos utilizando esta información.
 
 ## 🗃️ 6. Modelo de Datos Conceptual
 
@@ -454,6 +519,7 @@ A continuación, se presentan las entidades principales que maneja InfoportOneAd
 erDiagram
     ORGANIZATION_GROUP ||--|{ ORGANIZATION : "agrupa a"
     ORGANIZATION ||--o{ APP_ACCESS : "tiene acceso a"
+    ORGANIZATION ||--o{ MODULE_ACCESS : "tiene acceso a"
     
     ORGANIZATION_GROUP {
         int GroupId "PK"
@@ -470,11 +536,27 @@ erDiagram
     
     APPLICATION ||--o{ APP_ACCESS : "es accedida por"
     APPLICATION ||--o{ APP_ROLE_DEFINITION : "define catálogo de"
+    APPLICATION ||--o{ MODULE : "contiene"
     APPLICATION {
         int AppId "PK"
         string ClientId "Identificador OAuth2"
         string Nombre "Nombre App"
         bool Active "Activo / Inactivo"
+    }
+    
+    MODULE ||--o{ MODULE_ACCESS : "es accedido por"
+    MODULE {
+        int ModuleId "PK"
+        int ApplicationId "FK a APPLICATION"
+        string ModuleName "Nombre del Módulo"
+        string Description "Descripción"
+        bool Active "Activo / Inactivo"
+    }
+    
+    MODULE_ACCESS {
+        int ModuleId "FK"
+        int SecurityCompanyId "FK"
+        bool Active "Estado del acceso"
     }
     
     APP_ROLE_DEFINITION {
@@ -490,15 +572,18 @@ erDiagram
     AUDIT_LOG }o--|| ORGANIZATION : "registra cambios sobre"
     AUDIT_LOG }o--|| APPLICATION : "registra cambios sobre"
     AUDIT_LOG }o--|| ORGANIZATION_GROUP : "registra cambios sobre"
+    AUDIT_LOG }o--|| MODULE : "registra cambios sobre"
 ```
 
 ### 🧱 Entidades Clave
 
 1.  **OrganizationGroup**: Nueva entidad que representa una agrupación lógica de clientes (Organizaciones). Permite a las aplicaciones consultar si dos organizaciones pertenecen al mismo grupo.
-2.  **Organization**: Representa al cliente. Ahora incluye una referencia opcional a `OrganizationGroup`. Su `SecurityCompanyId` sigue siendo el pilar de la seguridad.
-3.  **Application**: Representa un software del ecosistema.
-4.  **AppRoleDefinition**: Plantilla de un rol.
-5.  **AuditLog**: Registro inmutable, ahora también audita cambios en `OrganizationGroup`.
+2.  **Organization**: Representa al cliente. Ahora incluye una referencia opcional a `OrganizationGroup`. Su `SecurityCompanyId` sigue siendo el pilar de la seguridad. Los usuarios pueden pertenecer a múltiples organizaciones.
+3.  **Application**: Representa un software del ecosistema. Puede contener múltiples módulos.
+4.  **Module**: Nuevo concepto que representa una funcionalidad o sección específica dentro de una aplicación. Permite configurar accesos granulares por organización.
+5.  **ModuleAccess**: Relación N:M que define qué organizaciones tienen acceso a qué módulos de una aplicación.
+6.  **AppRoleDefinition**: Plantilla de un rol.
+7.  **AuditLog**: Registro inmutable, ahora también audita cambios en `OrganizationGroup` y `Module`.
 
 ## 🚀 7. Estrategia de Optimización y Rendimiento
 
@@ -516,8 +601,9 @@ Se modifica el enfoque para eliminar el acoplamiento en el arranque y favorecer 
 3. **Seguridad Stateless (Tokens)**
 La validación de seguridad en tiempo de ejecución se basa en el estándar *JWT (JSON Web Tokens)*.
 
-* El token es autosuficiente: contiene el `SecurityCompanyId`.
+* El token es autosuficiente: contiene el claim personalizado `c_ids` (array de `SecurityCompanyId`) que indica todas las organizaciones a las que pertenece el usuario.
 * InfoportOneAdmon no es consultado para validar tokens; esta validación es matemática (criptografía) y local en cada app, garantizando máxima velocidad.
+* Las aplicaciones satélite pueden validar si un usuario pertenece a una o más organizaciones específicas consultando el array `c_ids` del token.
 
 4. **Auditoría Asíncrona**
 El registro de auditoría no bloquea la operación principal. Se procesa en segundo plano para asegurar una experiencia de usuario fluida para el administrador.
@@ -568,6 +654,7 @@ El sistema **InfoportOneAdmon** se compone de tres módulos internos de aplicaci
 | **Módulo de Organizaciones** | Gestiona el ciclo de vida de los clientes (alta, activación, desactivación). | Escribe en la Base de Datos. Utiliza el **Servicio de Orquestación** para interactuar con Keycloak. |
 | **Módulo Catálogo de Roles** | Define y almacena las plantillas de roles. | Publica eventos de estado en **ActiveMQ Artemis**. |
 | **Módulo de Aplicaciones** | Registra nuevas aplicaciones satélite y gestiona sus credenciales OAuth2 (`client_id`, `client_secret`). | Utiliza el **Servicio de Orquestación** para dar de alta clientes en Keycloak. |
+| **Módulo de Módulos** | Gestiona los módulos funcionales de cada aplicación y configura qué organizaciones tienen acceso a cada módulo. | Publica eventos `ApplicationEvent` con la configuración de módulos y accesos. |
 | **Servicio de Orquestación Keycloak** | Microservicio interno que traduce las acciones de negocio (ej. "Crear Org") en llamadas administrativas a Keycloak. | **Keycloak Admin API**. |
 | **ActiveMQ Artemis** | Bus de mensajería empresarial. Garantiza la entrega asíncrona y la coherencia de datos entre InfoportOneAdmon y las aplicaciones satélite. | **Aplicaciones Satélite** (Consumidores) y **InfoportOneAdmon** (Productor). |
 | **Base de Datos Core** | Persistencia de la fuente de la verdad: lista de organizaciones, definiciones de roles y registros de auditoría. | **Módulos de InfoportOneAdmon**. |
@@ -582,6 +669,7 @@ graph TD
     A --> F(Gestión de Grupos de Organizaciones)
     A --> C(Gestión de Roles y Catálogo)
     A --> D(Gestión de Aplicaciones)
+    A --> G(Gestión de Módulos)
     A --> E(Auditoría y Logs)
     
     B --> B1(Lista de Organizaciones)
@@ -597,6 +685,10 @@ graph TD
     D --> D1(Lista de Aplicaciones)
     D --> D2(Registrar Nueva App)
     D --> D3(Sincronizar Datos con App)
+    
+    G --> G1(Lista de Módulos por Aplicación)
+    G --> G2(Crear Nuevo Módulo)
+    G --> G3(Configurar Acceso por Organización)
 ```
 
 ## 🎨 10. Diseño y Experiencia del Usuario (UX/UI)

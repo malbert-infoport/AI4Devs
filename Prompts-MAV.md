@@ -81,3 +81,33 @@
     - Las aplicaciones publican `UserEvent` con `Payload` como lista de usuarios.
     - InfoportOne tiene credenciales para Keycloak Admin API y procesa los eventos de forma idempotente.
     - La arquitectura de mensajería utilizada es ActiveMQ Artemis.
+
+---
+
+## Prompt 9: (Usuarios Multi-Organización y Sistema de Módulos)
+
+-   **Rol:** Product Owner especialista en aplicaciones multiorganizacion, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+-   **Objetivo:** Quiero que analices la documentación del producto y apliques los siguientes cambios arquitectónicos importantes en toda la documentación y diagramas que corresponda:
+    
+    **Cambio 1: Usuarios Multi-Organización**
+    - Los usuarios ahora pueden pertenecer a MÚLTIPLES organizaciones (no solo a una).
+    - En el bearer token debe viajar una lista con los identificadores de todas las organizaciones a las que pertenece el usuario.
+    
+    **Cambio 2: Nuevo Claim Personalizado**
+    - NO utilizar la entidad Organization de Keycloak ya que no soporta usuarios en múltiples organizaciones.
+    - Definir un claim personalizado llamado `c_ids` (company ids) que contendrá la lista de identificadores de organizaciones del usuario.
+    - Este claim debe configurarse en Keycloak y viajar en los tokens JWT.
+    
+    **Cambio 3: Nueva Entidad Módulo**
+    - Aparece una nueva entidad dependiente de la aplicación llamada Módulo.
+    - Los módulos permiten definir agrupaciones funcionales dentro de cada aplicación.
+    - Para cada aplicación se pueden definir N módulos.
+    - Para cada organización se puede configurar qué módulos de cada aplicación tiene contratados (relación N:M entre Módulo y Organización).
+    
+    **Cambio 4: Actualización del ApplicationEvent**
+    - El evento ApplicationEvent ahora debe incluir:
+        - Los datos de la aplicación (como antes)
+        - La lista de módulos definidos para esa aplicación
+        - Para cada módulo: los identificadores de las organizaciones que tienen acceso al mismo
+    
+    Actualiza toda la documentación para reflejar estos cambios: modelo de datos, eventos, casos de uso, diagramas, arquitectura de seguridad, y cualquier otra sección afectada.
