@@ -106,6 +106,8 @@ Permite registrar nuevas aplicaciones satélite en el ecosistema, gestionando su
 **📝 Descripción**:
 Permite definir agrupaciones funcionales (módulos) dentro de cada aplicación y configurar qué organizaciones tienen acceso a cada módulo. Esto habilita un modelo de negocio flexible donde no todas las organizaciones contratan todas las funcionalidades de una aplicación.
 
+**⚠️ Regla de Negocio**: **Toda aplicación debe tener como mínimo un módulo**. Los módulos son obligatorios y representan la estructura funcional básica de la aplicación.
+
 **🧠 Capacidades**:
 * 🧩 **Definición de Módulos**: Crear módulos para una aplicación (ej: "Módulo CRM", "Módulo Facturación", "Módulo Reporting Avanzado").
 * ⚙️ **Configuración de Acceso**: Asignar qué organizaciones tienen acceso a qué módulos (relación N:M).
@@ -313,7 +315,7 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
             - `RoleName` (string): Nombre del rol (ej: "Editor", "Administrador").
             - `Active` (bool): Si el rol está activo.
             - `IsDeleted` (bool): Flag de eliminación del rol.
-    - **`Modules` (lista de `Module`)**: Lista de módulos de la aplicación.
+    - **`Modules` (lista de `Module`)**: Lista de módulos de la aplicación. **Obligatorio: toda aplicación debe tener al menos un módulo**.
         - Cada `Module` contiene:
             - `ModuleId` (int): Identificador del módulo.
             - `ModuleName` (string): Nombre del módulo.
@@ -577,7 +579,7 @@ erDiagram
     
     APPLICATION ||--o{ APP_ACCESS : "es accedida por"
     APPLICATION ||--o{ APP_ROLE_DEFINITION : "define catálogo de"
-    APPLICATION ||--o{ MODULE : "contiene"
+    APPLICATION ||--|{ MODULE : "contiene (mín. 1)"
     APPLICATION {
         int AppId "PK"
         string ClientId "Identificador OAuth2"
