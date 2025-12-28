@@ -294,6 +294,10 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Nombre` (string): Nombre comercial.
     - `GroupId` (int, opcional): Identificador del grupo al que pertenece la organización. Las aplicaciones satélite determinarán automáticamente si crear/mantener/eliminar el grupo basado en este campo.
     - `GroupName` (string, opcional): Nombre del grupo. Solo presente cuando `GroupId` tiene valor.
+    - **`Apps` (lista de `AppDatabase`)**: Lista de aplicaciones con configuración de base de datos para esta organización.
+        - Cada `AppDatabase` contiene:
+            - `AppId` (int): Identificador de la aplicación.
+            - `DatabaseName` (string): Nombre de la base de datos específica para esta organización y aplicación.
     - `IsDeleted` (bool): `true` si la organización debe eliminarse/desactivarse.
     - `Active` (bool): `true` si la organización está activa.
 
@@ -324,11 +328,63 @@ Cada evento transporta en su `Payload` una lista de objetos cuya estructura depe
     - `Email` (string): Correo electrónico. **Identificador único global del usuario** - usado por InfoportOne para detectar si un usuario ya existe en otras organizaciones y gestionar automáticamente la multi-organización.
     - `OriginCompanyId` (int): `SecurityCompanyId` de la organización desde la cual se crea o actualiza este usuario. Campo obligatorio que indica el contexto organizacional de la operación.
     - `Attributes` (object): Mapa de atributos opcionales (displayName, phone, etc.).
-    - `Rols` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
+    - `Roles` (array[int]): Lista de `RolId` (enteros) asignados al usuario desde la aplicación de origen.
     - `IsDeleted` (bool): `true` si el usuario debe eliminarse o deshabilitarse en Keycloak.
     - `Active` (bool): `true` si el usuario está activo (nunca enviado cuando IsDeleted=true).
 
 Estas definiciones permiten a los consumidores deserializar de forma segura cada elemento del `Payload` y aplicar la lógica por objeto (upsert o delete) usando el flag `IsDeleted`.
+
+### 4.6️⃣ Prevención de Duplicados mediante Hash
+InfoportOne implementa un sistema de **prevención de duplicados basado en hash** para evitar publicar eventos idénticos consecutivos al broker de mensajería. Esto reduce el tráfico en ActiveMQ Artemis, minimiza el procesamiento en los consumidores y evita actualizaciones en cascada innecesarias cuando los datos no han cambiado realmente.
+
+#### Funcionamiento
+1. **Cálculo del Hash**: Antes de publicar un evento, InfoportOne calcula un hash **SHA-256** sobre el contenido del `Payload`. El hash **NO incluye** los campos `EventId`, `EventTimestamp` ni `TraceId`, ya que estos cambian en cada evento aunque los datos sean idénticos.
+
+2. **Almacenamiento en EventHashControl**: InfoportOne mantiene una tabla `EventHashControl` que registra el último hash conocido para cada entidad (Organization, Application, User):
+   - `EntityType` (string): Tipo de entidad ("Organization", "Application", "User").
+   - `EntityId` (string): Identificador de la entidad (ej.: SecurityCompanyId, AppId, UserId).
+   - `LastEventHash` (string): Hash SHA-256 del último evento publicado para esta entidad.
+   - `LastEventTimestamp` (datetime): Timestamp del último evento publicado.
+
+3. **Decisión de Publicación**: Al intentar publicar un evento:
+   - Se calcula el hash del `Payload` actual.
+   - Se compara con el `LastEventHash` almacenado en `EventHashControl` para esa entidad.
+   - **Si los hashes coinciden**: El evento es idéntico al anterior y **NO se publica** al broker.
+   - **Si los hashes difieren**: El evento contiene cambios y **SÍ se publica**. Se actualiza `EventHashControl` con el nuevo hash y timestamp.
+
+#### Beneficios
+- **Reducción de tráfico**: Solo se publican eventos cuando hay cambios reales en los datos.
+- **Optimización de consumidores**: Las aplicaciones satélite no reciben ni procesan eventos duplicados.
+- **Idempotencia mejorada**: Complementa la lógica idempotente del consumidor evitando procesamiento innecesario.
+- **Prevención de cascadas**: Evita que actualizaciones circulares entre aplicaciones generen tráfico infinito.
+
+#### Ejemplo
+**Escenario**: InfoportOne recibe una actualización de una organización con los mismos datos que el último evento publicado.
+
+```json
+// Intento de publicar evento con datos idénticos
+{
+    "EventId": "new-uuid-1234",
+    "TraceId": "trace-5678",
+    "EventTimestamp": "2025-12-11T14:00:00Z",
+    "Payload": [
+        {
+            "SecurityCompanyId": 12345,
+            "Nombre": "Cliente Final S.L.",
+            "Estado": "Activo",
+            "GroupId": 101,
+            "IsDeleted": false
+        }
+    ]
+}
+```
+
+1. Se calcula SHA-256 del `Payload` (sin `EventId`, `EventTimestamp`, `TraceId`): `abc123def456...`
+2. Se consulta `EventHashControl` para `EntityType="Organization"`, `EntityId="12345"`.
+3. `LastEventHash` almacenado: `abc123def456...` ← **COINCIDE**
+4. **Decisión**: NO se publica el evento al broker. Se evita tráfico innecesario.
+
+Si posteriormente el nombre cambia a "Cliente Final Premium S.L.", el hash será diferente y el evento sí se publicará.
 
 ## 🔀 5. Flujos de Proceso de Negocio
 
@@ -559,6 +615,13 @@ erDiagram
     AUDIT_LOG }o--|| ORGANIZATION : "registra cambios sobre"
     AUDIT_LOG }o--|| APPLICATION : "registra cambios sobre"
     AUDIT_LOG }o--|| MODULE : "registra cambios sobre"
+    
+    EVENT_HASH_CONTROL {
+        string EntityType "PK - Tipo de Entidad (Organization, Application, User)"
+        string EntityId "PK - ID de la Entidad"
+        string LastEventHash "SHA-256 hash del último evento publicado"
+        datetime LastEventTimestamp "Timestamp del último evento"
+    }
 ```
 
 ### 🧱 Entidades Clave
@@ -570,6 +633,7 @@ erDiagram
 5.  **ModuleAccess**: Relación N:M que define qué organizaciones tienen acceso a qué módulos.
 6.  **AppRoleDefinition**: Plantilla de un rol. Se sincroniza como parte del `ApplicationEvent`.
 7.  **AuditLog**: Registro inmutable de cambios en Organization, Application y Module.
+8.  **EventHashControl**: Tabla de control para prevención de duplicados. Almacena el hash SHA-256 del último evento publicado para cada entidad (Organization, Application, User). Permite comparar eventos futuros y evitar publicar al broker cuando los datos no han cambiado. La clave primaria compuesta es (`EntityType`, `EntityId`).
 
 ## 🚀 7. Estrategia de Optimización y Rendimiento
 

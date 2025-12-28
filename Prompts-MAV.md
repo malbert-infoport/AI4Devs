@@ -143,3 +143,41 @@
     - Modelo de datos más limpio y consistente.
     
     Actualiza toda la documentación para reflejar estos cambios: modelo de eventos, estructura de payloads, diagramas de arquitectura, flujos de proceso, modelo de datos, y lista de tópicos.
+
+---
+
+## Prompt 11: (Optimización de Eventos y Prevención de Duplicados)
+
+-   **Rol:** Arquitecto de Software especialista en arquitecturas event-driven, optimización de sistemas distribuidos y prevención de eventos duplicados.
+-   **Objetivo:** Aplicar las siguientes correcciones y optimizaciones al modelo de eventos del sistema:
+    
+    **Corrección 1: Renombrado de Propiedad en UserEvent**
+    - Cambiar la propiedad `Rols` por `Roles` en el payload del `UserEvent`.
+    - Actualizar todos los ejemplos JSON y documentación que hagan referencia a esta propiedad.
+    
+    **Corrección 2: Añadir Información de Base de Datos por Aplicación en OrganizationEvent**
+    - Añadir una nueva propiedad `Apps` (lista) al payload de `OrganizationEvent`.
+    - Cada elemento de `Apps` debe contener:
+        - `AppId` (int): Identificador de la aplicación.
+        - `DatabaseName` (string): Nombre de la base de datos específica para esa organización y aplicación.
+    - Esto permite a las aplicaciones satélite conocer el nombre de la base de datos donde deben almacenar los datos de cada organización.
+    
+    **Corrección 3: Sistema de Prevención de Eventos Duplicados mediante Hashing**
+    - Implementar un mecanismo de detección de cambios reales antes de publicar eventos.
+    - **Para OrganizationEvent**: Almacenar por `SecurityCompanyId` el hash del último evento enviado. Solo publicar si el hash del nuevo evento es diferente.
+    - **Para ApplicationEvent**: Almacenar por `AppId` el hash del último evento enviado. Solo publicar si el hash del nuevo evento es diferente.
+    - **Para UserEvent**: Almacenar por `UserId` el hash del último evento enviado. Solo publicar si el hash del nuevo evento es diferente.
+    - El hash debe calcularse sobre el payload completo serializado del evento (excluyendo `EventId`, `EventTimestamp` y `TraceId`).
+    - Este mecanismo aplica tanto a eventos emitidos desde InfoportOneAdmon como desde las aplicaciones satélite.
+    - Documentar claramente este comportamiento en la sección de eventos, incluyendo:
+        - Cómo se calcula el hash (algoritmo recomendado: SHA-256).
+        - Dónde se almacenan los hashes (tabla de control en la base de datos del emisor).
+        - Ventajas: reducción de tráfico en ActiveMQ Artemis, menor procesamiento en consumidores, evita cambios en cascada sin contenido real.
+    
+    **Resultado esperado:**
+    - Propiedad `Roles` consistente en UserEvent.
+    - OrganizationEvent con información de bases de datos por aplicación.
+    - Sistema robusto de prevención de eventos duplicados que optimiza el uso del broker y reduce la carga en las aplicaciones satélite.
+    - Documentación clara del mecanismo de hashing y detección de cambios.
+    
+    Actualiza toda la documentación para reflejar estos cambios: estructura de payloads, ejemplos JSON, sección de eventos, arquitectura de optimización, y modelo de datos (tabla de control de hashes).
