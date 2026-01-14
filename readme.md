@@ -186,21 +186,363 @@ Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder dir
 
 #### **1.2.7. Arquitectura Orientada a Eventos (ActiveMQ Artemis)**
 
-Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Event"**.
+Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Event"** con especialización para usuarios multi-organización.
 
 **Capacidades principales:**
 - 📣 **Publicación de Eventos de Estado**: En lugar de notificar acciones (ej. "se creó X"), se notifica el estado final de la entidad
 - 🔄 **Sincronización Robusta**: Los consumidores aplican lógica "upsert" (si existe actualiza, si no crea) o eliminan si `IsDeleted=true`
-- 📋 **Eventos por Entidad**: Tópicos principales: `infoportone.events.organization`, `infoportone.events.application`, `infoportone.events.user`
+- 📋 **Tópicos por Entidad**: 
+  - `infoportone.events.organization`: Organizaciones y grupos
+  - `infoportone.events.application`: Aplicaciones, módulos y roles
+  - `infoportone.events.user`: Usuarios publicados por apps satélite (eventos individuales)
+  - `infoportone.events.keycloak.user.sync`: Usuarios consolidados para Keycloak (con `c_ids` completo)
 - 📦 **Payload como Lista**: Cada evento transporta un array de objetos, permitiendo sincronizaciones masivas
 - 🔒 **Prevención de Duplicados**: Sistema de hash SHA-256 que evita publicar eventos idénticos consecutivos, reduciendo tráfico innecesario
 - 🆔 **Trazabilidad**: Cada evento incluye `EventId` (UUID), `TraceId` (correlación), `OriginApplicationId` (emisor)
+- 🧩 **Patrón Aggregator para Usuarios**: Consolidación automática de usuarios multi-organización antes de sincronizar con Keycloak
 
-**Objetivo**: Garantizar desacoplamiento total entre InfoportOneAdmon y las aplicaciones satélite, permitiendo autonomía operacional.
+**Flujo de Sincronización de Usuarios Multi-Organización:**
+
+```mermaid
+sequenceDiagram
+    participant App1 as App Satélite 1<br/>(CRM)
+    participant App2 as App Satélite 2<br/>(ERP)
+    participant Topic1 as Tópico<br/>user
+    participant Consolidator as User Consolidation<br/>Service
+    participant DB as Base de Datos<br/>InfoportOneAdmon
+    participant Topic2 as Tópico<br/>keycloak.user.sync
+    participant KCWorker as Keycloak Sync<br/>Worker
+    participant KC as Keycloak
+
+    Note over App1,App2: Creación de usuario en múltiples apps
+
+    App1->>Topic1: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 12345}
+    App2->>Topic1: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 67890}
+
+    Topic1->>Consolidator: Consume eventos
+    
+    Note over Consolidator: Detecta email duplicado
+    
+    Consolidator->>DB: Consulta: ¿Más organizaciones<br/>para juan@example.com?
+    DB-->>Consolidator: Retorna: [12345, 67890, 11111]
+    
+    Note over Consolidator: Consolida c_ids completo
+    
+    Consolidator->>Topic2: KeycloakUserSyncEvent<br/>{email: "juan@example.com"<br/>c_ids: [12345, 67890, 11111]<br/>attributes: {...}}
+    
+    Topic2->>KCWorker: Consume evento consolidado
+    
+    KCWorker->>KC: Busca usuario por email
+    
+    alt Usuario existe
+        KCWorker->>KC: UPDATE user attributes<br/>c_ids: [12345, 67890, 11111]
+    else Usuario nuevo
+        KCWorker->>KC: CREATE user<br/>con c_ids completo
+    end
+    
+    KC-->>KCWorker: OK
+    KCWorker->>Topic2: ACK (confirma procesamiento)
+```
+
+**Ventajas de la arquitectura de dos fases:**
+1. **Apps satélite simplificadas**: Solo publican eventos con su `companyId` local
+2. **Consistencia garantizada**: InfoportOneAdmon es fuente de verdad para relaciones usuario-organización
+3. **Keycloak siempre sincronizado**: El claim `c_ids` refleja todas las organizaciones reales del usuario
+4. **Tolerancia a fallos**: Si Keycloak está caído, los eventos consolidados se procesan cuando se recupere
+5. **Escalabilidad**: El Keycloak Sync Worker puede escalar independientemente
+
+**Objetivo**: Garantizar desacoplamiento total entre InfoportOneAdmon y las aplicaciones satélite, permitiendo autonomía operacional mientras se mantiene consistencia en la identidad multi-organización.
 
 ### **1.3. Diseño y experiencia de usuario:**
 
 > Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.0
+
+### **1.3.1. Modelo de Datos de Eventos (Event Schema)**
+
+InfoportOneAdmon utiliza un modelo estandarizado para todos los eventos publicados en ActiveMQ Artemis, garantizando consistencia y facilidad de integración para las aplicaciones satélite.
+
+#### **Estructura Base de Evento (Envelope)**
+
+Todos los eventos comparten una estructura común (envelope) que contiene metadatos de trazabilidad y el payload específico:
+
+```json
+{
+  "EventId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "EventType": "USER_SYNC",
+  "EventTimestamp": "2026-01-15T14:35:22.123Z",
+  "TraceId": "trace-abc-123-xyz",
+  "OriginApplicationId": "infoportone-admon",
+  "SchemaVersion": "1.0",
+  "Payload": [
+    { /* objetos específicos del evento */ }
+  ]
+}
+```
+
+**Campos del Envelope:**
+- `EventId` (UUID): Identificador único del evento, permite deduplicación
+- `EventType` (string): Tipo de evento (`ORGANIZATION`, `APPLICATION`, `USER`, `USER_SYNC`)
+- `EventTimestamp` (ISO 8601): Marca temporal de publicación en UTC
+- `TraceId` (string): Identificador de correlación para debugging distribuido
+- `OriginApplicationId` (string): Aplicación que publicó el evento
+- `SchemaVersion` (string): Versión del esquema del payload (versionado evolutivo)
+- `Payload` (array): Lista de objetos del tipo correspondiente
+
+#### **Evento de Usuario (Apps Satélite → InfoportOneAdmon)**
+
+**Tópico**: `infoportone.events.user`
+
+**Publicado por**: Aplicaciones satélite cuando crean/modifican/eliminan usuarios
+
+**Estructura del Payload**:
+```json
+{
+  "EventId": "uuid-123",
+  "EventType": "USER",
+  "EventTimestamp": "2026-01-15T14:35:22Z",
+  "TraceId": "trace-crm-001",
+  "OriginApplicationId": "crm-app-backend",
+  "SchemaVersion": "1.0",
+  "Payload": [
+    {
+      "Email": "juan.perez@example.com",
+      "FirstName": "Juan",
+      "LastName": "Pérez",
+      "SecurityCompanyId": 12345,
+      "IsActive": true,
+      "IsDeleted": false,
+      "Roles": ["Sales", "Manager"],
+      "Attributes": {
+        "Department": "Ventas",
+        "Phone": "+34 600 123 456",
+        "EmployeeId": "EMP-001"
+      },
+      "CreatedBy": "admin@crm.com",
+      "CreatedDate": "2026-01-15T14:30:00Z"
+    }
+  ]
+}
+```
+
+**Campos del objeto USER:**
+- `Email` (string, required): Email del usuario (único, clave de búsqueda)
+- `FirstName` (string, required): Nombre
+- `LastName` (string, required): Apellidos
+- `SecurityCompanyId` (int, required): ID de la organización a la que pertenece en esta app
+- `IsActive` (bool): Si el usuario está activo en esta organización
+- `IsDeleted` (bool): Flag de soft delete (true = eliminar de Keycloak)
+- `Roles` (string[]): Roles asignados en la aplicación origen
+- `Attributes` (object): Atributos personalizados adicionales
+- `CreatedBy` (string): Usuario que creó el registro
+- `CreatedDate` (ISO 8601): Fecha de creación
+
+**Nota importante**: En esta fase, el evento contiene **solo una organización** (`SecurityCompanyId`). La consolidación multi-organización la realiza InfoportOneAdmon.
+
+#### **Evento de Sincronización con Keycloak (InfoportOneAdmon → Keycloak Sync Worker)**
+
+**Tópico**: `infoportone.events.keycloak.user.sync`
+
+**Publicado por**: User Consolidation Service (componente de InfoportOneAdmon)
+
+**Consumido por**: Keycloak Sync Worker
+
+**Estructura del Payload**:
+```json
+{
+  "EventId": "uuid-456",
+  "EventType": "USER_SYNC",
+  "EventTimestamp": "2026-01-15T14:35:25Z",
+  "TraceId": "trace-crm-001",
+  "OriginApplicationId": "infoportone-user-consolidator",
+  "SchemaVersion": "1.0",
+  "Payload": [
+    {
+      "Email": "juan.perez@example.com",
+      "FirstName": "Juan",
+      "LastName": "Pérez",
+      "CompanyIds": [12345, 67890, 11111],
+      "IsActive": true,
+      "IsDeleted": false,
+      "Attributes": {
+        "Department": "Ventas",
+        "Phone": "+34 600 123 456",
+        "EmployeeId": "EMP-001",
+        "PrimaryCompanyId": 12345
+      },
+      "ConsolidatedRoles": {
+        "12345": ["Sales", "Manager"],
+        "67890": ["Viewer"],
+        "11111": ["Admin"]
+      },
+      "LastConsolidationDate": "2026-01-15T14:35:24Z",
+      "SourceEvents": ["uuid-123", "uuid-124"]
+    }
+  ]
+}
+```
+
+**Campos del objeto USER_SYNC:**
+- `Email` (string, required): Email del usuario (clave única)
+- `FirstName` (string, required): Nombre
+- `LastName` (string, required): Apellidos
+- `CompanyIds` (int[], required): **Lista completa de organizaciones** (claim `c_ids`)
+- `IsActive` (bool): Si el usuario está activo globalmente
+- `IsDeleted` (bool): Si el usuario debe ser eliminado de Keycloak
+- `Attributes` (object): Atributos consolidados
+  - `PrimaryCompanyId`: Organización principal del usuario
+- `ConsolidatedRoles` (object): Mapa de roles por organización
+- `LastConsolidationDate` (ISO 8601): Timestamp de la consolidación
+- `SourceEvents` (string[]): Lista de `EventId` de eventos originales (trazabilidad)
+
+**Diferencia clave**: Este evento contiene **todas las organizaciones** del usuario, consolidadas desde múltiples eventos individuales y validadas contra la base de datos de InfoportOneAdmon.
+
+#### **Evento de Organización**
+
+**Tópico**: `infoportone.events.organization`
+
+**Publicado por**: InfoportOneAdmon (módulo de Organizaciones)
+
+**Consumido por**: Todas las aplicaciones satélite
+
+**Estructura del Payload**:
+```json
+{
+  "EventId": "uuid-789",
+  "EventType": "ORGANIZATION",
+  "EventTimestamp": "2026-01-15T15:00:00Z",
+  "TraceId": "trace-admin-001",
+  "OriginApplicationId": "infoportone-admon",
+  "SchemaVersion": "1.0",
+  "Payload": [
+    {
+      "SecurityCompanyId": 12345,
+      "Name": "ACME Corporation",
+      "TaxId": "A12345678",
+      "Address": "Calle Mayor 123",
+      "City": "Madrid",
+      "Country": "España",
+      "IsActive": true,
+      "IsDeleted": false,
+      "GroupId": 100,
+      "GroupName": "Holding Empresarial",
+      "CreatedDate": "2025-06-01T10:00:00Z",
+      "ModifiedDate": "2026-01-15T15:00:00Z"
+    }
+  ]
+}
+```
+
+#### **Evento de Aplicación (incluye Módulos y Roles)**
+
+**Tópico**: `infoportone.events.application`
+
+**Estructura del Payload**:
+```json
+{
+  "EventId": "uuid-999",
+  "EventType": "APPLICATION",
+  "EventTimestamp": "2026-01-15T16:00:00Z",
+  "TraceId": "trace-admin-002",
+  "OriginApplicationId": "infoportone-admon",
+  "SchemaVersion": "1.0",
+  "Payload": [
+    {
+      "ApplicationId": 5,
+      "Name": "CRM Application",
+      "ClientId": "crm-app-backend",
+      "IsActive": true,
+      "Modules": [
+        {
+          "ModuleId": 10,
+          "Name": "Sales Module",
+          "Description": "Gestión de ventas",
+          "IsActive": true,
+          "AccessibleByCompanies": [12345, 67890]
+        },
+        {
+          "ModuleId": 11,
+          "Name": "Reporting Module",
+          "Description": "Reportes avanzados",
+          "IsActive": true,
+          "AccessibleByCompanies": [12345]
+        }
+      ],
+      "Roles": [
+        {
+          "RoleId": 20,
+          "Name": "Sales",
+          "Description": "Vendedor",
+          "IsActive": true
+        },
+        {
+          "RoleId": 21,
+          "Name": "Manager",
+          "Description": "Gerente",
+          "IsActive": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### **Patrones de Procesamiento de Eventos**
+
+**Para consumidores (Apps Satélite y Workers):**
+
+```csharp
+// Pseudocódigo de consumo idempotente
+public async Task ProcessEvent(EventEnvelope envelope)
+{
+    foreach (var item in envelope.Payload)
+    {
+        if (item.IsDeleted)
+        {
+            await DeleteLocalEntity(item);
+        }
+        else
+        {
+            // Upsert: Update si existe, Insert si no
+            await UpsertLocalEntity(item);
+        }
+    }
+}
+```
+
+**Validación de esquema:**
+```csharp
+public bool ValidateEventSchema(EventEnvelope envelope)
+{
+    // Validar que SchemaVersion es compatible
+    if (!IsSupportedVersion(envelope.SchemaVersion))
+        return false;
+    
+    // Validar campos requeridos según tipo de evento
+    if (envelope.EventType == "USER_SYNC")
+    {
+        foreach (var user in envelope.Payload)
+        {
+            if (string.IsNullOrEmpty(user.Email)) return false;
+            if (user.CompanyIds == null || user.CompanyIds.Length == 0) return false;
+        }
+    }
+    
+    return true;
+}
+```
+
+#### **Versionado de Esquemas**
+
+El sistema soporta evolución de esquemas mediante el campo `SchemaVersion`:
+
+- **v1.0**: Versión inicial
+- **v1.1**: Podría agregar campos opcionales sin romper compatibilidad
+- **v2.0**: Cambios que rompen compatibilidad (requieren actualización de consumidores)
+
+**Estrategia de migración:**
+1. Publicar eventos con ambas versiones durante período de transición
+2. Consumidores implementan lógica para soportar múltiples versiones
+3. Deprecación gradual de versiones antiguas con notificaciones
 
 ### **1.4. Instrucciones de instalación:**
 
@@ -272,7 +614,8 @@ Editar `appsettings.Development.json`:
     "Topics": {
       "Organization": "infoportone.events.organization",
       "Application": "infoportone.events.application",
-      "User": "infoportone.events.user"
+      "User": "infoportone.events.user",
+      "KeycloakUserSync": "infoportone.events.keycloak.user.sync"
     }
   }
 }
@@ -553,20 +896,24 @@ graph TB
             MModuleModule[📦 Módulo Módulos]
         end
         
-        OrchService[⚙️ Servicio de Orquestación<br/>Keycloak]
+        UserConsolidator[🔄 User Consolidation<br/>Service]
         EventPublisher[📢 Publicador de Eventos]
-        EventConsumer[📥 Consumidor de Eventos<br/>UserEvent]
         
         DB[(💾 Base de Datos Core<br/>Fuente de la Verdad)]
+    end
+    
+    subgraph "Keycloak Sync Worker - Servicio Independiente"
+        KCWorker[⚡ Keycloak Sync<br/>Worker Service]
     end
     
     subgraph "Infraestructura de Mensajería"
         Artemis[🚀 ActiveMQ Artemis<br/>Message Broker]
         
         subgraph "Tópicos de Eventos"
-            T1[📣 infoportone.events.organization]
-            T2[📣 infoportone.events.application]
-            T3[📣 infoportone.events.user]
+            T1[📣 organization]
+            T2[📣 application]
+            T3[📣 user<br/>sin consolidar]
+            T4[📣 keycloak.user.sync<br/>consolidado]
         end
     end
     
@@ -605,16 +952,68 @@ graph TB
     MRoleModule --> DB
     MModuleModule --> DB
     
-    %% Orquestación Keycloak
-    MOrgModule -->|Crear/Actualizar<br/>Organizaciones| OrchService
-    MAppModule -->|Registrar<br/>Client OAuth2| OrchService
-    OrchService -->|Admin API| KC
-    KC --> KCClients
-    KC --> KCMappers
-    
     %% Publicación de Eventos
     MOrgModule --> EventPublisher
     MAppModule --> EventPublisher
+    EventPublisher -->|Publica Estado| Artemis
+    
+    Artemis --> T1
+    Artemis --> T2
+    Artemis --> T3
+    Artemis --> T4
+    
+    %% FLUJO DE CONSOLIDACIÓN DE USUARIOS (NUEVO)
+    App1 -.->|Publica UserEvent<br/>companyId: 12345| T3
+    App2 -.->|Publica UserEvent<br/>companyId: 67890| T3
+    App3 -.->|Publica UserEvent<br/>companyId: 11111| T3
+    
+    T3 -->|Consume eventos| UserConsolidator
+    UserConsolidator -->|Consulta organizaciones| DB
+    UserConsolidator -->|Publica evento consolidado<br/>c_ids: [12345,67890,11111]| T4
+    
+    T4 -->|Consume KeycloakUserSyncEvent| KCWorker
+    KCWorker -->|Admin API<br/>CREATE/UPDATE user| KC
+    KC --> KCUsers
+    KC --> KCMappers
+    
+    %% Sincronización Apps
+    T1 -->|OrganizationEvent| App1
+    T1 -->|OrganizationEvent| App2
+    T1 -->|OrganizationEvent| App3
+    
+    T2 -->|ApplicationEvent<br/>Módulos, Roles| App1
+    T2 -->|ApplicationEvent<br/>Módulos, Roles| App2
+    T2 -->|ApplicationEvent<br/>Módulos, Roles| App3
+    
+    App1 --> Cache1
+    App2 --> Cache2
+    App3 --> Cache3
+    
+    %% Registro de Aplicaciones en Keycloak
+    MAppModule -.->|Registrar Client OAuth2| KC
+    KC --> KCClients
+    
+    %% Autenticación Usuario Final
+    EndUser -->|1. Login| App1
+    App1 -->|2. OAuth2 Flow| KC
+    KC -->|3. JWT Token<br/>con c_ids| App1
+    App1 -->|4. Valida Token<br/>y c_ids| EndUser
+    
+    %% Estilos
+    style Admin fill:#FFE5B4
+    style UI fill:#B4D7FF
+    style API fill:#B4D7FF
+    style DB fill:#D4B4FF
+    style Artemis fill:#FFB4B4
+    style KC fill:#B4FFB4
+    style App1 fill:#FFD4B4
+    style App2 fill:#FFD4B4
+    style App3 fill:#FFD4B4
+    style EndUser fill:#FFE5B4
+    style UserConsolidator fill:#C4E5FF
+    style KCWorker fill:#FFE5C4
+    style T4 fill:#FFD700
+```
     EventPublisher -->|Publica Estado| Artemis
     
     Artemis --> T1
@@ -825,28 +1224,49 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 - Escribe en la **Base de Datos Core**
 - Publica cambios mediante **ApplicationEvent** que incluye la configuración completa de módulos
 
-#### **2.2.5. Servicio de Orquestación de Keycloak**
+#### **2.2.5. Servicio de Sincronización con Keycloak (Keycloak Sync Worker)**
 
-**Responsabilidad**: Microservicio interno que traduce las acciones de negocio en llamadas administrativas a Keycloak.
+**Responsabilidad**: Proceso backend dedicado y autónomo que sincroniza usuarios consolidados con Keycloak, gestionando el claim `c_ids` multi-organización.
+
+**Tipo de componente**: Worker Service / Background Service independiente (puede ejecutarse como contenedor separado)
 
 **Tecnología**:
-- ASP.NET Core 8
+- ASP.NET Core 8 (Worker Service)
 - Keycloak.AuthServices.Sdk (cliente Admin API)
+- Apache.NMS.ActiveMQ (consumidor de eventos)
 - Patrón Adapter para abstraer Keycloak
 
 **Funcionalidades principales**:
-- Creación/actualización de usuarios en Keycloak consumiendo `UserEvent`
-- Gestión automática del claim `c_ids` (lista de `SecurityCompanyId`)
-- Detección de usuarios existentes por email (fusión multi-organización)
-- Registro de clientes OAuth2 para aplicaciones satélite
-- Configuración de Protocol Mappers para claims personalizados
+- **Consumo de eventos consolidados**: Suscripción al tópico `infoportone.events.keycloak.user.sync`
+- **Sincronización idempotente**: Creación/actualización de usuarios en Keycloak con claim `c_ids` completo
+- **Detección de usuarios existentes**: Búsqueda por email y fusión de organizaciones
+- **Gestión del ciclo de vida**: Desactivación de usuarios cuando `IsDeleted=true`
+- **Registro de clientes OAuth2**: Alta de aplicaciones satélite en Keycloak
+- **Configuración de Protocol Mappers**: Inyección automática del claim `c_ids` en tokens JWT
+- **Retry inteligente**: Política de reintentos con backoff exponencial
+- **Telemetría**: Logging estructurado de todas las operaciones con Keycloak
 
 **Interacciones**:
-- Consume eventos `UserEvent` desde **ActiveMQ Artemis**
-- Invoca **Keycloak Admin API** (REST)
-- Utiliza **Base de Datos Core** para consultar organizaciones válidas
+- Consume eventos `KeycloakUserSyncEvent` desde tópico **`infoportone.events.keycloak.user.sync`**
+- Invoca **Keycloak Admin API** (REST) para operaciones CRUD de usuarios
+- **NO accede a la Base de Datos Core** directamente (arquitectura desacoplada)
+- Publica eventos de confirmación/error a tópico de auditoría (opcional)
 
-**Principio clave**: Los administradores nunca interactúan directamente con la consola de Keycloak; todo se orquesta desde InfoportOneAdmon.
+**Flujo de procesamiento**:
+1. Recibe evento consolidado con `c_ids` completo
+2. Valida estructura del evento (schema validation)
+3. Busca usuario en Keycloak por email
+4. Si existe: actualiza claim `c_ids` fusionando organizaciones
+5. Si no existe: crea usuario con todos los atributos y claim `c_ids`
+6. Confirma procesamiento (ACK) o envía a DLQ si falla tras reintentos
+
+**Ventajas de la separación**:
+- **Escalabilidad independiente**: Se puede escalar horizontalmente sin afectar InfoportOneAdmon
+- **Tolerancia a fallos**: Si Keycloak está caído, los eventos se acumulan y procesan cuando se recupere
+- **Desacoplamiento**: InfoportOneAdmon no depende de la disponibilidad de Keycloak
+- **Especialización**: Componente dedicado con una única responsabilidad (Single Responsibility Principle)
+
+**Principio clave**: Los administradores nunca interactúan directamente con la consola de Keycloak; toda la sincronización se orquesta mediante eventos.
 
 #### **2.2.6. Publicador de Eventos (Event Publisher)**
 
@@ -870,25 +1290,71 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 3. Si el hash coincide con `LastEventHash`, **NO publica** el evento
 4. Si difiere, publica y actualiza `EventHashControl` con nuevo hash y timestamp
 
-#### **2.2.7. Consumidor de Eventos (Event Consumer)**
+#### **2.2.7. Servicio Consolidador de Usuarios (User Consolidation Service)**
 
-**Responsabilidad**: Suscribirse al tópico `infoportone.events.user` para sincronizar usuarios en Keycloak.
+**Responsabilidad**: Consumir eventos de usuario publicados por aplicaciones satélite, detectar usuarios multi-organización y consolidar la lista completa de `c_ids` antes de publicar evento de sincronización con Keycloak.
 
 **Tecnología**:
+- ASP.NET Core 8 (parte de InfoportOneAdmon o Worker independiente)
 - Apache.NMS.ActiveMQ (cliente .NET)
-- System.Text.Json (deserialización)
-- Patrón Observer
+- System.Text.Json (deserialización/serialización)
+- Entity Framework Core (consulta de organizaciones)
+- Patrón Aggregator (EIP - Enterprise Integration Pattern)
 
 **Funcionalidades principales**:
-- Suscripción durable al tópico `infoportone.events.user`
-- Deserialización del `Payload` como lista de objetos `USER`
-- Procesamiento idempotente: upsert o delete según `IsDeleted`
-- Detección de usuarios multi-organización por email
-- Invocación del **Servicio de Orquestación** para actualizar Keycloak
+- **Consumo de eventos de apps**: Suscripción durable al tópico `infoportone.events.user`
+- **Detección de usuarios duplicados**: Búsqueda por email en eventos previos y en base de datos
+- **Consolidación de organizaciones**: Agregación de todos los `SecurityCompanyId` asociados al email
+- **Validación de organizaciones**: Verificación de que las organizaciones existen y están activas
+- **Publicación de evento consolidado**: Genera `KeycloakUserSyncEvent` con lista completa de `c_ids`
+- **Deduplicación**: Previene publicar múltiples eventos para el mismo usuario en ventanas de tiempo cortas
+
+**Flujo de consolidación** (ejemplo del caso descrito):
+```
+1. App Satélite 1 publica: UserEvent { email: "juan@example.com", companyId: 12345 }
+   → InfoportOneAdmon consume y almacena temporalmente
+   
+2. App Satélite 2 publica: UserEvent { email: "juan@example.com", companyId: 67890 }
+   → InfoportOneAdmon detecta email duplicado
+   
+3. Consolidación:
+   - Consulta BD: ¿Existen más organizaciones para juan@example.com?
+   - Encuentra: companyId 11111 (registro histórico)
+   - Construye lista completa: c_ids = [12345, 67890, 11111]
+   
+4. Publicación a Keycloak:
+   → Publica KeycloakUserSyncEvent { 
+       email: "juan@example.com", 
+       c_ids: [12345, 67890, 11111],
+       attributes: {...}
+     } al tópico infoportone.events.keycloak.user.sync
+```
+
+**Interacciones**:
+- Consume eventos desde tópico **`infoportone.events.user`** (publicados por apps satélite)
+- Consulta **Base de Datos Core** para detectar organizaciones adicionales
+- Publica eventos consolidados a **`infoportone.events.keycloak.user.sync`**
+- Utiliza tabla auxiliar `UserConsolidationCache` para optimizar detección de duplicados
+
+**Tabla auxiliar: UserConsolidationCache**
+```sql
+CREATE TABLE UserConsolidationCache (
+  Email NVARCHAR(255) PRIMARY KEY,
+  ConsolidatedCompanyIds NVARCHAR(MAX), -- JSON array de c_ids
+  LastConsolidationDate DATETIME2,
+  LastEventHash NVARCHAR(64)
+);
+```
 
 **Gestión de errores**:
 - Retry con backoff exponencial
-- Dead Letter Queue (DLQ) para mensajes fallidos tras N intentos
+- Dead Letter Queue (DLQ) para mensajes con errores de validación
+- Alertas cuando se detectan organizaciones inválidas o eliminadas
+
+**Ventajas del patrón de consolidación**:
+- **Usuarios multi-organización correctos**: Garantiza que Keycloak siempre tiene la lista completa de organizaciones
+- **Desacoplamiento de sincronización**: Las apps satélite publican eventos simples, la complejidad está centralizada
+- **Fuente de verdad única**: La base de datos de InfoportOneAdmon es la fuente autoritativa de relaciones usuario-organización
 
 #### **2.2.8. Base de Datos Core**
 
@@ -925,7 +1391,12 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 **Tópicos configurados**:
 - `infoportone.events.organization`: Eventos de organizaciones (incluye grupos)
 - `infoportone.events.application`: Eventos de aplicaciones (incluye módulos y roles)
-- `infoportone.events.user`: Eventos de usuarios (publicados por apps satélite)
+- `infoportone.events.user`: Eventos de usuarios **publicados por apps satélite** (sin consolidar)
+- `infoportone.events.keycloak.user.sync`: Eventos de usuarios **consolidados** para sincronización con Keycloak (con `c_ids` completo)
+
+**Segregación de responsabilidades por tópico**:
+- **`infoportone.events.user`**: Consumido por InfoportOneAdmon (Consolidador)
+- **`infoportone.events.keycloak.user.sync`**: Consumido por Keycloak Sync Worker
 
 **Características**:
 - **Mensajería persistente**: Los mensajes sobreviven a reinicios del broker
@@ -990,9 +1461,9 @@ Este array contiene los `SecurityCompanyId` de todas las organizaciones a las qu
 | **Módulo Aplicaciones** | Gestión de portfolio | ASP.NET Core 8 | DB, Keycloak Orch, Artemis |
 | **Módulo Roles** | Catálogo de roles | ASP.NET Core 8 | DB (sincroniza con AppEvent) |
 | **Módulo Módulos** | Configuración modular | ASP.NET Core 8 | DB, Artemis (via AppEvent) |
-| **Servicio Orquestación KC** | Abstracción Keycloak | ASP.NET Core 8 | Keycloak Admin API |
+| **User Consolidation Service** | Consolidador de usuarios multi-org | ASP.NET Core 8 | DB, Artemis (pub/sub) |
+| **Keycloak Sync Worker** | Sincronización con Keycloak | Worker Service | Artemis, Keycloak Admin API |
 | **Event Publisher** | Publicación eventos | Apache.NMS | Artemis, EventHashControl |
-| **Event Consumer** | Consumo UserEvent | Apache.NMS | Artemis, Keycloak Orch |
 | **Base de Datos Core** | Fuente de la verdad | SQL Server/PostgreSQL | Todos los módulos |
 | **ActiveMQ Artemis** | Message broker | Artemis 2.31+ | Publisher, Consumer, Apps |
 | **Keycloak** | Identity Provider | Keycloak 23+ | Servicio Orquestación, Apps |
