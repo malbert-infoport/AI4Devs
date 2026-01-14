@@ -46,13 +46,11 @@ El sistema utiliza una arquitectura orientada a eventos basada en **ActiveMQ Art
 
 ## 1. Descripción general del producto
 
-> Describe en detalle los siguientes aspectos del producto:
-
 ### **1.1. Objetivo:**
 
 #### **Propósito del Producto**
 
-InfoportOneAdmon centraliza la complejidad administrativa del ecosistema de aplicaciones empresariales para que las aplicaciones de negocio (CRM, ERP, etc.) puedan centrarse exclusivamente en su lógica funcional y en la gestión de sus propios usuarios finales.
+InfoportOneAdmon centraliza la complejidad administrativa del ecosistema de aplicaciones empresariales para que las aplicaciones de negocio (Sintraport, Translate, etc.) puedan centrarse exclusivamente en su lógica funcional y en la gestión de sus propios usuarios finales.
 
 **Misión**: Centralizar la gestión del portfolio de aplicaciones, el onboarding de organizaciones clientes, la configuración de accesos granulares por aplicación y módulo, y el gobierno de identidad, liberando a las aplicaciones satélite de la complejidad de gestión multi-tenant y seguridad transversal.
 
@@ -62,7 +60,7 @@ InfoportOneAdmon centraliza la complejidad administrativa del ecosistema de apli
 
 2. **Simplificación de Aplicaciones Satélite**: Las aplicaciones del portfolio no necesitan implementar lógica compleja de multi-organización ni gestión de tenants. Solo deben validar tokens JWT y consumir eventos de sincronización.
 
-3. **Seguridad Centralizada y Consistente**: Al orquestar Keycloak desde un único punto, se garantiza coherencia en la autenticación, autorización y claims personalizados (c_ids) en todo el ecosistema.
+3. **Seguridad Centralizada y Consistente**: Al orquestar Keycloak desde un único punto, se garantiza coherencia en la autenticación, autorización y claims personalizados en todo el ecosistema.
 
 4. **Flexibilidad Comercial**: Permite modelos de negocio sofisticados donde no todas las organizaciones contratan todas las funcionalidades. El sistema de módulos habilita ventas granulares por funcionalidad.
 
@@ -76,7 +74,7 @@ InfoportOneAdmon centraliza la complejidad administrativa del ecosistema de apli
 
 - **Inconsistencia de Roles**: Sin un catálogo maestro, cada aplicación podría definir roles con nombres diferentes para conceptos similares. InfoportOneAdmon garantiza coherencia.
 
-- **Complejidad de Multi-Organización**: Resuelve el desafío técnico de usuarios que trabajan para múltiples organizaciones (consultores, auditores) mediante el claim c_ids, algo que la feature nativa de Organizations de Keycloak no soporta.
+- **Complejidad de Multi-Organización**: Resuelve el desafío técnico de usuarios que trabajan para múltiples organizaciones mediante claims, algo que la feature nativa de Organizations de Keycloak no soporta.
 
 - **Falta de Gobierno de Acceso**: Sin InfoportOneAdmon, cada aplicación tendría que gestionar individualmente qué organizaciones tienen acceso, creando inconsistencias y agujeros de seguridad.
 
@@ -95,8 +93,6 @@ InfoportOneAdmon centraliza la complejidad administrativa del ecosistema de apli
 - **Dirección Ejecutiva**: Obtiene visibilidad y control total sobre el portfolio de aplicaciones y la base de clientes
 
 **Tipo de Ecosistema**: Diseñado para organizaciones que gestionan un **portfolio de aplicaciones B2B propias** donde los clientes son otras empresas (no consumidores finales) y donde la Organización Propietaria necesita control total sobre el acceso y la seguridad.
-
-> Propósito del producto. Qué valor aporta, qué soluciona, y para quién.
 
 ### **1.2. Características y funcionalidades principales:**
 
@@ -132,12 +128,15 @@ Permite agrupar organizaciones lógicamente para facilitar la administración co
 Permite registrar y configurar las aplicaciones satélite que forman parte del ecosistema.
 
 **Capacidades principales:**
-- 🆕 **Registro de Aplicación**: Alta de nueva aplicación en el ecosistema, generando automáticamente credenciales OAuth2 (`client_id` y `client_secret`)
-- 🔐 **Gestión de Secretos**: Rotación y administración segura de credenciales de aplicaciones
+- 🆕 **Registro de Aplicación Frontend (Angular SPA)**: Alta como public client con `client_id` únicamente, habilitando PKCE para autenticación segura sin secretos
+- 🔐 **Registro de Aplicación Backend (API)**: Alta como confidential client con generación de `client_id` y `client_secret`, con gestión segura de credenciales
+- 🔄 **Gestión de Secretos**: Rotación y administración segura de credenciales solo para confidential clients (backends)
 - 🚦 **Control de Acceso**: Definir si una aplicación está activa, en mantenimiento o desactivada
 - 🧩 **Definición de Módulos**: Cada aplicación debe tener al menos un módulo. Los módulos representan agrupaciones funcionales vendibles por separado
-- 📘 **Catálogo de Roles**: Definir qué roles existen dentro de cada aplicación (ej: "Vendedor", "Gerente", "Administrador")
+- 📘 **Catálogo de Roles**: Definir qué roles existen dentro de cada aplicación (ej: "Tráfico", "Mensajería", "Administrador")
 - ✨ **Sincronización de Datos**: Funcionalidad para enviar catálogos completos publicando eventos cuyo `Payload` contiene listas de objetos
+
+**Nota sobre seguridad**: Las aplicaciones Angular (public clients) utilizan Authorization Code Flow with PKCE (S256) y no requieren almacenar secretos. Solo las APIs backend (confidential clients) requieren `client_secret`.
 
 **Objetivo**: Mantener el inventario completo del portfolio de aplicaciones y sus capacidades (módulos y roles).
 
@@ -179,6 +178,7 @@ Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder dir
 - 🔑 **Mapeo de Protocol Mappers**: Configuración automática para incluir claims personalizados en tokens JWT
 - 👥 **Gestión Multi-Organización**: Detección automática de usuarios existentes por email y fusión de organizaciones en el claim `c_ids`
 - 🏢 **Single Realm**: Utiliza un único realm (InfoportOne) para todo el ecosistema, habilitando SSO real
+- 🔐 **PKCE para SPAs**: Configuración automática de clientes públicos con PKCE (Proof Key for Code Exchange) para aplicaciones Angular, eliminando la necesidad de secretos en el cliente
 
 **Nota importante**: No se utiliza la feature nativa de Organizations de Keycloak porque no soporta usuarios en múltiples organizaciones.
 
@@ -198,14 +198,333 @@ Mecanismo de comunicación asíncrona basado en el patrón **"State Transfer Eve
 
 **Objetivo**: Garantizar desacoplamiento total entre InfoportOneAdmon y las aplicaciones satélite, permitiendo autonomía operacional.
 
-> Enumera y describe las características y funcionalidades específicas que tiene el producto para satisfacer las necesidades identificadas.
-
 ### **1.3. Diseño y experiencia de usuario:**
 
 > Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.0
 
 ### **1.4. Instrucciones de instalación:**
-> Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
+
+InfoportOneAdmon está construido sobre el framework Helix6 para .NET 8. A continuación se detallan los pasos para instalar y poner en marcha el proyecto en un entorno de desarrollo local.
+
+#### **1.4.1. Requisitos Previos**
+
+**Software necesario**:
+- **.NET 8 SDK** (8.0 o superior)
+- **Visual Studio 2022** (17.8+) o **Visual Studio Code** con extensión C#
+- **SQL Server 2022** o **PostgreSQL 15+**
+- **Node.js 20+** y **npm** (para el frontend Angular)
+- **Docker Desktop** (opcional, para ejecutar ActiveMQ Artemis y Keycloak localmente)
+- **Git** para control de versiones
+
+**Puertos requeridos** (configurables):
+- `5000`: API Backend (HTTP)
+- `5001`: API Backend (HTTPS)
+- `4200`: Angular Frontend (desarrollo)
+- `61616`: ActiveMQ Artemis (AMQP)
+- `8080`: Keycloak
+
+#### **1.4.2. Instalación del Backend (InfoportOneAdmon.Api)**
+
+**Paso 1: Clonar el repositorio**
+```powershell
+git clone https://github.com/organizacion/InfoportOneAdmon.git
+cd InfoportOneAdmon
+```
+
+**Paso 2: Restaurar dependencias NuGet**
+```powershell
+cd InfoportOneAdmon.Api
+dotnet restore
+```
+
+**Dependencias principales de Helix6**:
+- `Helix6.Base` (9.0.2) - Framework base
+- `Helix6.Base.Domain` (9.0.2) - Dominio y contratos
+- `Helix6.Base.Utils` (9.0.2) - Utilidades
+- `Microsoft.EntityFrameworkCore` (9.0.2)
+- `Mapster` (7.4.0)
+- `Serilog.AspNetCore` (9.0.2)
+
+**Paso 3: Configurar la cadena de conexión**
+
+Editar `appsettings.Development.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=InfoportOneAdmon;User Id=sa;Password=***;TrustServerCertificate=True;",
+    "ConnectionStringType": "SqlServer"
+  },
+  "ApplicationContext": {
+    "ApplicationName": "InfoportOneAdmon",
+    "DBMSType": "SqlServer",
+    "RolPrefixes": ["InfoportOne_"]
+  },
+  "Keycloak": {
+    "AdminApiUrl": "http://localhost:8080/admin/realms/InfoportOne",
+    "Realm": "InfoportOne",
+    "ClientId": "infoportone-admin",
+    "ClientSecret": "***"
+  },
+  "ActiveMQ": {
+    "BrokerUri": "tcp://localhost:61616",
+    "Username": "artemis",
+    "Password": "artemis",
+    "Topics": {
+      "Organization": "infoportone.events.organization",
+      "Application": "infoportone.events.application",
+      "User": "infoportone.events.user"
+    }
+  }
+}
+```
+
+> **Gestión de secretos en desarrollo**: Para desarrollo local, utilizar `dotnet user-secrets` en lugar de almacenar secretos en archivos:
+> ```powershell
+> dotnet user-secrets init
+> dotnet user-secrets set "Keycloak:ClientSecret" "tu-secret-aqui"
+> dotnet user-secrets set "ActiveMQ:Password" "tu-password-aqui"
+> ```
+
+**Paso 4: Crear y migrar la base de datos**
+
+El proyecto utiliza **Entity Framework Core Code First**. Para crear la base de datos y aplicar las migraciones:
+
+```powershell
+# Instalar herramientas de EF Core (si no están instaladas)
+dotnet tool install --global dotnet-ef
+
+# Crear la migración inicial (si no existe)
+dotnet ef migrations add InitialCreate --project InfoportOneAdmon.Data --startup-project InfoportOneAdmon.Api
+
+# Aplicar migraciones a la base de datos
+dotnet ef database update --project InfoportOneAdmon.Data --startup-project InfoportOneAdmon.Api
+```
+
+**Estructura de tablas creadas** (principales):
+- `Organizations`: Entidades de organizaciones clientes
+- `OrganizationGroups`: Agrupaciones de organizaciones
+- `Applications`: Aplicaciones satélite registradas
+- `Modules`: Módulos funcionales por aplicación
+- `ModuleAccess`: Relación N:M entre módulos y organizaciones
+- `AppRoleDefinitions`: Catálogo de roles
+- `AuditLog`: Auditoría de cambios
+- `EventHashControl`: Control de eventos duplicados
+
+> **Nota Helix6**: Todas las entidades heredan de `IEntityBase` e incluyen automáticamente campos de auditoría (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`). Ver detalles en [Helix6_Backend_Architecture.md - Sección 2.5](Helix6_Backend_Architecture.md#25-proyectodatamodel-capa-de-modelo-de-datos).
+
+**Paso 5: Poblar datos semilla (seed data)**
+
+El proyecto puede incluir un seeder inicial. Ejecutar:
+
+```powershell
+dotnet run --project InfoportOneAdmon.Api --seed
+```
+
+O ejecutar scripts SQL manualmente:
+```sql
+-- Insertar organización propietaria
+INSERT INTO Organizations (Name, TaxId, Active, SecurityCompanyId)
+VALUES ('Organización Propietaria', 'A12345678', 1, 1);
+
+-- Insertar aplicación de ejemplo
+INSERT INTO Applications (Name, ClientId, ClientType, Active)
+VALUES ('CRM App', 'crm-app-frontend', 'Public', 1);
+```
+
+**Paso 6: Ejecutar el backend**
+
+```powershell
+dotnet run --project InfoportOneAdmon.Api
+```
+
+La API estará disponible en:
+- HTTP: `http://localhost:5000`
+- HTTPS: `https://localhost:5001`
+- Swagger UI: `https://localhost:5001/swagger`
+
+> **Configuración de Serilog**: Los logs se escriben en `logs/log-{Date}.txt` y en consola. Configuración detallada en `appsettings.json` sección `Serilog`. Ver [Helix6_Backend_Architecture.md - Sección 7](Helix6_Backend_Architecture.md#7-bootstrapping-y-programcs) para detalles del bootstrapping.
+
+#### **1.4.3. Instalación del Frontend (Angular)**
+
+**Paso 1: Instalar dependencias**
+```powershell
+cd InfoportOneAdmon.Frontend
+npm install
+```
+
+**Dependencias principales**:
+- `@angular/core`: 20.x
+- `@angular/router`: 20.x
+- `@angular/common/http`: 20.x
+- `oidc-client-ts`: Autenticación OAuth2/OIDC
+
+**Paso 2: Configurar el entorno**
+
+Editar `src/environments/environment.development.ts`:
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'https://localhost:5001/api',
+  keycloak: {
+    issuer: 'http://localhost:8080/realms/InfoportOne',
+    clientId: 'infoportone-admin-frontend',
+    redirectUri: 'http://localhost:4200/callback',
+    scope: 'openid profile email',
+    responseType: 'code',
+    pkce: true
+  }
+};
+```
+
+**Paso 3: Ejecutar el frontend**
+```powershell
+npm start
+```
+
+El frontend estará disponible en: `http://localhost:4200`
+
+#### **1.4.4. Instalación de ActiveMQ Artemis (Message Broker)**
+
+**Opción 1: Docker (Recomendado para desarrollo)**
+
+```powershell
+docker run -d --name artemis `
+  -p 61616:61616 `
+  -p 8161:8161 `
+  -e ARTEMIS_USERNAME=artemis `
+  -e ARTEMIS_PASSWORD=artemis `
+  apache/activemq-artemis:latest
+```
+
+Consola web: `http://localhost:8161` (usuario: `artemis`, password: `artemis`)
+
+**Opción 2: Instalación local**
+
+1. Descargar desde https://activemq.apache.org/components/artemis/
+2. Extraer y ejecutar:
+```powershell
+cd apache-artemis-2.31.0\bin
+.\artemis create mybroker
+cd ..\mybroker\bin
+.\artemis run
+```
+
+**Configuración de tópicos**:
+Los tópicos se crean automáticamente cuando InfoportOneAdmon publica el primer evento. No requiere configuración previa.
+
+#### **1.4.5. Instalación de Keycloak (Identity Provider)**
+
+**Opción 1: Docker (Recomendado para desarrollo)**
+
+```powershell
+docker run -d --name keycloak `
+  -p 8080:8080 `
+  -e KEYCLOAK_ADMIN=admin `
+  -e KEYCLOAK_ADMIN_PASSWORD=admin `
+  quay.io/keycloak/keycloak:23.0 `
+  start-dev
+```
+
+Consola de administración: `http://localhost:8080` (usuario: `admin`, password: `admin`)
+
+**Opción 2: Instalación local**
+
+1. Descargar desde https://www.keycloak.org/downloads
+2. Ejecutar:
+```powershell
+cd keycloak-23.0.0\bin
+.\kc.bat start-dev
+```
+
+**Configuración inicial de Keycloak**:
+
+1. **Crear el realm `InfoportOne`**:
+   - Login en consola de administración
+   - Crear nuevo realm: `InfoportOne`
+
+2. **Registrar el cliente de InfoportOneAdmon**:
+   ```json
+   {
+     "clientId": "infoportone-admin-frontend",
+     "enabled": true,
+     "publicClient": true,
+     "redirectUris": ["http://localhost:4200/*"],
+     "webOrigins": ["http://localhost:4200"],
+     "standardFlowEnabled": true,
+     "pkceCodeChallengeMethod": "S256"
+   }
+   ```
+
+3. **Configurar Protocol Mapper para `c_ids`**:
+   - Crear mapper de tipo "User Attribute"
+   - Nombre: `company-ids-mapper`
+   - User Attribute: `c_ids`
+   - Token Claim Name: `c_ids`
+   - Claim JSON Type: Array
+   - Add to ID token: ON
+   - Add to access token: ON
+
+> **Implementación de claims en Helix6**: El framework proporciona `KeyCloakUserClaimsMapping` que maneja automáticamente la lectura del claim `c_ids` y otros claims de Keycloak. Ver [Helix6_Backend_Architecture.md - Sección 10.5](Helix6_Backend_Architecture.md#105-mapeo-de-claims-según-identity-server).
+
+#### **1.4.6. Verificación de la Instalación**
+
+**Test 1: API Backend**
+```powershell
+curl https://localhost:5001/api/health
+# Respuesta esperada: {"status": "Healthy"}
+```
+
+**Test 2: Swagger**
+- Abrir navegador: `https://localhost:5001/swagger`
+- Verificar que aparecen todos los endpoints generados
+
+**Test 3: Keycloak**
+- Login en `http://localhost:8080`
+- Verificar realm `InfoportOne`
+
+**Test 4: ActiveMQ Artemis**
+- Abrir `http://localhost:8161`
+- Verificar broker activo
+
+**Test 5: Frontend Angular**
+- Abrir `http://localhost:4200`
+- Verificar redirección a Keycloak para login
+
+**Test 6: Flujo completo (End-to-End)**
+1. Login en el frontend Angular
+2. Crear una organización nueva
+3. Verificar en la base de datos que se creó el registro
+4. Verificar en Artemis que se publicó el evento `OrganizationEvent`
+5. Verificar en la tabla `EventHashControl` el hash del evento
+
+#### **1.4.7. Troubleshooting Común**
+
+**Problema**: Error de conexión a SQL Server
+```
+Microsoft.Data.SqlClient.SqlException: A network-related or instance-specific error...
+```
+**Solución**: Verificar que SQL Server está ejecutándose y que el puerto 1433 está abierto. En desarrollo, usar `TrustServerCertificate=True`.
+
+**Problema**: Error de autenticación con Keycloak
+```
+IDX10501: Signature validation failed. Unable to match key...
+```
+**Solución**: Limpiar caché de claves públicas y reiniciar la API. Verificar que el `issuer` en `appsettings.json` coincide exactamente con el de Keycloak.
+
+**Problema**: Eventos no se publican en Artemis
+```
+System.NullReferenceException at EventPublisher.Publish()
+```
+**Solución**: Verificar que ActiveMQ Artemis está ejecutándose y que las credenciales en `appsettings.json` son correctas.
+
+**Problema**: Endpoints no aparecen en Swagger
+**Solución**: Regenerar código con Helix Generator:
+```powershell
+cd InfoportOneAdmon.HelixGenerator
+dotnet run
+```
+
+> **Documentación completa de arquitectura**: Para comprender el flujo de datos, ciclo de vida de peticiones y patrones implementados, consultar [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
 
 ---
 
@@ -400,13 +719,18 @@ La feature nativa de Organizations de Keycloak **no soporta usuarios en múltipl
 
 #### **Tecnologías Utilizadas**
 
-- **Backend**: .NET 8 / ASP.NET Core (API REST)
-- **Frontend**: React / Angular (Interfaz administrativa)
+- **Backend**: .NET 8 / ASP.NET Core (API REST) sobre **Framework Helix6**
+- **Frontend**: Angular 20 (Interfaz administrativa y aplicaciones satélite). Algunas aplicaciones legacy pueden estar en otras tecnologías.
 - **Message Broker**: Apache ActiveMQ Artemis
 - **Identity Provider**: Keycloak (OAuth2 / OpenID Connect)
 - **Base de Datos**: SQL Server / PostgreSQL
-- **Serialización**: JSON para eventos
+- **ORM**: Entity Framework Core 9.0.2 (escrituras) + Dapper 2.1.66 (lecturas optimizadas)
+- **Mapeo de Objetos**: Mapster 7.4.0
+- **Logging**: Serilog 9.0.2 con sinks a archivo y consola
+- **Serialización**: JSON para eventos (System.Text.Json)
 - **Prevención de Duplicados**: SHA-256 hashing
+
+> **Framework Base Helix6**: Proporciona la infraestructura técnica completa (repositorios base, servicios genéricos, generación automática de endpoints, sistema de seguridad, validaciones, auditoría automática) permitiendo que InfoportOneAdmon se enfoque exclusivamente en su lógica de negocio específica. Ver documentación completa en [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
 
 > Usa el formato que consideres más adecuado para representar los componentes principales de la aplicación y las tecnologías utilizadas. Explica si sigue algún patrón predefinido, justifica por qué se ha elegido esta arquitectura, y destaca los beneficios principales que aportan al proyecto y justifican su uso, así como sacrificios o déficits que implica.
 
@@ -415,14 +739,23 @@ La feature nativa de Organizations de Keycloak **no soporta usuarios en múltipl
 
 El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sistemas de infraestructura crítica, desacoplados mediante una arquitectura orientada a eventos.
 
+> **Nota sobre el Framework Base**: Los componentes backend de InfoportOneAdmon están implementados sobre el **Framework Helix6**, una arquitectura en N-Capas para Web APIs con .NET 8 que implementa patrones de Clean Architecture y DDD. Helix6 proporciona la infraestructura base (repositorios, servicios, endpoints, seguridad) permitiendo que InfoportOneAdmon se enfoque exclusivamente en su lógica de negocio específica. Para detalles completos sobre la arquitectura base, consultar [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
+
 #### **2.2.1. Módulo de Organizaciones**
 
 **Responsabilidad**: Gestionar el ciclo de vida completo de los clientes (alta, activación, desactivación).
 
 **Tecnología**: 
-- ASP.NET Core 8 (Web API)
+- ASP.NET Core 8 (Web API) sobre **Framework Helix6**
 - Entity Framework Core (ORM)
 - FluentValidation (validación de modelos)
+
+**Implementación Helix6**:
+- Entidad `Organization` en capa DataModel
+- `OrganizationService` hereda de `BaseService<OrganizationView, Organization, OrganizationViewMetadata>`
+- `OrganizationRepository` hereda de `BaseRepository<Organization>`
+- Endpoints generados automáticamente mediante Helix Generator
+- Auditoría automática gestionada por el framework (campos `AuditCreationUser`, `AuditModificationUser`, `AuditDeletionDate`)
 
 **Funcionalidades principales**:
 - CRUD de organizaciones con generación automática de `SecurityCompanyId`
@@ -441,14 +774,15 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 
 **Tecnología**:
 - ASP.NET Core 8 (Web API)
-- Gestión segura de secretos (Azure Key Vault / HashiCorp Vault)
+- Gestión segura de secretos (Azure Key Vault / HashiCorp Vault) solo para confidential clients
 - Entity Framework Core
 
 **Funcionalidades principales**:
-- Alta de aplicaciones con generación de `client_id` y `client_secret`
+- Alta de aplicaciones frontend (Angular SPAs) como public clients con `client_id` únicamente
+- Alta de aplicaciones backend como confidential clients con generación de `client_id` y `client_secret`
 - Definición de módulos funcionales por aplicación
 - Configuración de acceso a módulos por organización (relación N:M)
-- Rotación de credenciales OAuth2
+- Rotación de credenciales OAuth2 para confidential clients
 
 **Interacciones**:
 - Escribe en la **Base de Datos Core**
@@ -628,8 +962,13 @@ Este array contiene los `SecurityCompanyId` de todas las organizaciones a las qu
 
 **Responsabilidad**: Aplicaciones de negocio del ecosistema (CRM, ERP, BI, etc.) que consumen eventos para sincronizar datos maestros.
 
-**Tecnología** (variable según aplicación):
-- .NET, Java, Node.js, Python, etc.
+**Tecnología Frontend**:
+- **Angular 20**: Tecnología principal para SPAs del ecosistema
+- Aplicaciones legacy ocasionales en otras tecnologías
+- Autenticación mediante Authorization Code Flow with PKCE (sin almacenar secretos)
+
+**Tecnología Backend** (variable según aplicación):
+- .NET 8, Java, Node.js, Python, etc.
 - Cliente AMQP/ActiveMQ según plataforma
 - Caché local (Redis, In-Memory, SQL local)
 
@@ -659,11 +998,163 @@ Este array contiene los `SecurityCompanyId` de todas las organizaciones a las qu
 | **Keycloak** | Identity Provider | Keycloak 23+ | Servicio Orquestación, Apps |
 | **Apps Satélite** | Consumidores eventos | Variable (.NET, Java, etc.) | Artemis, Keycloak (OAuth2) |
 
-> Describe los componentes más importantes, incluyendo la tecnología utilizada
-
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
-> Representa la estructura del proyecto y explica brevemente el propósito de las carpetas principales, así como si obedece a algún patrón o arquitectura específica.
+InfoportOneAdmon sigue la **arquitectura Helix6**, una implementación de N-Capas con Clean Architecture para proyectos Web API en .NET 8. La estructura se organiza en capas claramente separadas con dependencias unidireccionales hacia el núcleo.
+
+#### **Estructura de Proyectos**
+
+```
+InfoportOneAdmon/
+├── InfoportOneAdmon.Api/              # Capa de Presentación (Punto de entrada)
+│   ├── Endpoints/
+│   │   ├── Base/Generator/            # Endpoints generados automáticamente
+│   │   │   ├── OrganizationEndpoints.cs
+│   │   │   ├── ApplicationEndpoints.cs
+│   │   │   └── ...
+│   │   ├── GenericEndpoints.cs        # Mapeo centralizado de endpoints
+│   │   └── Endpoints.cs               # Endpoints personalizados/manuales
+│   ├── Extensions/
+│   │   ├── DependencyInjection.cs     # Auto-registro de servicios/repositorios
+│   │   └── AuthConfiguration.cs       # Configuración JWT y autenticación
+│   ├── Security/
+│   │   └── KeyCloakUserClaimsMapping.cs  # Mapeo de claims de Keycloak
+│   ├── Program.cs                     # Bootstrapping de la aplicación
+│   ├── appsettings.json               # Configuración principal
+│   └── HelixEntities.xml              # Configuración de generación de código
+│
+├── InfoportOneAdmon.Services/         # Capa de Lógica de Negocio
+│   ├── OrganizationService.cs         # Servicios de dominio
+│   ├── ApplicationService.cs
+│   ├── ModuleService.cs
+│   ├── RoleService.cs
+│   ├── KeycloakOrchestrationService.cs # Orquestación de Keycloak
+│   ├── EventPublisherService.cs       # Publicación de eventos
+│   ├── EventConsumerService.cs        # Consumo de eventos
+│   └── ServiceConsts.cs               # Constantes de validación
+│
+├── InfoportOneAdmon.Entities/         # Capa de DTOs/Views
+│   ├── Views/
+│   │   ├── OrganizationView.cs        # Views generadas (partial classes)
+│   │   ├── ApplicationView.cs
+│   │   └── ...
+│   └── Views/Metadata/
+│       ├── OrganizationViewMetadata.cs # Metadatos de validación
+│       ├── ApplicationViewMetadata.cs
+│       └── ...
+│
+├── InfoportOneAdmon.Data/             # Capa de Acceso a Datos
+│   ├── DataModel/
+│   │   └── EntityModel.cs             # DbContext de Entity Framework
+│   └── Repository/
+│       ├── Interfaces/
+│       │   ├── IOrganizationRepository.cs
+│       │   └── ...
+│       ├── OrganizationRepository.cs  # Implementaciones concretas
+│       └── ...
+│
+├── InfoportOneAdmon.DataModel/        # Capa de Modelo de Datos
+│   ├── Organization.cs                # Entidades que mapean a BD
+│   ├── OrganizationGroup.cs
+│   ├── Application.cs
+│   ├── Module.cs
+│   ├── ModuleAccess.cs
+│   ├── AppRoleDefinition.cs
+│   ├── AuditLog.cs
+│   └── EventHashControl.cs
+│
+├── Helix6.Base/                       # Framework Base (librería compartida)
+│   ├── Repository/                    # Repositorios base genéricos
+│   ├── Service/                       # Servicios base genéricos
+│   ├── Endpoints/                     # Helpers de generación de endpoints
+│   ├── Middleware/                    # Middleware personalizado
+│   ├── Security/                      # Componentes de seguridad
+│   └── Extensions/                    # Métodos de extensión
+│
+├── Helix6.Base.Domain/                # Dominio Base (contratos e interfaces)
+│   ├── BaseInterfaces/
+│   │   ├── IEntityBase.cs
+│   │   └── IViewBase.cs
+│   ├── Configuration/
+│   │   ├── AppSettings.cs
+│   │   └── ApplicationContext.cs
+│   ├── Security/
+│   │   ├── IUserContext.cs
+│   │   └── IUserPermissions.cs
+│   └── HelixEnums.cs
+│
+└── Helix6.Base.Utils/                 # Utilidades compartidas
+    ├── FileHelper.cs
+    └── MailHelper.cs
+```
+
+#### **Principios Arquitectónicos Helix6**
+
+**Separación de Responsabilidades (Separation of Concerns)**:
+- **Api**: Exposición HTTP, autenticación, inyección de dependencias, configuración
+- **Services**: Lógica de negocio, validaciones, orquestación, mapeo Entity↔View
+- **Entities**: Contratos de transferencia de datos (DTOs/Views)
+- **Data**: Implementación de repositorios, transacciones, patrón Unit of Work
+- **DataModel**: Representación fiel de tablas de base de datos
+- **Base/Domain**: Infraestructura reutilizable y agnóstica del dominio
+
+**Flujo de Dependencias** (Dependency Rule):
+```
+Api → Services → Data → DataModel
+  ↓       ↓        ↓        ↓
+  └───────┴────────┴────────→ Base/Domain
+```
+Las capas externas dependen de las internas. Las capas base no tienen dependencias de negocio.
+
+**Patrón Repository + Unit of Work**:
+- Cada entidad tiene un repositorio que hereda de `BaseRepository<TEntity>`
+- `EntityModel` (DbContext) actúa como Unit of Work
+- Dual-ORM: Entity Framework para escrituras, Dapper para lecturas optimizadas
+
+**Patrón Service con Hooks Extensibles**:
+- Servicios heredan de `BaseService<TView, TEntity, TMetadata>`
+- Pipeline estándar: `ValidateView` → `PreviousActions` → `MapViewToEntity` → Repositorio → `PostActions` → `MapEntityToView`
+- Hooks virtuales permiten inyectar lógica personalizada sin romper el flujo
+
+**Generación Automática de Código**:
+- `HelixEntities.xml` define qué entidades exponer y qué endpoints generar
+- Helix Generator produce Views, ViewMetadata y Endpoints automáticamente
+- Elimina código boilerplate, enfoca desarrollo en lógica de negocio
+
+#### **Personalización para InfoportOneAdmon**
+
+Además de la estructura base de Helix6, InfoportOneAdmon añade:
+
+**Componentes Específicos**:
+- `KeycloakOrchestrationService`: Abstracción de Keycloak Admin API
+- `EventPublisherService`: Sistema de publicación de eventos con hash SHA-256
+- `EventConsumerService`: Consumo de eventos desde ActiveMQ Artemis
+- `EventHashControl` (tabla): Prevención de eventos duplicados
+
+**Configuración Personalizada**:
+```json
+{
+  "ActiveMQ": {
+    "BrokerUri": "tcp://artemis.infoportone.com:61616",
+    "Topics": {
+      "Organization": "infoportone.events.organization",
+      "Application": "infoportone.events.application",
+      "User": "infoportone.events.user"
+    }
+  },
+  "Keycloak": {
+    "AdminApiUrl": "https://keycloak.infoportone.com/admin/realms/InfoportOne",
+    "Realm": "InfoportOne"
+  }
+}
+```
+
+**Extensiones del Modelo de Datos**:
+- Todas las entidades incluyen auditoría automática (Helix6)
+- `EventHashControl` para gestión de duplicados (específico de InfoportOne)
+- Soft Delete mediante `AuditDeletionDate` (Helix6)
+
+> **Documentación Técnica Completa**: Para entender en profundidad la arquitectura base, patrones implementados, ciclo de vida de peticiones y convenciones de código, consultar [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
 
 ### **2.4. Infraestructura y despliegue**
 
@@ -679,20 +1170,36 @@ InfoportOneAdmon implementa múltiples capas de seguridad que garantizan la prot
 
 **Implementación**:
 - **Single Sign-On (SSO)**: Un único realm (`InfoportOne`) permite a los usuarios autenticarse una sola vez para acceder a todas las aplicaciones del ecosistema
-- **Confidential Clients**: Cada aplicación satélite se registra como cliente confidencial con `client_id` y `client_secret`
-- **Authorization Code Flow**: Flujo recomendado para aplicaciones web con backend
+- **Public Clients (SPAs)**: Las aplicaciones Angular se registran como clientes públicos sin `client_secret`
+- **Confidential Clients (Backend APIs)**: Las APIs backend se registran como clientes confidenciales con `client_id` y `client_secret`
+- **Authorization Code Flow with PKCE**: Flujo estándar para Single Page Applications (Angular) que no requiere almacenar secretos en el cliente
+- **Authorization Code Flow**: Flujo tradicional para aplicaciones con backend seguro
 - **Refresh Tokens**: Tokens de larga duración para renovar access tokens sin re-autenticación
 
-**Ejemplo de configuración de cliente en Keycloak**:
+**Ejemplo de configuración de cliente público (SPA Angular) en Keycloak**:
 ```json
 {
-  "clientId": "crm-app-prod",
+  "clientId": "crm-app-frontend",
   "enabled": true,
-  "clientAuthenticatorType": "client-secret",
-  "secret": "***REDACTED***",
-  "redirectUris": ["https://crm.infoportone.com/callback"],
+  "publicClient": true,
+  "redirectUris": ["https://crm.infoportone.com/*"],
   "webOrigins": ["https://crm.infoportone.com"],
   "standardFlowEnabled": true,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": false,
+  "pkceCodeChallengeMethod": "S256"
+}
+```
+
+**Ejemplo de configuración de cliente confidencial (Backend API) en Keycloak**:
+```json
+{
+  "clientId": "crm-api-backend",
+  "enabled": true,
+  "publicClient": false,
+  "clientAuthenticatorType": "client-secret",
+  "secret": "********************",
+  "serviceAccountsEnabled": true,
   "directAccessGrantsEnabled": false
 }
 ```
@@ -766,6 +1273,8 @@ var validationParameters = new TokenValidationParameters
 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
 ```
 
+> **Implementación en Helix6**: El framework proporciona `KeyCloakUserClaimsMapping` que abstrae el mapeo de claims desde la estructura compleja de KeyCloak (`realm_access`, `resource_access`). Ver detalles en [Helix6_Backend_Architecture.md - Sección 10.5](Helix6_Backend_Architecture.md#105-mapeo-de-claims-según-identity-server).
+
 #### **2.5.4. Segregación de Datos por Organización (Multi-Tenancy)**
 
 **Descripción**: Todas las consultas a base de datos en aplicaciones satélite deben filtrar por `SecurityCompanyId` para garantizar aislamiento de datos entre organizaciones.
@@ -793,13 +1302,16 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 #### **2.5.5. Gestión Segura de Secretos**
 
-**Descripción**: Los secretos sensibles (`client_secret`, cadenas de conexión, claves de cifrado) nunca se almacenan en código fuente ni en archivos de configuración.
+**Descripción**: Los secretos sensibles (`client_secret` de APIs backend, cadenas de conexión, claves de cifrado) nunca se almacenan en código fuente ni en archivos de configuración.
+
+**Alcance**: Esta gestión aplica **exclusivamente a confidential clients** (APIs backend, servicios del servidor). Las aplicaciones Angular (public clients) utilizan PKCE y **no requieren almacenar secretos**.
 
 **Implementación**:
-- **Azure Key Vault / HashiCorp Vault**: Almacenamiento centralizado de secretos
-- **Variables de Entorno**: En desarrollo local, uso de `dotnet user-secrets`
-- **Rotación Automática**: Proceso automatizado para rotar `client_secret` cada 90 días
+- **Azure Key Vault / HashiCorp Vault**: Almacenamiento centralizado de secretos para backends
+- **Variables de Entorno**: En desarrollo local, uso de `dotnet user-secrets` para APIs backend
+- **Rotación Automática**: Proceso automatizado para rotar `client_secret` de APIs backend cada 90 días
 - **Principio de Mínimo Privilegio**: Cada aplicación solo tiene acceso a sus propios secretos
+- **PKCE para SPAs**: Las aplicaciones Angular no almacenan secretos; usan code verifier/challenge dinámico por sesión
 
 **Ejemplo de acceso a Key Vault** (C#):
 ```csharp
@@ -816,8 +1328,11 @@ string clientSecret = secret.Value;
 
 **Implementación**:
 - **Tabla `AuditLog`**: Registra qué cambió, quién lo cambió, cuándo y el estado anterior/posterior
-- **Triggers de Base de Datos**: Capturan automáticamente INSERT, UPDATE, DELETE
+- **Auditoría Automática de Helix6**: El framework gestiona automáticamente los campos de auditoría en todas las entidades (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`)
+- **Triggers de Base de Datos**: Capturan automáticamente INSERT, UPDATE, DELETE para registros detallados
 - **Campos clave**: `EntityType`, `EntityId`, `Action`, `UserId`, `Timestamp`, `OldValue`, `NewValue`
+
+> **Implementación en Helix6**: El framework automáticamente inyecta el `UserId` desde `IUserContext` en las operaciones de escritura. El `DbContext` sobreescribe `SaveChanges` para poblar los campos de auditoría antes de persistir. Ver [Helix6_Backend_Architecture.md - Sección 2.6](Helix6_Backend_Architecture.md#26-proyectodata-capa-de-acceso-a-datos) para detalles de la implementación del DbContext.
 
 **Ejemplo de registro de auditoría**:
 ```json
@@ -940,10 +1455,11 @@ public string ComputeEventHash(object payload)
 | Práctica | Capa | Tecnología/Estándar | Beneficio Principal |
 |----------|------|---------------------|---------------------|
 | OAuth 2.0 / OIDC | Autenticación | Keycloak | SSO y estándar de industria |
+| PKCE para SPAs | Autenticación | Code + PKCE (S256) | Seguridad sin secretos en cliente |
 | Claims personalizados (c_ids) | Autorización | JWT | Multi-organización flexible |
 | Validación stateless | Rendimiento | RS256 + JWT | Escalabilidad sin bottleneck |
 | Segregación por tenant | Datos | EF Core Filters | Aislamiento de organizaciones |
-| Gestión de secretos | Infraestructura | Azure Key Vault | Sin secretos en código |
+| Gestión de secretos | Infraestructura | Azure Key Vault | Sin secretos en código (solo backends) |
 | Auditoría inmutable | Compliance | AuditLog table | Trazabilidad completa |
 | Prepared Statements | Datos | EF Core | Prevención SQL Injection |
 | TLS/mTLS | Red | TLS 1.3 | Cifrado end-to-end |
@@ -1006,7 +1522,8 @@ erDiagram
         string AppName UK "NOT NULL, Nombre de la aplicación (ej: CRM, ERP)"
         string Description "Descripción de la aplicación"
         string ClientId UK "NOT NULL, OAuth2 client_id generado"
-        string ClientSecretHash "NOT NULL, Hash del client_secret (bcrypt)"
+        bool IsPublicClient "NOT NULL, DEFAULT TRUE, TRUE=SPA Angular (no secret), FALSE=Backend API (con secret)"
+        string ClientSecretHash "NULL para public clients, Hash bcrypt para confidential clients"
         string RedirectUris "JSON array de URIs de redirección"
         bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
         datetime CreatedAt "NOT NULL, Fecha de creación"
@@ -1239,13 +1756,14 @@ CreatedBy: "admin@infoportone.com"
 | **AppId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único de la aplicación. |
 | **AppName** | VARCHAR(100) | UNIQUE, NOT NULL | Nombre de la aplicación (ej: "CRM", "ERP Financiero"). Debe ser único. |
 | **Description** | VARCHAR(500) | NULL | Descripción de la aplicación y su propósito. |
-| **ClientId** | VARCHAR(255) | UNIQUE, NOT NULL | OAuth2 client_id generado automáticamente (ej: "crm-app-prod"). |
-| **ClientSecretHash** | VARCHAR(255) | NOT NULL | Hash bcrypt del client_secret. NUNCA se almacena en texto plano. |
-| **RedirectUris** | TEXT (JSON) | NULL | Array JSON de URIs de redirección permitidas para OAuth2 (ej: `["https://crm.infoportone.com/callback"]`). |
+| **ClientId** | VARCHAR(255) | UNIQUE, NOT NULL | OAuth2 client_id generado automáticamente (ej: "crm-app-frontend", "crm-api-backend"). |
+| **IsPublicClient** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | TRUE para SPAs Angular (no requiere secret), FALSE para APIs backend (confidential). |
+| **ClientSecretHash** | VARCHAR(255) | NULL | Hash bcrypt del client_secret. NULL para public clients (Angular SPAs). Solo se almacena para confidential clients (backends). NUNCA se almacena en texto plano. |
+| **RedirectUris** | TEXT (JSON) | NULL | Array JSON de URIs de redirección permitidas para OAuth2 (ej: `["https://crm.infoportone.com/*"]`). |
 | **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/en mantenimiento. Si es FALSE, la aplicación no puede autenticar usuarios. |
 | **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de registro de la aplicación en el ecosistema. |
 | **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
-| **SecretRotatedAt** | DATETIME | NULL | Fecha de la última rotación del client_secret. |
+| **SecretRotatedAt** | DATETIME | NULL | Fecha de la última rotación del client_secret (solo aplica a confidential clients). |
 
 **Relaciones**:
 - **1:N con Module**: Una aplicación contiene múltiples módulos. FK en Module: `AppId`. ON DELETE CASCADE (si se elimina la app, se eliminan sus módulos).
@@ -1256,8 +1774,11 @@ CreatedBy: "admin@infoportone.com"
 - `AppName` debe ser único (índice `UX_Application_AppName`)
 - `ClientId` debe ser único (índice `UX_Application_ClientId`)
 - **Regla de negocio**: Toda aplicación debe tener al menos un módulo (validado a nivel de aplicación)
-- `ClientSecretHash` nunca se devuelve en APIs; solo se muestra el secreto en texto plano en el momento de creación
-- Se recomienda rotar `ClientSecretHash` cada 90 días (campo `SecretRotatedAt` para tracking)
+- `ClientSecretHash` es NULL para public clients (Angular SPAs con PKCE)
+- `ClientSecretHash` es obligatorio para confidential clients (APIs backend)
+- `ClientSecretHash` nunca se devuelve en APIs; solo se muestra el secreto en texto plano en el momento de creación de confidential clients
+- Se recomienda rotar `ClientSecretHash` cada 90 días para confidential clients (campo `SecretRotatedAt` para tracking)
+- Public clients (Angular) usan PKCE y no almacenan secretos
 
 **Índices**:
 ```sql
@@ -1267,13 +1788,25 @@ UK: ClientId
 IX: Active
 ```
 
-**Ejemplo de Registro**:
+**Ejemplo de Registro (Public Client - Angular SPA)**:
 ```sql
 AppId: 5
-AppName: "CRM Comercial"
-ClientId: "crm-app-prod"
+AppName: "CRM Comercial Frontend"
+ClientId: "crm-app-frontend"
+IsPublicClient: TRUE
+ClientSecretHash: NULL
+RedirectUris: '["https://crm.infoportone.com/*"]'
+Active: TRUE
+```
+
+**Ejemplo de Registro (Confidential Client - Backend API)**:
+```sql
+AppId: 6
+AppName: "CRM Comercial API"
+ClientId: "crm-api-backend"
+IsPublicClient: FALSE
 ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
-RedirectUris: '["https://crm.infoportone.com/callback","https://crm.infoportone.com/silent-renew"]'
+RedirectUris: NULL
 Active: TRUE
 ```
 
