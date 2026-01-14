@@ -969,7 +969,7 @@ graph TB
     
     T3 -->|Consume eventos| UserConsolidator
     UserConsolidator -->|Consulta organizaciones| DB
-    UserConsolidator -->|Publica evento consolidado<br/>c_ids: [12345,67890,11111]| T4
+    UserConsolidator -->|Publica evento consolidado<br/>c_ids: 12345,67890,11111| T4
     
     T4 -->|Consume KeycloakUserSyncEvent| KCWorker
     KCWorker -->|Admin API<br/>CREATE/UPDATE user| KC
@@ -1013,53 +1013,6 @@ graph TB
     style UserConsolidator fill:#C4E5FF
     style KCWorker fill:#FFE5C4
     style T4 fill:#FFD700
-```
-    EventPublisher -->|Publica Estado| Artemis
-    
-    Artemis --> T1
-    Artemis --> T2
-    Artemis --> T3
-    
-    %% Consumo de Eventos (User)
-    T3 -->|UserEvent| EventConsumer
-    EventConsumer -->|Sincronizar Usuario| OrchService
-    OrchService -->|Crear/Actualizar<br/>con c_ids| KCUsers
-    
-    %% Sincronización Apps
-    T1 -->|OrganizationEvent| App1
-    T1 -->|OrganizationEvent| App2
-    T1 -->|OrganizationEvent| App3
-    
-    T2 -->|ApplicationEvent<br/>Módulos, Roles| App1
-    T2 -->|ApplicationEvent<br/>Módulos, Roles| App2
-    T2 -->|ApplicationEvent<br/>Módulos, Roles| App3
-    
-    App1 --> Cache1
-    App2 --> Cache2
-    App3 --> Cache3
-    
-    %% Publicación de UserEvent desde Apps
-    App1 -.->|Publica UserEvent| T3
-    App2 -.->|Publica UserEvent| T3
-    App3 -.->|Publica UserEvent| T3
-    
-    %% Autenticación Usuario Final
-    EndUser -->|1. Login| App1
-    App1 -->|2. OAuth2 Flow| KC
-    KC -->|3. JWT Token<br/>con c_ids| App1
-    App1 -->|4. Valida Token<br/>y c_ids| EndUser
-    
-    %% Estilos
-    style Admin fill:#FFE5B4
-    style UI fill:#B4D7FF
-    style API fill:#B4D7FF
-    style DB fill:#D4B4FF
-    style Artemis fill:#FFB4B4
-    style KC fill:#B4FFB4
-    style App1 fill:#FFD4B4
-    style App2 fill:#FFD4B4
-    style App3 fill:#FFD4B4
-    style EndUser fill:#FFE5B4
 ```
 
 #### **Patrón Arquitectónico**
