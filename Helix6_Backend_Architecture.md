@@ -14,19 +14,19 @@ El sistema se organiza de tal manera que las dependencias fluyen hacia las capas
 
 ```mermaid
 graph TD
-    API[Capa Presentación (Api)] --> Services
+    API[Capa Presentación Api] --> Services
     API --> Entities
     API --> Base
     
-    Services[Capa Lógica (Services)] --> Data
+    Services[Capa Lógica Services] --> Data
     Services --> Entities
     Services --> Base
     
-    Data[Capa Datos (Data)] --> DataModel
+    Data[Capa Datos Data] --> DataModel
     Data --> Base
     
-    DataModel[Capa Modelo (DataModel)] --> Domain
-    Entities[Capa Vistas (Entities)] --> Domain
+    DataModel[Capa Modelo DataModel] --> Domain
+    Entities[Capa Vistas Entities] --> Domain
     
     Base[Helix6.Base] --> Domain
     Base --> Utils
