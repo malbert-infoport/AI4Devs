@@ -369,11 +369,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
         "EmployeeId": "EMP-001",
         "PrimaryCompanyId": 12345
       },
-      "ConsolidatedRoles": {
-        "12345": ["Sales", "Manager"],
-        "67890": ["Viewer"],
-        "11111": ["Admin"]
-      },
       "LastConsolidationDate": "2026-01-15T14:35:24Z",
       "SourceEvents": ["uuid-123", "uuid-124"]
     }
@@ -390,7 +385,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - `IsDeleted` (bool): Si el usuario debe ser eliminado de Keycloak
 - `Attributes` (object): Atributos consolidados
   - `PrimaryCompanyId`: Organización principal del usuario
-- `ConsolidatedRoles` (object): Mapa de roles por organización
 - `LastConsolidationDate` (ISO 8601): Timestamp de la consolidación
 - `SourceEvents` (string[]): Lista de `EventId` de eventos originales (trazabilidad)
 
