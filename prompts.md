@@ -353,9 +353,58 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 
 ### 5. Historias de Usuario
 
-## Prompt 5.1
+## Prompt 5.1: Definición de requisitos funcionales y no funcionales
+
+**Rol:** Product Manager especialista en ingeniería de requisitos, análisis de producto y definición de especificaciones técnicas para sistemas empresariales complejos.
+
+**Objetivo:** Crear un documento completo de requisitos funcionales y no funcionales (requirements.md) que establezca las especificaciones detalladas del producto InfoportOneAdmon siguiendo las mejores prácticas de ingeniería de software.
+
+**Estructura requerida:**
+- Requisitos **funcionales** (RF-XXX): Definen QUÉ debe hacer el sistema, organizados por módulo/componente
+- Requisitos **no funcionales** (RNF-XXX): Definen CÓMO debe comportarse el sistema (rendimiento, seguridad, escalabilidad, etc.)
+- Cada requisito debe incluir: ID único, descripción clara, prioridad (Alta/Media/Baja), módulo asociado, criterios de aceptación verificables
+
+**Componentes a cubrir:**
+- Módulo de Gestión de Organizaciones
+- Módulo de Gestión de Aplicaciones
+- Módulo de Roles y Módulos
+- Arquitectura de Eventos (ActiveMQ Artemis)
+- Integración con Keycloak
+- Background Worker
+- Seguridad y Autenticación
+- Requisitos transversales (rendimiento, disponibilidad, mantenibilidad, etc.)
+
+**Buenas prácticas a aplicar:**
+- Requisitos **SMART**: Específicos, Medibles, Alcanzables, Relevantes, Temporales
+- Redacción en modo imperativo: "El sistema debe/deberá..."
+- Evitar ambigüedades y términos vagos
+- Incluir criterios de aceptación cuantificables cuando sea posible
+- Trazabilidad con casos de uso y componentes arquitectónicos
+- Fraccionar la generación por componentes para mantener claridad y manejabilidad
+
+**Resultado esperado:**
+- Archivo `requirements.md` estructurado y profesional
+- Numeración clara y consistente (RF-001, RF-002... / RNF-001, RNF-002...)
+- Organización lógica por secciones/módulos
+- Priorización clara de requisitos
+- Base sólida para desarrollo, pruebas y validación del producto
 
 ## Prompt 5.2
+
+**Rol:** Experto en producto y análisis funcional de sistemas empresariales multi-organización.
+
+**Objetivo:** Crear un nuevo fichero `useCases.md` que documente todos los casos de uso del sistema InfoportOneAdmon, agrupados por requerimiento, utilizando como fuente la documentación existente en `readme.md` y `requirements.md`.
+
+**Instrucciones:**
+- Analiza exhaustivamente los requisitos funcionales y no funcionales de `requirements.md` y la descripción de producto en `readme.md`.
+- Para cada requerimiento funcional (RF-XXX), define uno o varios casos de uso detallados, agrupándolos bajo el identificador del requerimiento correspondiente.
+- Para los casos de uso más relevantes o complejos, incluye diagramas UML en formato mermaid (casos de uso, secuencia, actividad, etc.) que ilustren el flujo principal y las interacciones clave.
+- Estructura el fichero `useCases.md` de forma clara y modular, con índice, agrupación por requerimiento y enlaces internos.
+- Asegura que cada caso de uso incluya: nombre, objetivo, actores, precondiciones, flujo principal, flujos alternativos y criterios de éxito.
+- El resultado debe ser profesional, trazable y alineado con las mejores prácticas de documentación de casos de uso.
+
+**Resultado esperado:**
+- Un fichero `useCases.md` completo, organizado y visual, que sirva como referencia para desarrollo, validación y pruebas del sistema.
 
 ## Prompt 5.3
 
