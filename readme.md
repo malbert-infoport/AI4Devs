@@ -898,7 +898,6 @@ graph TB
     
     Artemis -->|Topic: user| BGWorker
     BGWorker -->|Consulta Orgs| DB
-    BGWorker -->|Publica evento<br/>consolidado| Artemis
     BGWorker -->|Keycloak Admin API<br/>CREATE/UPDATE users| Keycloak
     
     Artemis -->|Topics: org, app| SatAppBE
@@ -924,7 +923,7 @@ graph TB
 **InfoportOneAdmon**:
 - **Frontend Angular**: Interfaz administrativa para gestión de orgs, apps, roles y módulos
 - **API REST**: Lógica de negocio, validaciones, persistencia, publicación de eventos de organizaciones y aplicaciones
-- **Background Worker**: Proceso en background que consolida eventos de usuarios y sincroniza con Keycloak
+- **Background Worker**: Proceso en background que actúa como consumidor de eventos de usuarios, los consolida y sincroniza directamente con Keycloak (patrón Aggregator - NO publica eventos adicionales)
 - **Base de Datos Core**: Fuente de verdad para organizaciones, aplicaciones, roles, módulos y auditoría
 
 **Aplicaciones Satélite**:
@@ -1382,6 +1381,13 @@ CREATE TABLE UserConsolidationCache (
 - **Menor latencia**: Sincronización directa sin pasos intermedios
 - **Menos componentes**: Reduce complejidad operacional
 - **Fuente de verdad única**: La base de datos de InfoportOneAdmon es autoritativa para relaciones usuario-organización
+
+**🔑 Patrón Arquitectónico - Aggregator Puro**:
+- El Background Worker implementa el patrón **Aggregator** de Enterprise Integration Patterns (EIP)
+- **NO publica eventos consolidados** de vuelta al broker ActiveMQ Artemis
+- Consume N eventos → Consolida información → Ejecuta acción final (sync con Keycloak)
+- Esto evita ciclos infinitos de eventos y mantiene la arquitectura simple y predecible
+- La sincronización con Keycloak es la acción terminal del proceso de consolidación
 
 #### **2.2.6. Publicador de Eventos (Event Publisher)**
 
