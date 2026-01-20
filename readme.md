@@ -867,147 +867,361 @@ dotnet run
 
 ## 2. Arquitectura del Sistema
 
-### **2.1. Diagrama de arquitectura:**
+### **2.1. Diagramas de arquitectura:**
 
-#### **Arquitectura Lógica del Sistema**
+La arquitectura de InfoportOneAdmon se presenta en múltiples niveles de detalle, desde una vista general del contexto hasta flujos específicos de casos de uso críticos.
 
-InfoportOneAdmon sigue una **arquitectura orientada a eventos (Event-Driven Architecture - EDA)** con patrón "State Transfer Event", orquestando la seguridad y los datos maestros del ecosistema de aplicaciones.
+---
+
+#### **2.1.1. Diagrama de Contexto del Sistema**
+
+**Descripción**: Vista de alto nivel que muestra InfoportOneAdmon como caja negra y sus interacciones con actores externos y sistemas de terceros. Este diagrama responde a la pregunta: *¿Qué hace el sistema y con quién interactúa?*
 
 ```mermaid
 graph TB
-    subgraph "Cliente - Administrador Propietario"
-        Admin[👤 Administrador<br/>Organización Propietaria]
-    end
+    Admin[👤 Administradores<br/>Organización Propietaria]
+    EndUsers[👥 Usuarios Finales<br/>Organizaciones Clientes]
     
-    subgraph "InfoportOneAdmon - Back Office"
-        UI[🖥️ Interfaz Web Administrativa]
-        API[🔌 API REST Backend]
-        
-        subgraph "Módulos de Negocio"
-            MOrgModule[📦 Módulo Organizaciones]
-            MAppModule[📦 Módulo Aplicaciones]
-            MRoleModule[📦 Módulo Roles]
-            MModuleModule[📦 Módulo Módulos]
-        end
-        
-        UserConsolidator[🔄 User Consolidation<br/>Service]
-        EventPublisher[📢 Publicador de Eventos]
-        
-        DB[(💾 Base de Datos Core<br/>Fuente de la Verdad)]
-    end
+    InfoportOne[🎯 InfoportOneAdmon<br/>Plataforma de Gobierno<br/>del Ecosistema]
     
-    subgraph "Keycloak Sync Worker - Servicio Independiente"
-        KCWorker[⚡ Keycloak Sync<br/>Worker Service]
-    end
+    Keycloak[🔐 Keycloak<br/>Identity Provider]
+    Artemis[📨 ActiveMQ Artemis<br/>Message Broker]
+    SatelliteApps[📱 Aplicaciones Satélite<br/>CRM, ERP, BI, etc.]
     
-    subgraph "Infraestructura de Mensajería"
-        Artemis[🚀 ActiveMQ Artemis<br/>Message Broker]
-        
-        subgraph "Tópicos de Eventos"
-            T1[📣 organization]
-            T2[📣 application]
-            T3[📣 user<br/>sin consolidar]
-            T4[📣 keycloak.user.sync<br/>consolidado]
-        end
-    end
+    Admin -->|Gestiona organizaciones,<br/>aplicaciones, roles y módulos| InfoportOne
     
-    subgraph "Keycloak - Servidor de Identidad"
-        KC[🔐 Keycloak<br/>Realm: InfoportOne]
-        KCUsers[(👥 Usuarios)]
-        KCClients[🔑 Clients OAuth2]
-        KCMappers[🏷️ Protocol Mappers<br/>Claims c_ids]
-    end
+    InfoportOne -->|Sincroniza usuarios<br/>y configuración OAuth2| Keycloak
+    InfoportOne -->|Publica eventos de<br/>organizaciones y aplicaciones| Artemis
     
-    subgraph "Aplicaciones Satélite del Ecosistema"
-        App1[📱 App Satélite 1<br/>ej: CRM]
-        App2[📱 App Satélite 2<br/>ej: ERP]
-        App3[📱 App Satélite N<br/>ej: BI]
-        
-        Cache1[(⚡ Caché Local<br/>Orgs, Roles, Módulos)]
-        Cache2[(⚡ Caché Local<br/>Orgs, Roles, Módulos)]
-        Cache3[(⚡ Caché Local<br/>Orgs, Roles, Módulos)]
-    end
+    Artemis -->|Sincroniza datos maestros<br/>Orgs, Roles, Módulos| SatelliteApps
     
-    subgraph "Usuarios Finales"
-        EndUser[👤 Usuario Final<br/>Organización Cliente]
-    end
+    SatelliteApps -->|Publica eventos<br/>de usuarios| Artemis
+    Artemis -->|Eventos de usuarios<br/>para consolidación| InfoportOne
     
-    %% Flujos del Administrador
-    Admin -->|Gestiona Orgs,<br/>Apps, Roles, Módulos| UI
-    UI --> API
-    API --> MOrgModule
-    API --> MAppModule
-    API --> MRoleModule
-    API --> MModuleModule
+    EndUsers -->|Autenticación SSO| Keycloak
+    Keycloak -->|Token JWT con c_ids| EndUsers
+    EndUsers -->|Accede con token| SatelliteApps
     
-    %% Persistencia
-    MOrgModule --> DB
-    MAppModule --> DB
-    MRoleModule --> DB
-    MModuleModule --> DB
-    
-    %% Publicación de Eventos
-    MOrgModule --> EventPublisher
-    MAppModule --> EventPublisher
-    EventPublisher -->|Publica Estado| Artemis
-    
-    Artemis --> T1
-    Artemis --> T2
-    Artemis --> T3
-    Artemis --> T4
-    
-    %% FLUJO DE CONSOLIDACIÓN DE USUARIOS (NUEVO)
-    App1 -.->|Publica UserEvent<br/>companyId: 12345| T3
-    App2 -.->|Publica UserEvent<br/>companyId: 67890| T3
-    App3 -.->|Publica UserEvent<br/>companyId: 11111| T3
-    
-    T3 -->|Consume eventos| UserConsolidator
-    UserConsolidator -->|Consulta organizaciones| DB
-    UserConsolidator -->|Publica evento consolidado<br/>c_ids: 12345,67890,11111| T4
-    
-    T4 -->|Consume KeycloakUserSyncEvent| KCWorker
-    KCWorker -->|Admin API<br/>CREATE/UPDATE user| KC
-    KC --> KCUsers
-    KC --> KCMappers
-    
-    %% Sincronización Apps
-    T1 -->|OrganizationEvent| App1
-    T1 -->|OrganizationEvent| App2
-    T1 -->|OrganizationEvent| App3
-    
-    T2 -->|ApplicationEvent<br/>Módulos, Roles| App1
-    T2 -->|ApplicationEvent<br/>Módulos, Roles| App2
-    T2 -->|ApplicationEvent<br/>Módulos, Roles| App3
-    
-    App1 --> Cache1
-    App2 --> Cache2
-    App3 --> Cache3
-    
-    %% Registro de Aplicaciones en Keycloak
-    MAppModule -.->|Registrar Client OAuth2| KC
-    KC --> KCClients
-    
-    %% Autenticación Usuario Final
-    EndUser -->|1. Login| App1
-    App1 -->|2. OAuth2 Flow| KC
-    KC -->|3. JWT Token<br/>con c_ids| App1
-    App1 -->|4. Valida Token<br/>y c_ids| EndUser
-    
-    %% Estilos
+    style InfoportOne fill:#4A90E2,color:#fff
+    style Keycloak fill:#90C695,color:#fff
+    style Artemis fill:#E89B3C,color:#fff
+    style SatelliteApps fill:#9B72AA,color:#fff
     style Admin fill:#FFE5B4
-    style UI fill:#B4D7FF
-    style API fill:#B4D7FF
-    style DB fill:#D4B4FF
-    style Artemis fill:#FFB4B4
-    style KC fill:#B4FFB4
-    style App1 fill:#FFD4B4
-    style App2 fill:#FFD4B4
-    style App3 fill:#FFD4B4
-    style EndUser fill:#FFE5B4
-    style UserConsolidator fill:#C4E5FF
-    style KCWorker fill:#FFE5C4
-    style T4 fill:#FFD700
+    style EndUsers fill:#FFE5B4
 ```
+
+**Elementos clave**:
+- **Administradores**: Personal de la Organización Propietaria que gestiona el ecosistema
+- **InfoportOneAdmon**: Sistema central de gobierno y configuración
+- **Keycloak**: Proveedor de identidad centralizado (OAuth2/OIDC)
+- **ActiveMQ Artemis**: Bus de mensajería para comunicación asíncrona
+- **Aplicaciones Satélite**: Apps de negocio que consumen datos maestros y autentican usuarios
+- **Usuarios Finales**: Empleados de las organizaciones clientes que usan las aplicaciones
+
+---
+
+#### **2.1.2. Diagrama de Contenedores (Componentes Principales)**
+
+**Descripción**: Descompone InfoportOneAdmon en sus contenedores/servicios principales, mostrando la arquitectura física del sistema. Este diagrama responde: *¿Qué componentes conforman el sistema y cómo se comunican?*
+
+```mermaid
+graph TB
+    subgraph "Capa de Presentación"
+        FrontendUI[🖥️ Frontend Angular 20<br/>Interfaz Administrativa<br/>Public Client - PKCE]
+    end
+    
+    subgraph "InfoportOneAdmon - Backend"
+        API[🔌 API REST .NET 8<br/>Framework Helix6<br/>Endpoints CRUD]
+        
+        UserConsolidator[🔄 User Consolidation Service<br/>Consolida usuarios multi-org<br/>Genera c_ids completo]
+        
+        EventPublisher[📢 Event Publisher<br/>Hash SHA-256<br/>Prevención duplicados]
+        
+        DB[(💾 SQL Server/PostgreSQL<br/>Base de Datos Core<br/>Fuente de la Verdad)]
+    end
+    
+    subgraph "Worker Independiente"
+        KCWorker[⚡ Keycloak Sync Worker<br/>Worker Service .NET 8<br/>Sincroniza usuarios a KC]
+    end
+    
+    subgraph "Infraestructura Externa"
+        Artemis[📨 ActiveMQ Artemis<br/>4 Tópicos principales<br/>Mensajería persistente]
+        
+        Keycloak[🔐 Keycloak<br/>Realm: InfoportOne<br/>Admin API REST]
+    end
+    
+    subgraph "Aplicaciones Satélite"
+        SatApps[📱 Apps del Ecosistema<br/>Consumers + Publishers<br/>Caché local]
+    end
+    
+    Admin[👤 Administrador] -->|HTTPS| FrontendUI
+    FrontendUI -->|REST API<br/>JWT Bearer| API
+    
+    API -->|EF Core| DB
+    API -->|Publica eventos| EventPublisher
+    EventPublisher -->|AMQP| Artemis
+    
+    Artemis -->|Topic: user| UserConsolidator
+    UserConsolidator -->|Consulta Orgs| DB
+    UserConsolidator -->|Publica consolidado| Artemis
+    
+    Artemis -->|Topic: keycloak.user.sync| KCWorker
+    KCWorker -->|Admin API<br/>HTTPS| Keycloak
+    
+    Artemis -->|Topics: org, app| SatApps
+    SatApps -->|Topic: user| Artemis
+    
+    API -.->|Registra Clients| Keycloak
+    
+    style API fill:#4A90E2,color:#fff
+    style UserConsolidator fill:#5DADE2,color:#fff
+    style KCWorker fill:#F39C12,color:#fff
+    style EventPublisher fill:#48C9B0,color:#fff
+    style DB fill:#9B59B6,color:#fff
+    style Artemis fill:#E74C3C,color:#fff
+    style Keycloak fill:#2ECC71,color:#fff
+    style FrontendUI fill:#3498DB,color:#fff
+    style SatApps fill:#95A5A6,color:#fff
+```
+
+**Responsabilidades por componente**:
+- **Frontend Angular**: Interfaz administrativa para gestión de orgs, apps, roles y módulos
+- **API REST**: Lógica de negocio, validaciones, persistencia, publicación de eventos
+- **User Consolidation Service**: Agrega eventos de usuarios de múltiples apps y construye c_ids completo
+- **Event Publisher**: Serializa eventos, calcula hash, previene duplicados, publica a Artemis
+- **Base de Datos Core**: Fuente de verdad para organizaciones, aplicaciones, roles, módulos y auditoría
+- **Keycloak Sync Worker**: Consume eventos consolidados y sincroniza usuarios en Keycloak con claim c_ids
+- **ActiveMQ Artemis**: Bus de mensajería que garantiza entrega eventual y desacoplamiento
+- **Keycloak**: IdP centralizado, genera tokens JWT, implementa SSO
+- **Apps Satélite**: Consumen eventos para caché local, publican eventos de usuarios
+
+---
+
+#### **2.1.3. Flujo de Sincronización de Usuarios Multi-Organización**
+
+**Descripción**: Flujo detallado del caso de uso más complejo del sistema: cómo se consolidan usuarios que pertenecen a múltiples organizaciones y se sincronizan con Keycloak para generar el claim `c_ids`. Este es el diferenciador clave del sistema.
+
+```mermaid
+sequenceDiagram
+    participant CRM as 📱 App Satélite CRM
+    participant ERP as 📱 App Satélite ERP
+    participant BI as 📱 App Satélite BI
+    participant TopicUser as 📨 Topic: user
+    participant Consolidator as 🔄 User Consolidator
+    participant DB as 💾 Base de Datos
+    participant TopicSync as 📨 Topic: keycloak.user.sync
+    participant Worker as ⚡ KC Sync Worker
+    participant KC as 🔐 Keycloak
+
+    Note over CRM,BI: Fase 1: Apps publican eventos de usuarios locales
+    
+    CRM->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 12345}
+    ERP->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 67890}
+    BI->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 11111}
+    
+    Note over TopicUser,Consolidator: Fase 2: Consolidación multi-organización
+    
+    TopicUser->>Consolidator: Consume eventos (3 mensajes)
+    Consolidator->>Consolidator: Detecta email duplicado<br/>"juan@example.com"
+    
+    Consolidator->>DB: SELECT SecurityCompanyId<br/>WHERE Email = 'juan@example.com'
+    DB-->>Consolidator: [12345, 67890, 11111]
+    
+    Consolidator->>DB: SELECT * FROM Organizations<br/>WHERE SecurityCompanyId IN (12345, 67890, 11111)
+    DB-->>Consolidator: Valida que todas existen y están activas
+    
+    Consolidator->>Consolidator: Construye evento consolidado<br/>c_ids = [12345, 67890, 11111]
+    
+    Consolidator->>TopicSync: KeycloakUserSyncEvent<br/>{email: "juan@example.com"<br/>companyIds: [12345, 67890, 11111]<br/>firstName: "Juan", lastName: "Pérez"}
+    
+    Note over TopicSync,KC: Fase 3: Sincronización con Keycloak
+    
+    TopicSync->>Worker: Consume evento consolidado
+    Worker->>Worker: Valida esquema del evento
+    
+    Worker->>KC: GET /users?email=juan@example.com
+    
+    alt Usuario NO existe en Keycloak
+        KC-->>Worker: 404 Not Found
+        Worker->>KC: POST /users<br/>{email, firstName, lastName,<br/>attributes: {c_ids: [12345, 67890, 11111]}}
+        KC-->>Worker: 201 Created
+    else Usuario YA existe
+        KC-->>Worker: 200 OK + User data
+        Worker->>Worker: Fusiona c_ids actuales con nuevos<br/>Elimina duplicados
+        Worker->>KC: PUT /users/{id}<br/>{attributes: {c_ids: [12345, 67890, 11111]}}
+        KC-->>Worker: 204 No Content
+    end
+    
+    Worker->>TopicSync: ACK (confirma procesamiento exitoso)
+    
+    Note over KC: Keycloak tiene usuario con c_ids completo<br/>Listo para generar tokens JWT
+```
+
+**Fases del proceso**:
+1. **Publicación descentralizada**: Cada app publica eventos con su `companyId` local
+2. **Consolidación inteligente**: El consolidador detecta duplicados por email y consulta la BD para construir la lista completa
+3. **Sincronización con Keycloak**: El worker actualiza Keycloak con el claim `c_ids` completo
+
+**Ventajas del patrón**:
+- Apps satélite no necesitan conocer el concepto de multi-organización
+- InfoportOneAdmon mantiene la fuente de verdad de relaciones usuario-organización
+- Keycloak siempre tiene el claim `c_ids` actualizado
+- Tolerante a fallos: eventos persistentes garantizan eventual consistency
+
+---
+
+#### **2.1.4. Arquitectura de Eventos (Tópicos y Patrones)**
+
+**Descripción**: Vista centrada en ActiveMQ Artemis que muestra todos los tópicos, sus publishers, consumers y el patrón de consolidación. Ilustra el desacoplamiento total entre componentes.
+
+```mermaid
+graph LR
+    subgraph "Publishers"
+        API[🔌 InfoportOneAdmon API]
+        CRM[📱 CRM App]
+        ERP[📱 ERP App]
+        BI[📱 BI App]
+        Consolidator[🔄 User Consolidator]
+    end
+    
+    subgraph "ActiveMQ Artemis - Message Broker"
+        T1[📣 infoportone.events<br/>.organization<br/><br/>Schema: OrganizationEvent<br/>Payload: Organization[]]
+        T2[📣 infoportone.events<br/>.application<br/><br/>Schema: ApplicationEvent<br/>Payload: Application[]]
+        T3[📣 infoportone.events<br/>.user<br/><br/>Schema: UserEvent<br/>Payload: User]
+        T4[📣 infoportone.events<br/>.keycloak.user.sync<br/><br/>Schema: KeycloakUserSyncEvent<br/>Payload: UserSync]
+    end
+    
+    subgraph "Consumers"
+        Apps[📱 Apps Satélite<br/>CRM, ERP, BI]
+        ConsolidatorC[🔄 User Consolidator]
+        Worker[⚡ KC Sync Worker]
+    end
+    
+    API -->|Publica cambios en Orgs| T1
+    API -->|Publica cambios en Apps<br/>Módulos, Roles| T2
+    
+    CRM -->|Publica usuarios locales| T3
+    ERP -->|Publica usuarios locales| T3
+    BI -->|Publica usuarios locales| T3
+    
+    T1 -->|Sincroniza caché local| Apps
+    T2 -->|Sincroniza caché local| Apps
+    
+    T3 -->|Consolida por email| ConsolidatorC
+    
+    Consolidator -->|Publica usuarios<br/>con c_ids completo| T4
+    
+    T4 -->|Sincroniza a Keycloak| Worker
+    
+    style T1 fill:#48C9B0,color:#fff
+    style T2 fill:#5DADE2,color:#fff
+    style T3 fill:#F39C12,color:#fff
+    style T4 fill:#E74C3C,color:#fff
+    style API fill:#3498DB,color:#fff
+    style Consolidator fill:#9B59B6,color:#fff
+    style Worker fill:#E67E22,color:#fff
+```
+
+**Características clave**:
+- **Patrón State Transfer Event**: Los eventos contienen el estado completo de la entidad, no solo notificaciones de cambio
+- **Payload como Array**: Permite sincronizaciones masivas (ej: catálogo completo de roles)
+- **Segregación de tópicos**: Cada entidad tiene su tópico, facilitando suscripciones selectivas
+- **Doble fase para usuarios**: Topic `user` para eventos crudos, `keycloak.user.sync` para eventos consolidados
+- **Mensajería persistente**: ActiveMQ garantiza durabilidad y entrega eventual
+
+**Patrón de Consumo Idempotente** (implementado por todos los consumers):
+```
+foreach (item in event.Payload):
+    if (item.IsDeleted):
+        DELETE FROM local_cache WHERE id = item.Id
+    else:
+        UPSERT INTO local_cache VALUES (item)
+```
+
+---
+
+#### **2.1.5. Flujo de Autenticación y Autorización**
+
+**Descripción**: Secuencia completa de autenticación de un usuario final, desde el login inicial hasta la validación del token JWT con el claim `c_ids` en una aplicación satélite. Muestra cómo funciona el SSO y la seguridad multi-organización.
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 Usuario Final
+    participant Browser as 🌐 Navegador
+    participant AppFE as 📱 App Satélite (Angular)
+    participant KC as 🔐 Keycloak
+    participant AppBE as 🔌 API Backend App
+
+    Note over User,AppBE: Fase 1: Autenticación inicial (Authorization Code + PKCE)
+    
+    User->>Browser: Accede a https://crm.empresa.com
+    Browser->>AppFE: GET /
+    AppFE-->>Browser: index.html + app.js
+    
+    AppFE->>AppFE: Genera code_verifier (random)<br/>Calcula code_challenge = SHA256(verifier)
+    
+    AppFE->>Browser: Redirige a Keycloak
+    Browser->>KC: GET /auth?client_id=crm-app<br/>&redirect_uri=https://crm.empresa.com/callback<br/>&response_type=code<br/>&code_challenge={hash}<br/>&code_challenge_method=S256
+    
+    KC-->>Browser: Formulario de login
+    User->>Browser: Ingresa credenciales
+    Browser->>KC: POST /auth (usuario + contraseña)
+    
+    KC->>KC: Valida credenciales<br/>Genera authorization_code
+    
+    KC-->>Browser: Redirige a https://crm.empresa.com/callback?code=ABC123
+    Browser->>AppFE: GET /callback?code=ABC123
+    
+    Note over AppFE,KC: Fase 2: Intercambio de código por token
+    
+    AppFE->>KC: POST /token<br/>{grant_type: authorization_code<br/>code: ABC123<br/>code_verifier: {original}<br/>client_id: crm-app}
+    
+    KC->>KC: Valida code_verifier<br/>SHA256(verifier) == code_challenge
+    
+    KC->>KC: Consulta atributos del usuario<br/>Lee c_ids: [12345, 67890, 11111]
+    
+    KC->>KC: Genera JWT Token<br/>Incluye claims:<br/>- sub: user-id<br/>- email: juan@example.com<br/>- c_ids: [12345, 67890, 11111]<br/>Firma con RS256
+    
+    KC-->>AppFE: 200 OK<br/>{access_token: "eyJhbG...",<br/>refresh_token: "...",<br/>expires_in: 3600}
+    
+    AppFE->>AppFE: Almacena tokens en sessionStorage
+    
+    Note over AppFE,AppBE: Fase 3: Uso del token en llamadas API
+    
+    User->>AppFE: Solicita datos (ej: lista de clientes)
+    AppFE->>AppBE: GET /api/customers<br/>Header: Authorization: Bearer eyJhbG...
+    
+    AppBE->>AppBE: Valida firma del token (RS256)<br/>Verifica exp, iss, aud
+    
+    AppBE->>AppBE: Extrae claim c_ids<br/>[12345, 67890, 11111]
+    
+    AppBE->>AppBE: Filtra query SQL:<br/>SELECT * FROM Customers<br/>WHERE SecurityCompanyId IN (12345, 67890, 11111)
+    
+    AppBE-->>AppFE: 200 OK + JSON data
+    AppFE-->>User: Muestra datos en UI
+    
+    Note over User,AppBE: Fase 4: Renovación de token (opcional)
+    
+    AppFE->>AppFE: Token expira (detectado)
+    AppFE->>KC: POST /token<br/>{grant_type: refresh_token<br/>refresh_token: "..."<br/>client_id: crm-app}
+    
+    KC->>KC: Valida refresh_token<br/>Genera nuevo access_token
+    
+    KC-->>AppFE: 200 OK<br/>{access_token: "nuevo...",<br/>refresh_token: "nuevo...",<br/>expires_in: 3600}
+```
+
+**Puntos clave de seguridad**:
+1. **PKCE (Proof Key for Code Exchange)**: Protege contra ataques de intercepción de código en SPAs
+2. **No hay secretos en el cliente**: El frontend Angular nunca almacena `client_secret`
+3. **Validación stateless**: El backend valida tokens localmente sin llamar a Keycloak
+4. **Claim c_ids multi-organización**: Permite acceso a datos de múltiples organizaciones con un solo token
+5. **Tokens de corta duración**: Access tokens expiran en 1 hora, mitigando riesgo de robo
+6. **Refresh tokens seguros**: Permiten renovación sin re-autenticación
+
+**Beneficios del SSO**:
+- Usuario se autentica una sola vez
+- Puede acceder a CRM, ERP, BI sin volver a ingresar credenciales
+- Logout centralizado: cerrar sesión en Keycloak cierra todas las apps
 
 #### **Patrón Arquitectónico**
 
