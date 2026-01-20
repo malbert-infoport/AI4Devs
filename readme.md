@@ -488,7 +488,7 @@ InfoportOneAdmon está construido sobre el framework Helix6 para .NET 8. A conti
 **Software necesario**:
 - **.NET 8 SDK** (8.0 o superior)
 - **Visual Studio 2022** (17.8+) o **Visual Studio Code** con extensión C#
-- **SQL Server 2022** o **PostgreSQL 15+**
+- **PostgreSQL 15+**
 - **Node.js 20+** y **npm** (para el frontend Angular)
 - **Docker Desktop** (opcional, para ejecutar ActiveMQ Artemis y Keycloak localmente)
 - **Git** para control de versiones
@@ -528,12 +528,12 @@ Editar `appsettings.Development.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=InfoportOneAdmon;User Id=sa;Password=***;TrustServerCertificate=True;",
-    "ConnectionStringType": "SqlServer"
+    "DefaultConnection": "Host=localhost;Database=InfoportOneAdmon;Username=postgres;Password=***;",
+    "ConnectionStringType": "PostgreSQL"
   },
   "ApplicationContext": {
     "ApplicationName": "InfoportOneAdmon",
-    "DBMSType": "SqlServer",
+    "DBMSType": "PostgreSQL",
     "RolPrefixes": ["InfoportOne_"]
   },
   "Keycloak": {
@@ -776,11 +776,11 @@ curl https://localhost:5001/api/health
 
 #### **1.4.7. Troubleshooting Común**
 
-**Problema**: Error de conexión a SQL Server
+**Problema**: Error de conexión a PostgreSQL
 ```
-Microsoft.Data.SqlClient.SqlException: A network-related or instance-specific error...
+Npgsql.NpgsqlException: Connection refused...
 ```
-**Solución**: Verificar que SQL Server está ejecutándose y que el puerto 1433 está abierto. En desarrollo, usar `TrustServerCertificate=True`.
+**Solución**: Verificar que PostgreSQL está ejecutándose y que el puerto 5432 está abierto. Revisar credenciales y permisos de usuario.
 
 **Problema**: Error de autenticación con Keycloak
 ```
@@ -875,7 +875,7 @@ graph TB
         
         BGWorker[⚙️ Background Worker<br/>Consolidación de usuarios<br/>+ Sincronización Keycloak]
         
-        DB[(💾 SQL Server/PostgreSQL<br/>Base de Datos Core<br/>Fuente de la Verdad)]
+        DB[(💾 PostgreSQL<br/>Base de Datos Core<br/>Fuente de la Verdad)]
     end
     
     subgraph "Infraestructura Externa"
@@ -886,7 +886,7 @@ graph TB
     
     subgraph "Aplicaciones Satélite"
         SatAppBE[🔌 Backend API<br/>Event Publisher<br/>+ Background Worker]
-        SatAppFE[🖥️ Frontend<br/>Angular/React]
+        SatAppFE[🖥️ Frontend<br/>Angular]
         SatCache[(⚡ Caché Local<br/>Orgs, Roles, Módulos)]
     end
     
@@ -929,7 +929,7 @@ graph TB
 **Aplicaciones Satélite**:
 - **Backend API**: Lógica de negocio específica, publica eventos de usuario cuando se dan de alta
 - **Background Worker**: Proceso en background suscrito a eventos de organizaciones y aplicaciones
-- **Frontend**: Interfaz de usuario de la aplicación (Angular, React, etc.)
+- **Frontend**: Interfaz de usuario de la aplicación (Angular)
 - **Caché Local**: Almacenamiento local de organizaciones, roles y módulos sincronizados
 
 **Infraestructura**:
@@ -1215,7 +1215,7 @@ La feature nativa de Organizations de Keycloak **no soporta usuarios en múltipl
 - **Frontend**: Angular 20 (Interfaz administrativa y aplicaciones satélite). Algunas aplicaciones legacy pueden estar en otras tecnologías.
 - **Message Broker**: Apache ActiveMQ Artemis
 - **Identity Provider**: Keycloak (OAuth2 / OpenID Connect)
-- **Base de Datos**: SQL Server / PostgreSQL
+- **Base de Datos**: PostgreSQL
 - **ORM**: Entity Framework Core 9.0.2 (escrituras) + Dapper 2.1.66 (lecturas optimizadas)
 - **Mapeo de Objetos**: Mapster 7.4.0
 - **Logging**: Serilog 9.0.2 con sinks a archivo y consola
@@ -1416,7 +1416,7 @@ CREATE TABLE UserConsolidationCache (
 **Responsabilidad**: Persistencia de la fuente de la verdad para organizaciones, aplicaciones, roles y auditoría.
 
 **Tecnología**:
-- SQL Server 2022 / PostgreSQL 15
+- PostgreSQL 15
 - Entity Framework Core 8 (Code First)
 
 **Entidades principales**:
@@ -1534,7 +1534,7 @@ Este array contiene los `SecurityCompanyId` de todas las organizaciones a las qu
 | **Módulo Módulos** | Configuración modular | ASP.NET Core 8 | DB, Artemis (via AppEvent) |
 | **Background Worker (InfoportOne)** | Consolidación usuarios + Sync Keycloak | IHostedService .NET 8 | DB, Artemis (consumer), Keycloak API |
 | **Event Publisher** | Publicación eventos | Apache.NMS | Artemis, EventHashControl |
-| **Base de Datos Core** | Fuente de la verdad | SQL Server/PostgreSQL | Todos los módulos |
+| **Base de Datos Core** | Fuente de la verdad | PostgreSQL | Todos los módulos |
 | **ActiveMQ Artemis** | Message broker | Artemis 2.31+ | InfoportOne API, Apps Satélite |
 | **Keycloak** | Identity Provider | Keycloak 23+ | Background Worker, Apps (OAuth2) |
 | **Apps Satélite - Backend** | Lógica negocio + Publisher usuarios | Variable (.NET, Java, etc.) | Artemis (pub), Keycloak (OAuth2) |
@@ -1903,7 +1903,7 @@ string clientSecret = secret.Value;
 **Implementación**:
 - **Prepared Statements**: Entity Framework Core usa queries parametrizadas por defecto, previniendo SQL Injection
 - **Validación de Entrada**: FluentValidation para validar datos de entrada en todas las APIs
-- **Encoding de Salida**: En frontend, sanitización automática de HTML (React escapa por defecto)
+- **Encoding de Salida**: En frontend, sanitización automática de HTML (Angular escapa por defecto con DomSanitizer)
 - **Content Security Policy (CSP)**: Headers HTTP que previenen XSS
 
 **Ejemplo de validación** (FluentValidation):
