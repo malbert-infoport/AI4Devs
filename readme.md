@@ -1085,8 +1085,8 @@ graph LR
     end
     
     subgraph "ActiveMQ Artemis - Message Broker"
-        T1[📣 infoportone.events<br/>.organization<br/><br/>Schema: OrganizationEvent<br/>Payload: Organization[]]
-        T2[📣 infoportone.events<br/>.application<br/><br/>Schema: ApplicationEvent<br/>Payload: Application[]]
+        T1[📣 infoportone.events<br/>.organization<br/><br/>Schema: OrganizationEvent<br/>Payload: Organization]
+        T2[📣 infoportone.events<br/>.application<br/><br/>Schema: ApplicationEvent<br/>Payload: Application]
         T3[📣 infoportone.events<br/>.user<br/><br/>Schema: UserEvent<br/>Payload: User]
         T4[📣 infoportone.events<br/>.keycloak.user.sync<br/><br/>Schema: KeycloakUserSyncEvent<br/>Payload: UserSync]
     end
