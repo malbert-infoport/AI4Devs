@@ -16,7 +16,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ## 1. Descripción general del producto
 
-**Prompt 1: Definición inicial del producto**
+## Prompt 1.1: Definición inicial del producto
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -41,7 +41,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 2: Corrección del modelo de gestión de usuarios**
+## Prompt 1.2: Corrección del modelo de gestión de usuarios
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -49,7 +49,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 3: Refinamiento de funcionalidades y cambios de naming**
+## Prompt 1.3: Refinamiento de funcionalidades y cambios de naming
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -63,7 +63,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 4: Definición de Stakeholders**
+## Prompt 1.4: Definición de Stakeholders
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -71,7 +71,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 5: Completar especificaciones del producto**
+## Prompt 1.5: Completar especificaciones del producto
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -84,7 +84,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 6: Grupos de organizaciones y sincronización por eventos**
+## Prompt 1.6: Grupos de organizaciones y sincronización por eventos
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -94,7 +94,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 7: Definición de estructura de eventos State Transfer**
+## Prompt 1.7: Definición de estructura de eventos State Transfer
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -109,7 +109,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ### **2.1. Diagrama de arquitectura:**
 
-**Prompt 1: Corrección de responsabilidades del Background Worker**
+## Prompt 2.1.1: Corrección de responsabilidades del Background Worker
 
 **Rol:** Arquitecto de Software especialista en arquitecturas event-driven, patrones de integración y sistemas distribuidos.
 
@@ -131,13 +131,13 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 - Clarificar que el patrón utilizado es **Aggregator** puro: consume N eventos, agrega/consolida información, y ejecuta acción (sync con Keycloak) sin generar nuevos eventos
 - Documentar que esto evita ciclos infinitos de eventos y simplifica la arquitectura
 
-**Prompt 2:**
+## Prompt 2.1.2
 
-**Prompt 3:**
+## Prompt 2.1.3
 
 ### **2.2. Descripción de componentes principales:**
 
-**Prompt 1: Gestión de usuarios vía eventos**
+## Prompt 2.2.1: Gestión de usuarios vía eventos
 
 **Rol:** Product Owner / Arquitecto Software experto en integraciones event-driven y gestión centralizada de organizaciones.
 
@@ -154,7 +154,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ---
 
-**Prompt 2: Usuarios multi-organización y sistema de módulos**
+## Prompt 2.2.2: Usuarios multi-organización y sistema de módulos
 
 **Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
 
@@ -185,7 +185,7 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 
 ---
 
-**Prompt 3: Simplificación y optimización de eventos**
+## Prompt 2.2.3: Simplificación y optimización de eventos
 
 **Rol:** Arquitecto de Software especialista en arquitecturas event-driven y sistemas multi-organización.
 
@@ -216,23 +216,23 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
-**Prompt 1:**
+## Prompt 2.3.1
 
-**Prompt 2:**
+## Prompt 2.3.2
 
-**Prompt 3:**
+## Prompt 2.3.3
 
 ### **2.4. Infraestructura y despliegue**
 
-**Prompt 1:**
+## Prompt 2.4.1
 
-**Prompt 2:**
+## Prompt 2.4.2
 
-**Prompt 3:**
+## Prompt 2.4.3
 
 ### **2.5. Seguridad**
 
-**Prompt 1: Optimización de eventos y prevención de duplicados mediante hashing**
+## Prompt 2.5.1: Optimización de eventos y prevención de duplicados mediante hashing
 
 **Rol:** Arquitecto de Software especialista en arquitecturas event-driven, optimización de sistemas distribuidos y prevención de eventos duplicados.
 
@@ -267,64 +267,64 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 - Sistema robusto de prevención de eventos duplicados que optimiza el uso del broker y reduce la carga en las aplicaciones satélite
 - Documentación clara del mecanismo de hashing y detección de cambios
 
-**Prompt 2:**
+## Prompt 2.5.2
 
-**Prompt 3:**
+## Prompt 2.5.3
 
 ### **2.6. Tests**
 
-**Prompt 1:**
+## Prompt 2.6.1
 
-**Prompt 2:**
+## Prompt 2.6.2
 
-**Prompt 3:**
+## Prompt 2.6.3
 
 ---
 
 ### 3. Modelo de Datos
 
-**Prompt 1:**
+## Prompt 3.1
 
-**Prompt 2:**
+## Prompt 3.2
 
-**Prompt 3:**
+## Prompt 3.3
 
 ---
 
 ### 4. Especificación de la API
 
-**Prompt 1:**
+## Prompt 4.1
 
-**Prompt 2:**
+## Prompt 4.2
 
-**Prompt 3:**
+## Prompt 4.3
 
 ---
 
 ### 5. Historias de Usuario
 
-**Prompt 1:**
+## Prompt 5.1
 
-**Prompt 2:**
+## Prompt 5.2
 
-**Prompt 3:**
+## Prompt 5.3
 
 ---
 
 ### 6. Tickets de Trabajo
 
-**Prompt 1:**
+## Prompt 6.1
 
-**Prompt 2:**
+## Prompt 6.2
 
-**Prompt 3:**
+## Prompt 6.3
 
 ---
 
 ### 7. Pull Requests
 
-**Prompt 1:**
+## Prompt 7.1
 
-**Prompt 2:**
+## Prompt 7.2
 
-**Prompt 3:**
+## Prompt 7.3
