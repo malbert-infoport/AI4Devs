@@ -131,9 +131,59 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 - Clarificar que el patrón utilizado es **Aggregator** puro: consume N eventos, agrega/consolida información, y ejecuta acción (sync con Keycloak) sin generar nuevos eventos
 - Documentar que esto evita ciclos infinitos de eventos y simplifica la arquitectura
 
-## Prompt 2.1.2
+## Prompt 2.1.2: Propuesta de diagramas jerárquicos de arquitectura
 
-## Prompt 2.1.3
+**Rol:** Arquitecto de Software especialista en documentación de arquitectura, visualización de sistemas complejos y modelo C4.
+
+**Objetivo:** Proponer una reestructuración de la documentación de arquitectura mediante la creación de múltiples diagramas jerárquicos que simplifiquen la visualización y comprensión del sistema.
+
+**Problema detectado:**
+- El diagrama de arquitectura actual es demasiado grande y complejo, dificultando su comprensión
+- Toda la información arquitectónica está concentrada en un único diagrama, sobrecargando la visualización
+- No hay una progresión clara desde una visión de alto nivel hacia los detalles de implementación
+
+**Propuesta requerida:**
+- Diseñar una estructura de múltiples diagramas siguiendo un enfoque jerárquico (similar al modelo C4)
+- Incluir un diagrama de **visión superior** (contexto del sistema) que muestre las interacciones de alto nivel
+- Crear diagramas de **mayor nivel de detalle** para cada subsistema o aspecto arquitectónico importante
+- Cada diagrama debe tener un propósito claro y complementar a los demás
+- Sugerencias de tipos de diagrama: Contexto, Contenedores, Flujos de Secuencia, Arquitectura de Eventos, etc.
+
+**Resultado esperado:**
+- Propuesta estructurada de al menos 3-5 diagramas que cubran diferentes niveles de abstracción
+- Descripción clara del propósito y alcance de cada diagrama propuesto
+- Orden lógico de presentación (de lo general a lo específico)
+- Mejora significativa en la legibilidad y comprensión de la arquitectura del sistema
+- Facilitar la navegación progresiva desde conceptos generales hasta detalles técnicos
+
+## Prompt 2.1.3: Clarificación de arquitectura de procesos y flujo de eventos
+
+**Rol:** Arquitecto de Software especialista en arquitecturas event-driven, patrones de publicación/suscripción y sistemas distribuidos.
+
+**Objetivo:** Actualizar la documentación para reflejar correctamente la arquitectura real de procesos publicadores y suscriptores de eventos del sistema.
+
+**Corrección arquitectónica requerida:**
+
+**Procesos del sistema:**
+- Solo existirán **dos tipos de procesos** como emisores y suscriptores de eventos: **Aplicaciones Satélite** e **InfoportOneAdmon**
+- Eliminar referencias a componentes intermedios o servicios separados que no existan en la implementación real
+
+**Aplicaciones Satélite:**
+- **Background Worker integrado**: Proceso en background suscrito a eventos de `organization` y `application`
+- **Backend API**: Cuando se da de alta un usuario, publica evento `UserEvent` al tópico `infoportone.events.user`
+- NO tienen componentes separados, es un único proceso con worker integrado
+
+**InfoportOneAdmon:**
+- **Background Worker integrado**: Proceso en background suscrito a eventos de `user`, consolida usuarios multi-organización y sincroniza con Keycloak
+- **API REST**: Gestiona organizaciones y aplicaciones, publica eventos `OrganizationEvent` y `ApplicationEvent` a sus respectivos tópicos
+- NO hay servicios separados de consolidación o sincronización
+
+**Resultado esperado:**
+- Actualizar todos los diagramas de arquitectura para mostrar únicamente estos dos tipos de procesos
+- Eliminar referencias a componentes que no existen (servicios de consolidación separados, workers independientes, etc.)
+- Clarificar que cada proceso tiene su Background Worker integrado (IHostedService en .NET)
+- Actualizar descripciones de flujos de eventos para reflejar esta arquitectura simplificada
+- Documentar que esta arquitectura reduce la complejidad operacional y el número de contenedores desplegados
 
 ### **2.2. Descripción de componentes principales:**
 
