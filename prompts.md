@@ -466,8 +466,12 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
   - Campos de auditoría Helix6
 - Eliminar de `APPLICATION`: `ClientId`, `IsPublicClient`, `ClientSecretHash`, `RedirectUris`, `SecretRotatedAt`
 
-**Cambio 4: Eliminación de campos redundantes**
-- **AUDIT_LOG**: Eliminar campo `UserId` porque es redundante con los campos de auditoría Helix6 (`AuditCreationUser`, `AuditModificationUser`) de cada entidad modificada. El propósito de AuditLog es capturar el estado antes/después, no duplicar información de quién lo hizo.
+**Cambio 4: Eliminación de campos redundantes y corrección de AUDIT_LOG**
+- **AUDIT_LOG**: 
+  - Eliminar campo `UserId` porque es redundante con los campos de auditoría Helix6 de cada entidad modificada
+  - Eliminar campos `IpAddress` y `UserAgent` que son redundantes y no aportan valor en un sistema de auditoría de estado
+  - AÑADIR campos de auditoría Helix6 (`AuditCreationUser`, `AuditCreationDate`, `AuditModificationUser`, `AuditModificationDate`, `AuditDeletionDate`) porque AUDIT_LOG es una entidad más del sistema y debe seguir el mismo estándar
+  - Los campos de auditoría de AUDIT_LOG son meta-auditoría (quién creó el log), el usuario que hizo el cambio en la entidad está en esa entidad
 - **MODULE_ACCESS**: Eliminar campos `GrantedAt` (redundante con `AuditCreationDate`) y `ExpiresAt` (la lógica de expiración se maneja con soft delete mediante `AuditDeletionDate`).
 
 **Cambio 5: Ajuste de Foreign Keys**

@@ -2233,8 +2233,11 @@ erDiagram
         datetime Timestamp "NOT NULL, Momento exacto del cambio"
         string OldValue "JSON con estado anterior (NULL en INSERT)"
         string NewValue "JSON con estado posterior (NULL en DELETE)"
-        string IpAddress "IP desde donde se ejecutó"
-        string UserAgent "User agent del cliente"
+        string AuditCreationUser "Usuario que creó el log"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
     EVENT_HASH_CONTROL {
@@ -3014,7 +3017,7 @@ Active: TRUE
 
 **Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon. Esencial para compliance y auditorías.
 
-> **Nota importante**: El usuario que ejecutó cada acción (INSERT, UPDATE, DELETE) NO se almacena en esta tabla porque ya está capturado en los **campos de auditoría Helix6** de cada entidad modificada (`AuditCreationUser`, `AuditModificationUser`). Esta tabla se centra en capturar el estado antes/después de cada cambio para análisis forense.
+> **Nota importante sobre Helix6**: Como todas las entidades, AUDIT_LOG también tiene campos de auditoría Helix6 que registran quién crea/modifica los registros de log (meta-auditoría). El usuario que ejecutó la acción original sobre la entidad está en los campos `AuditCreationUser`/`AuditModificationUser` de esa entidad.
 
 **Tabla de Atributos**:
 
@@ -3027,8 +3030,11 @@ Active: TRUE
 | **Timestamp** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Momento exacto en que se ejecutó la acción (UTC). |
 | **OldValue** | TEXT (JSON) | NULL | Estado anterior de la entidad en formato JSON. NULL en INSERT. |
 | **NewValue** | TEXT (JSON) | NULL | Estado posterior de la entidad en formato JSON. NULL en DELETE. |
-| **IpAddress** | VARCHAR(50) | NULL | IP desde donde se ejecutó la acción. |
-| **UserAgent** | VARCHAR(500) | NULL | User agent del cliente HTTP. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Usuario del sistema que creó el log (meta-auditoría). |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del log. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó el log (normalmente NULL, tabla append-only). |
+| **AuditModificationDate** | DATETIME | NULL | Fecha de modificación (normalmente NULL). |
+| **AuditDeletionDate** | DATETIME | NULL | Soft delete (para archivado de logs antiguos). |
 
 **Relaciones**:
 - **N:1 con Organization** (lógica): Múltiples logs pueden referenciar la misma organización.
@@ -3055,17 +3061,21 @@ Action: "UPDATE"
 Timestamp: "2026-01-08 14:35:22"
 OldValue: '{"Active": true}'
 NewValue: '{"Active": false}'
-IpAddress: "192.168.1.100"
-UserAgent: "Mozilla/5.0..."
+AuditCreationUser: "system"
+AuditCreationDate: "2026-01-08 14:35:22"
+AuditModificationUser: NULL
+AuditModificationDate: NULL
+AuditDeletionDate: NULL
 ```
 
-> **Nota**: Para saber QUIÉN desactivó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`.
+> **Nota**: Para saber QUIÉN desactivó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`. Los campos de auditoría de AUDIT_LOG son meta-auditoría del propio log.
 
 **Uso en Compliance**:
 - Rastrear cambios en configuración de módulos y permisos (estados antes/después)
 - Responder a auditorías regulatorias (GDPR Article 30, ISO 27001)
 - Análisis forense de cambios críticos en el sistema
-- El "quién" se obtiene de los campos `AuditCreationUser`/`AuditModificationUser` de cada entidad
+- El "quién hizo el cambio" se obtiene de los campos `AuditCreationUser`/`AuditModificationUser` de la entidad modificada
+- Los campos de auditoría de AUDIT_LOG permiten rastrear quién/cuándo se creó el registro de log (meta-auditoría)
 
 ---
 
