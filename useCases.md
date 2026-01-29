@@ -149,44 +149,44 @@ sequenceDiagram
 ### Gestión de Aplicaciones (RF-008 a RF-014)
 #### RF-008: Registrar aplicación satélite
 - **Nombre:** Alta de aplicación satélite
-- **Objetivo:** Registrar una nueva aplicación del portfolio con información técnica y credenciales OAuth2.
+- **Objetivo:** Registrar una nueva aplicación del portfolio con información técnica, prefijo de aplicación y credenciales OAuth2.
 - **Actores:** Administrador InfoportOneAdmon
 - **Precondiciones:** El usuario tiene permisos de administrador.
 - **Flujo principal:**
   1. El administrador accede al formulario de alta de aplicación.
-  2. Introduce los datos técnicos requeridos.
+  2. Introduce los datos técnicos requeridos, incluyendo el prefijo de aplicación (ej: STP para Sintraport).
   3. El sistema genera ClientId y ClientSecret para Keycloak.
   4. Se configuran RedirectURIs y se almacenan credenciales de forma segura.
   5. Se almacena la aplicación en la base de datos.
   6. Se publica ApplicationEvent al broker.
 - **Criterios de éxito:**
-  - La aplicación queda registrada y sincronizada con Keycloak y el ecosistema.
+  - La aplicación queda registrada con su prefijo único y sincronizada con Keycloak y el ecosistema.
 
 #### RF-009: Definir roles de seguridad por aplicación
 - **Nombre:** Gestión de roles por aplicación
-- **Objetivo:** Permitir la creación, edición y eliminación de roles de seguridad para cada aplicación.
+- **Objetivo:** Permitir la creación, edición y eliminación de roles de seguridad para cada aplicación usando el prefijo de la aplicación.
 - **Actores:** Administrador InfoportOneAdmon
 - **Precondiciones:** La aplicación existe.
 - **Flujo principal:**
   1. El administrador accede a la sección de roles de una aplicación.
-  2. Crea, edita o elimina roles según necesidad.
+  2. Crea, edita o elimina roles según necesidad, usando el prefijo de la aplicación (ej: STP_AsignadorTransporte para Sintraport).
   3. El sistema valida la unicidad de nombres de rol.
   4. Se actualiza la base de datos y se publica ApplicationEvent.
 - **Criterios de éxito:**
-  - Los roles quedan correctamente gestionados y sincronizados.
+  - Los roles quedan correctamente gestionados con el prefijo adecuado y sincronizados.
 
 #### RF-010: Definir módulos funcionales por aplicación
 - **Nombre:** Gestión de módulos por aplicación
-- **Objetivo:** Permitir la creación, edición y eliminación de módulos funcionales para cada aplicación.
+- **Objetivo:** Permitir la creación, edición y eliminación de módulos funcionales para cada aplicación usando la nomenclatura M + prefijo.
 - **Actores:** Administrador InfoportOneAdmon
 - **Precondiciones:** La aplicación existe.
 - **Flujo principal:**
   1. El administrador accede a la sección de módulos de una aplicación.
-  2. Crea, edita o elimina módulos.
+  2. Crea, edita o elimina módulos usando la nomenclatura M + prefijo de aplicación (ej: MSTP_Trafico para Sintraport).
   3. El sistema valida los datos y la asociación a la aplicación.
   4. Se actualiza la base de datos y se publica ApplicationEvent.
 - **Criterios de éxito:**
-  - Los módulos quedan correctamente gestionados y sincronizados.
+  - Los módulos quedan correctamente gestionados con la nomenclatura correcta y sincronizados.
 
 #### RF-011: Configurar acceso de organizaciones a módulos
 - **Nombre:** Configuración de acceso a módulos
@@ -404,9 +404,10 @@ sequenceDiagram
 - **Flujo principal:**
   1. El sistema busca el usuario por email.
   2. Si no existe, lo crea; si existe, lo actualiza.
-  3. Actualiza el atributo c_ids.
+  3. Actualiza el atributo `c_ids` como **atributo multivalor** (array de strings) con todos los SecurityCompanyIds del usuario.
+  4. Sincroniza roles consolidados de todas las aplicaciones.
 - **Criterios de éxito:**
-  - El usuario queda correctamente sincronizado en Keycloak.
+  - El usuario queda correctamente sincronizado en Keycloak con c_ids y roles actualizados.
 
 ### Consolidación de Usuarios (RF-030 a RF-035)
 #### RF-030: Suscribirse a eventos de usuario
@@ -433,17 +434,19 @@ sequenceDiagram
 - **Criterios de éxito:**
   - Los duplicados se detectan y consolidan correctamente.
 
-#### RF-032: Consolidar organizaciones en claim c_ids
-- **Nombre:** Consolidación de organizaciones en claim
-- **Objetivo:** Construir el array completo de SecurityCompanyIds para cada usuario.
+#### RF-032: Consolidar organizaciones y roles en claims
+- **Nombre:** Consolidación de organizaciones y roles en claims
+- **Objetivo:** Construir el array completo de SecurityCompanyIds para cada usuario y consolidar todos sus roles de las distintas aplicaciones.
 - **Actores:** Background Worker InfoportOneAdmon
-- **Precondiciones:** Existen usuarios con múltiples organizaciones.
+- **Precondiciones:** Existen usuarios con múltiples organizaciones y/o roles en distintas aplicaciones.
 - **Flujo principal:**
   1. El worker consulta todas las organizaciones activas del usuario.
   2. Construye el array c_ids.
   3. Valida la existencia y estado de las organizaciones.
+  4. Consulta todos los roles del usuario desde todas las aplicaciones en BD.
+  5. Construye array de roles consolidados usando prefijos de aplicación para evitar conflictos.
 - **Criterios de éxito:**
-  - El claim c_ids refleja todas las organizaciones activas del usuario.
+  - El claim c_ids refleja todas las organizaciones activas del usuario y todos sus roles están consolidados con prefijos únicos.
 
 #### RF-033: Sincronizar con Keycloak sin publicar eventos adicionales
 - **Nombre:** Sincronización directa con Keycloak

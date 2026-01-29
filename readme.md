@@ -130,6 +130,7 @@ Permite registrar y configurar las aplicaciones satélite que forman parte del e
 **Capacidades principales:**
 - 🆕 **Registro de Aplicación Frontend (Angular SPA)**: Alta como public client con `client_id` únicamente, habilitando PKCE para autenticación segura sin secretos
 - 🔐 **Registro de Aplicación Backend (API)**: Alta como confidential client con generación de `client_id` y `client_secret`, con gestión segura de credenciales
+- 🏷️ **Prefijo de Aplicación**: Cada aplicación tiene un prefijo único (ej: "STP" para Sintraport, "CRM" para CRM) que se utiliza para nomenclatura de roles y módulos. Los módulos usan "M" + prefijo (ej: MSTP_Trafico), los roles usan solo el prefijo (ej: STP_AsignadorTransporte)
 - 🔄 **Gestión de Secretos**: Rotación y administración segura de credenciales solo para confidential clients (backends)
 - 🚦 **Control de Acceso**: Definir si una aplicación está activa, en mantenimiento o desactivada
 - 🧩 **Definición de Módulos**: Cada aplicación debe tener al menos un módulo. Los módulos representan agrupaciones funcionales vendibles por separado
@@ -145,7 +146,7 @@ Permite registrar y configurar las aplicaciones satélite que forman parte del e
 Define agrupaciones funcionales (módulos) dentro de cada aplicación y configura qué organizaciones tienen acceso a cada módulo.
 
 **Capacidades principales:**
-- 🧩 **Definición de Módulos**: Crear módulos para una aplicación (ej: "Módulo CRM", "Módulo Facturación", "Módulo Reporting Avanzado")
+- 🧩 **Definición de Módulos**: Crear módulos para una aplicación siguiendo la nomenclatura "M" + RolePrefix (ej: si RolePrefix="STP", módulos como "MSTP_Trafico", "MSTP_Almacen", "MSTP_Facturacion")
 - ⚙️ **Configuración de Acceso**: Asignar qué organizaciones tienen acceso a qué módulos (relación N:M)
 - 📢 **Propagación de Cambios**: Los cambios se publican en eventos `ApplicationEvent` que incluyen módulos y sus asignaciones
 - 📊 **Visibilidad de Contratación**: Permite a las aplicaciones saber exactamente qué funcionalidades están habilitadas para cada organización
@@ -159,10 +160,11 @@ Define agrupaciones funcionales (módulos) dentro de cada aplicación y configur
 Define qué roles existen dentro de cada aplicación del ecosistema. Los roles se sincronizan como parte del `ApplicationEvent`.
 
 **Capacidades principales:**
-- 📘 **Definición de Roles**: Definir roles para una aplicación con nombre y descripción
+- 📘 **Definición de Roles**: Definir roles para una aplicación siguiendo la nomenclatura RolePrefix + nombre (ej: si RolePrefix="STP", roles como "STP_AsignadorTransporte", "STP_Supervisor", "STP_Operador")
 - 🧪 **Deprecación**: Marcar roles como obsoletos mediante el flag `Active`
 - 🔄 **Sincronización**: Los roles se publican automáticamente con el `ApplicationEvent` (junto con módulos)
 - 📋 **Catálogo Único**: Asegura que todos los sistemas usen nombres consistentes para los mismos conceptos de rol
+- 🏷️ **Prefijos Únicos**: El uso de prefijos de aplicación evita conflictos cuando un usuario tiene roles en múltiples aplicaciones
 
 **Principio clave**: InfoportOneAdmon define los roles (catálogo), las aplicaciones satélite los asignan a usuarios.
 
@@ -174,7 +176,7 @@ Abstrae la complejidad de Keycloak. Los administradores no necesitan acceder dir
 
 **Capacidades principales:**
 - 🔄 **Sincronización de Usuarios**: Consumo de eventos `UserEvent` publicados por aplicaciones satélite para crear/actualizar usuarios en Keycloak
-- 🧩 **Claims Personalizados**: Configuración automática del claim `c_ids` (company ids) con la lista de `SecurityCompanyId` de todas las organizaciones del usuario
+- 🧩 **Claims Personalizados**: Configuración automática del claim `c_ids` (company ids) con la lista de `SecurityCompanyId` de todas las organizaciones del usuario. Se define como **atributo multivalor** en Keycloak
 - 🔑 **Mapeo de Protocol Mappers**: Configuración automática para incluir claims personalizados en tokens JWT
 - 👥 **Gestión Multi-Organización**: Detección automática de usuarios existentes por email y fusión de organizaciones en el claim `c_ids`
 - 🏢 **Single Realm**: Utiliza un único realm (InfoportOne) para todo el ecosistema, habilitando SSO real
@@ -213,24 +215,24 @@ sequenceDiagram
 
     Note over App1,App2: Creación de usuario en múltiples apps
 
-    App1->>Topic1: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 12345}
-    App2->>Topic1: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 67890}
+    App1->>Topic1: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 12345<br/>roles: ["CRM_Vendedor"]}
+    App2->>Topic1: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 67890<br/>roles: ["ERP_Contable"]}
 
     Topic1->>BGWorker: Consume eventos
     
     Note over BGWorker: Detecta email duplicado
     
-    BGWorker->>DB: Consulta: ¿Más organizaciones<br/>para juan@example.com?
-    DB-->>BGWorker: Retorna: [12345, 67890, 11111]
+    BGWorker->>DB: Consulta: ¿Más organizaciones<br/>y roles para juan@example.com?
+    DB-->>BGWorker: Retorna c_ids: [12345, 67890, 11111]<br/>roles: ["CRM_Vendedor", "ERP_Contable", "BI_Analista"]
     
-    Note over BGWorker: Consolida c_ids completo<br/>y sincroniza directamente
+    Note over BGWorker: Consolida c_ids Y roles<br/>de todas las aplicaciones
     
     BGWorker->>KC: Busca usuario por email
     
     alt Usuario existe
-        BGWorker->>KC: UPDATE user attributes<br/>c_ids: [12345, 67890, 11111]
+        BGWorker->>KC: UPDATE user attributes<br/>c_ids: [12345, 67890, 11111]<br/>roles: ["CRM_Vendedor", "ERP_Contable", "BI_Analista"]
     else Usuario nuevo
-        BGWorker->>KC: CREATE user<br/>con c_ids completo
+        BGWorker->>KC: CREATE user<br/>con c_ids y roles consolidados
     end
     
     KC-->>BGWorker: OK
@@ -238,11 +240,12 @@ sequenceDiagram
 ```
 
 **Ventajas de la arquitectura integrada**:
-1. **Apps satélite simplificadas**: Solo publican eventos con su `companyId` local desde su backend
-2. **Consistencia garantizada**: InfoportOneAdmon es fuente de verdad para relaciones usuario-organización
-3. **Keycloak siempre sincronizado**: El claim `c_ids` refleja todas las organizaciones reales del usuario
-4. **Menor latencia**: Sincronización directa sin pasos intermedios
-5. **Arquitectura simplificada**: Un solo proceso (InfoportOneAdmon) con Background Worker integrado
+1. **Apps satélite simplificadas**: Solo publican eventos con su `companyId` local y sus roles específicos desde su backend
+2. **Consistencia garantizada**: InfoportOneAdmon es fuente de verdad para relaciones usuario-organización y consolidación de roles
+3. **Keycloak siempre sincronizado**: El claim `c_ids` refleja todas las organizaciones reales del usuario y los roles consolidados de todas las aplicaciones
+4. **Evita conflictos de roles**: El uso de prefijos de aplicación en los roles (ej: CRM_Vendedor, ERP_Contable) garantiza unicidad
+5. **Menor latencia**: Sincronización directa sin pasos intermedios
+6. **Arquitectura simplificada**: Un solo proceso (InfoportOneAdmon) con Background Worker integrado
 
 **Objetivo**: Garantizar desacoplamiento total entre InfoportOneAdmon y las aplicaciones satélite, permitiendo autonomía operacional mientras se mantiene consistencia en la identidad multi-organización.
 
@@ -329,7 +332,10 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - `CreatedBy` (string): Usuario que creó el registro
 - `CreatedDate` (ISO 8601): Fecha de creación
 
-**Nota importante**: En esta fase, el evento contiene **solo una organización** (`SecurityCompanyId`). La consolidación multi-organización la realiza el Background Worker de InfoportOneAdmon, que sincroniza directamente con Keycloak mediante Admin API (no publica un evento adicional).
+**Nota importante sobre consolidación**: 
+- En esta fase, el evento contiene **solo una organización** (`SecurityCompanyId`). La consolidación multi-organización la realiza el Background Worker de InfoportOneAdmon
+- El Background Worker sincroniza directamente con Keycloak mediante Admin API, configurando el atributo `c_ids` como **atributo multivalor** (array de strings en la API de Keycloak) que contiene el array completo de todas las organizaciones del usuario
+- No se publica un evento adicional tras la consolidación
 
 #### **Evento de Organización**
 
@@ -738,8 +744,11 @@ cd keycloak-23.0.0\bin
    - User Attribute: `c_ids`
    - Token Claim Name: `c_ids`
    - Claim JSON Type: Array
+   - **Multivalued**: ON (✅ importante: habilita manejo de array de organizaciones)
    - Add to ID token: ON
    - Add to access token: ON
+
+> **Nota técnica**: El atributo `c_ids` se define en Keycloak como **atributo multivalor**. Al sincronizar usuarios mediante la Admin API, debe enviarse como un array de strings. Esto permite almacenar múltiples SecurityCompanyIds para usuarios que pertenecen a varias organizaciones.
 
 > **Implementación de claims en Helix6**: El framework proporciona `KeyCloakUserClaimsMapping` que maneja automáticamente la lectura del claim `c_ids` y otros claims de Keycloak. Ver [Helix6_Backend_Architecture.md - Sección 10.5](Helix6_Backend_Architecture.md#105-mapeo-de-claims-según-identity-server).
 
@@ -940,7 +949,7 @@ graph TB
 
 #### **2.1.3. Flujo de Sincronización de Usuarios Multi-Organización**
 
-**Descripción**: Flujo detallado del caso de uso más complejo del sistema: cómo se consolidan usuarios que pertenecen a múltiples organizaciones y se sincronizan con Keycloak para generar el claim `c_ids`. Este es el diferenciador clave del sistema.
+**Descripción**: Flujo detallado del caso de uso más complejo del sistema: cómo se consolidan usuarios que pertenecen a múltiples organizaciones, se consolidan sus roles de distintas aplicaciones y se sincronizan con Keycloak para generar el claim `c_ids` y asignar roles consolidados. Este es el diferenciador clave del sistema.
 
 ```mermaid
 sequenceDiagram
@@ -954,22 +963,22 @@ sequenceDiagram
 
     Note over CRM,BI: Fase 1: Apps satélite publican eventos de usuarios desde su backend
     
-    CRM->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 12345}
-    ERP->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 67890}
-    BI->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 11111}
+    CRM->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 12345<br/>roles: ["CRM_Vendedor", "CRM_Manager"]}
+    ERP->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 67890<br/>roles: ["ERP_Contable"]}
+    BI->>TopicUser: UserEvent<br/>{email: "juan@example.com"<br/>companyId: 11111<br/>roles: ["BI_Analista"]}
     
-    Note over TopicUser,BGWorker: Fase 2: Background Worker consolida usuarios multi-organización
+    Note over TopicUser,BGWorker: Fase 2: Background Worker consolida usuarios multi-organización y roles
     
     TopicUser->>BGWorker: Consume eventos (3 mensajes)
     BGWorker->>BGWorker: Detecta email duplicado<br/>"juan@example.com"
     
-    BGWorker->>DB: SELECT SecurityCompanyId<br/>WHERE Email = 'juan@example.com'
-    DB-->>BGWorker: [12345, 67890, 11111]
+    BGWorker->>DB: SELECT SecurityCompanyId, Roles<br/>WHERE Email = 'juan@example.com'
+    DB-->>BGWorker: c_ids: [12345, 67890, 11111]<br/>roles: ["CRM_Vendedor", "CRM_Manager",<br/>"ERP_Contable", "BI_Analista"]
     
     BGWorker->>DB: SELECT * FROM Organizations<br/>WHERE SecurityCompanyId IN (12345, 67890, 11111)
     DB-->>BGWorker: Valida que todas existen y están activas
     
-    BGWorker->>BGWorker: Construye c_ids completo<br/>[12345, 67890, 11111]
+    BGWorker->>BGWorker: Construye c_ids completo<br/>y roles consolidados con prefijos
     
     Note over BGWorker,KC: Fase 3: Sincronización directa con Keycloak
     
@@ -979,30 +988,31 @@ sequenceDiagram
     
     alt Usuario NO existe en Keycloak
         KC-->>BGWorker: 404 Not Found
-        BGWorker->>KC: POST /users<br/>{email, firstName, lastName,<br/>attributes: {c_ids: [12345, 67890, 11111]}}
+        BGWorker->>KC: POST /users<br/>{email, firstName, lastName,<br/>attributes: {c_ids: [12345, 67890, 11111]}<br/>roles: ["CRM_Vendedor", "CRM_Manager",<br/>"ERP_Contable", "BI_Analista"]}
         KC-->>BGWorker: 201 Created
     else Usuario YA existe
         KC-->>BGWorker: 200 OK + User data
-        BGWorker->>BGWorker: Fusiona c_ids actuales con nuevos<br/>Elimina duplicados
-        BGWorker->>KC: PUT /users/{id}<br/>{attributes: {c_ids: [12345, 67890, 11111]}}
+        BGWorker->>BGWorker: Fusiona c_ids actuales con nuevos<br/>y consolida roles de todas las apps<br/>Elimina duplicados
+        BGWorker->>KC: PUT /users/{id}<br/>{attributes: {c_ids: [12345, 67890, 11111]}<br/>roles: ["CRM_Vendedor", "CRM_Manager",<br/>"ERP_Contable", "BI_Analista"]}
         KC-->>BGWorker: 204 No Content
     end
     
     BGWorker->>TopicUser: ACK (confirma procesamiento exitoso)
     
-    Note over KC: Keycloak tiene usuario con c_ids completo<br/>Listo para generar tokens JWT
+    Note over KC: Keycloak tiene usuario con c_ids completo<br/>y roles consolidados de todas las aplicaciones<br/>Listo para generar tokens JWT
 ```
 
 **Fases del proceso**:
-1. **Publicación desde backend**: Cada app satélite publica eventos de usuario desde su backend cuando se da de alta un usuario, con su `companyId` local
-2. **Consolidación en background**: El Background Worker de InfoportOneAdmon consume eventos, detecta duplicados por email y consulta la BD para construir la lista completa de organizaciones
-3. **Sincronización directa**: El mismo Background Worker sincroniza inmediatamente con Keycloak usando Admin API, actualizando el claim `c_ids`
+1. **Publicación desde backend**: Cada app satélite publica eventos de usuario desde su backend cuando se da de alta un usuario, con su `companyId` local y los roles que asigna a ese usuario (usando prefijos de aplicación)
+2. **Consolidación en background**: El Background Worker de InfoportOneAdmon consume eventos, detecta duplicados por email y consulta la BD para construir la lista completa de organizaciones y consolidar todos los roles del usuario de las distintas aplicaciones
+3. **Sincronización directa**: El mismo Background Worker sincroniza inmediatamente con Keycloak usando Admin API, actualizando el claim `c_ids` y asignando todos los roles consolidados con prefijos únicos
 
 **Ventajas del patrón**:
-- Apps satélite solo publican eventos simples, sin conocer multi-organización
-- InfoportOneAdmon mantiene la fuente de verdad de relaciones usuario-organización
+- Apps satélite solo publican eventos simples con sus roles locales, sin conocer multi-organización ni roles de otras apps
+- InfoportOneAdmon mantiene la fuente de verdad de relaciones usuario-organización y consolidación de roles
+- El uso de prefijos de aplicación evita conflictos de nombres de roles entre aplicaciones
 - Background Worker integrado simplifica la arquitectura (no hay componentes separados)
-- Keycloak siempre tiene el claim `c_ids` actualizado
+- Keycloak siempre tiene el claim `c_ids` actualizado y los roles consolidados de todas las aplicaciones
 - Tolerante a fallos: eventos persistentes garantizan eventual consistency
 
 ---
@@ -1334,9 +1344,11 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 - **Consumo de eventos de usuario**: Suscripción durable al tópico `infoportone.events.user`
 - **Detección de usuarios duplicados**: Búsqueda por email en eventos previos y en base de datos
 - **Consolidación de organizaciones**: Agregación de todos los `SecurityCompanyId` asociados al email
+- **Consolidación de roles multi-aplicación**: Agregación de todos los roles asignados al usuario desde las distintas aplicaciones, utilizando el prefijo de aplicación para evitar conflictos (ej: CRM_Vendedor, ERP_Contable)
 - **Validación de organizaciones**: Verificación de que las organizaciones existen y están activas
 - **Sincronización directa con Keycloak**: CREATE/UPDATE de usuarios mediante Admin API
 - **Gestión del claim c_ids**: Configuración automática del claim multi-organización
+- **Gestión de roles consolidados**: Asignación de todos los roles del usuario desde todas las aplicaciones en Keycloak
 - **Registro de clientes OAuth2**: Alta de aplicaciones satélite en Keycloak
 - **Configuración de Protocol Mappers**: Inyección automática del claim `c_ids` en tokens JWT
 - **Retry inteligente**: Política de reintentos con backoff exponencial
@@ -1346,18 +1358,28 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 1. Consume evento de usuario desde tópico `user`
 2. Valida estructura del evento (schema validation)
 3. Detecta si el email ya existe en eventos previos (ventana de consolidación)
-4. Consulta base de datos para obtener lista completa de organizaciones del usuario
+4. Consulta base de datos para obtener:
+   - Lista completa de organizaciones del usuario (para c_ids)
+   - Lista completa de roles del usuario desde todas las aplicaciones
 5. Construye c_ids completo = [companyId_evento + companyIds_adicionales_BD]
-6. Invoca Keycloak Admin API directamente:
+6. Consolida roles de todas las aplicaciones:
+   - Obtiene roles del evento actual (incluyen OriginApplicationId y prefijo de aplicación)
+   - Consulta roles previos del usuario desde otras aplicaciones en BD
+   - Construye array de roles consolidados con prefijos únicos por aplicación
+7. Invoca Keycloak Admin API directamente:
    - GET /users?email={email}
    - POST /users (si no existe) o PUT /users/{id} (si existe)
-   - Actualiza atributo `c_ids` con array completo
-7. Confirma procesamiento (ACK) o envía a DLQ si falla tras reintentos
+   - Actualiza atributo `c_ids` (multivalor) con array completo de SecurityCompanyIds
+   - Asigna/actualiza roles consolidados del usuario en Keycloak
+   - **Importante**: `c_ids` debe enviarse como array de strings al API de Keycloak (atributo multivalor)
+8. Confirma procesamiento (ACK) o envía a DLQ si falla tras reintentos
 
 **Interacciones**:
 - Consume eventos desde tópico **`infoportone.events.user`** (publicados por apps satélite)
-- Consulta **Base de Datos Core** para detectar organizaciones adicionales
-- Invoca **Keycloak Admin API** (REST) directamente para CREATE/UPDATE de usuarios
+- Consulta **Base de Datos Core** para detectar organizaciones adicionales y roles
+- Invoca **Keycloak Admin API** (REST) directamente para CREATE/UPDATE de usuarios:
+  - Atributo `c_ids`: Definido como **atributo multivalor**, se envía como array de strings con todos los SecurityCompanyIds
+  - Roles: Se asignan consolidados de todas las aplicaciones
 - Utiliza tabla auxiliar `UserConsolidationCache` para optimizar detección de duplicados
 
 **Tabla auxiliar: UserConsolidationCache**
@@ -2063,6 +2085,7 @@ erDiagram
         int AppId PK "AUTO_INCREMENT, Identificador único de la aplicación"
         string AppName UK "NOT NULL, Nombre de la aplicación (ej: CRM, ERP)"
         string Description "Descripción de la aplicación"
+        string RolePrefix UK "NOT NULL, Prefijo para roles y módulos (ej: STP para Sintraport)"
         string ClientId UK "NOT NULL, OAuth2 client_id generado"
         bool IsPublicClient "NOT NULL, DEFAULT TRUE, TRUE=SPA Angular (no secret), FALSE=Backend API (con secret)"
         string ClientSecretHash "NULL para public clients, Hash bcrypt para confidential clients"
@@ -2145,6 +2168,7 @@ Para optimizar las consultas más frecuentes, se definen los siguientes índices
 CREATE UNIQUE INDEX UX_Organization_Name ON ORGANIZATION(Name);
 CREATE UNIQUE INDEX UX_Organization_TaxId ON ORGANIZATION(TaxId);
 CREATE UNIQUE INDEX UX_Application_AppName ON APPLICATION(AppName);
+CREATE UNIQUE INDEX UX_Application_RolePrefix ON APPLICATION(RolePrefix);
 CREATE UNIQUE INDEX UX_Application_ClientId ON APPLICATION(ClientId);
 CREATE UNIQUE INDEX UX_OrganizationGroup_GroupName ON ORGANIZATION_GROUP(GroupName);
 
@@ -2298,6 +2322,7 @@ CreatedBy: "admin@infoportone.com"
 | **AppId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único de la aplicación. |
 | **AppName** | VARCHAR(100) | UNIQUE, NOT NULL | Nombre de la aplicación (ej: "CRM", "ERP Financiero"). Debe ser único. |
 | **Description** | VARCHAR(500) | NULL | Descripción de la aplicación y su propósito. |
+| **RolePrefix** | VARCHAR(10) | UNIQUE, NOT NULL | Prefijo utilizado para roles y módulos de la aplicación (ej: "STP" para Sintraport, "CRM" para CRM). Los módulos usarán "M" + prefijo (ej: MSTP_Trafico), y los roles usarán solo el prefijo (ej: STP_AsignadorTransporte). Debe ser único. |
 | **ClientId** | VARCHAR(255) | UNIQUE, NOT NULL | OAuth2 client_id generado automáticamente (ej: "crm-app-frontend", "crm-api-backend"). |
 | **IsPublicClient** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | TRUE para SPAs Angular (no requiere secret), FALSE para APIs backend (confidential). |
 | **ClientSecretHash** | VARCHAR(255) | NULL | Hash bcrypt del client_secret. NULL para public clients (Angular SPAs). Solo se almacena para confidential clients (backends). NUNCA se almacena en texto plano. |
@@ -2314,6 +2339,7 @@ CreatedBy: "admin@infoportone.com"
 
 **Restricciones de Negocio**:
 - `AppName` debe ser único (índice `UX_Application_AppName`)
+- `RolePrefix` debe ser único (índice `UX_Application_RolePrefix`) y se utiliza como prefijo para nomenclatura de roles y módulos
 - `ClientId` debe ser único (índice `UX_Application_ClientId`)
 - **Regla de negocio**: Toda aplicación debe tener al menos un módulo (validado a nivel de aplicación)
 - `ClientSecretHash` es NULL para public clients (Angular SPAs con PKCE)
@@ -2321,11 +2347,14 @@ CreatedBy: "admin@infoportone.com"
 - `ClientSecretHash` nunca se devuelve en APIs; solo se muestra el secreto en texto plano en el momento de creación de confidential clients
 - Se recomienda rotar `ClientSecretHash` cada 90 días para confidential clients (campo `SecretRotatedAt` para tracking)
 - Public clients (Angular) usan PKCE y no almacenan secretos
+- **Nomenclatura de roles**: Los roles de la aplicación deben usar el prefijo definido en `RolePrefix` (ej: si RolePrefix="STP", entonces roles como "STP_AsignadorTransporte", "STP_Supervisor")
+- **Nomenclatura de módulos**: Los módulos de la aplicación deben usar "M" + `RolePrefix` (ej: si RolePrefix="STP", entonces módulos como "MSTP_Trafico", "MSTP_Almacen")
 
 **Índices**:
 ```sql
 PK: AppId
 UK: AppName
+UK: RolePrefix
 UK: ClientId
 IX: Active
 ```
@@ -2334,6 +2363,7 @@ IX: Active
 ```sql
 AppId: 5
 AppName: "CRM Comercial Frontend"
+RolePrefix: "CRM"
 ClientId: "crm-app-frontend"
 IsPublicClient: TRUE
 ClientSecretHash: NULL
@@ -2345,12 +2375,26 @@ Active: TRUE
 ```sql
 AppId: 6
 AppName: "CRM Comercial API"
+RolePrefix: "CRM"
 ClientId: "crm-api-backend"
 IsPublicClient: FALSE
 ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
 RedirectUris: NULL
 Active: TRUE
 ```
+
+**Ejemplo de Registro (Aplicación Sintraport)**:
+```sql
+AppId: 7
+AppName: "Sintraport"
+RolePrefix: "STP"
+ClientId: "sintraport-app"
+IsPublicClient: TRUE
+ClientSecretHash: NULL
+RedirectUris: '["https://sintraport.infoportone.com/*"]'
+Active: TRUE
+```
+> Con este RolePrefix="STP", los roles serán como "STP_AsignadorTransporte", "STP_Supervisor" y los módulos como "MSTP_Trafico", "MSTP_Almacen"
 
 ---
 

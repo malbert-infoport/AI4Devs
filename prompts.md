@@ -264,6 +264,47 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 - Responsabilidad clara: InfoportOne gestiona la lógica de multi-organización de usuarios
 - Modelo de datos más limpio y consistente
 
+---
+
+## Prompt 2.2.4: Corrección de consolidación de roles y sistema de prefijos de aplicación
+
+**Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+
+**Objetivo:** Revisar toda la documentación generada en el workspace porque se ha detectado un error de análisis que requiere corrección. Aplicar las siguientes premisas:
+
+**Premisa 1: Estructura del evento infoportone.events.user**
+- El evento `infoportone.events.user` debe incluir, además del identificador de la organización y de la aplicación que lo envía (`OriginApplicationId`), la lista de roles que la aplicación satélite le ha asignado a tal usuario
+- Cada aplicación satélite publica los roles que ella misma gestiona para ese usuario en su contexto
+
+**Premisa 2: Consolidación de usuarios multi-organización y multi-aplicación**
+- Desde InfoportOneAdmon, el Background Worker se suscribe al evento de usuario
+- Antes de realizar la sincronización con Keycloak, comprueba si dicho usuario (en base a su email) ya existe
+- Si ya existe, debe encargarse de:
+  - Consolidar las organizaciones a las que dicho usuario está vinculado (claim `c_ids`)
+  - Consolidar los roles de las distintas aplicaciones a las que pertenece el usuario
+- Esta consolidación garantiza que un usuario que trabaja en múltiples organizaciones y usa múltiples aplicaciones tenga toda su información integrada en Keycloak
+
+**Premisa 3: Sistema de prefijos para aplicaciones**
+- En el mantenimiento de aplicaciones existirá un campo `RolePrefix` único para cada aplicación (ejemplo: Sintraport → "STP")
+- Este prefijo se usará como nomenclatura estándar para:
+  - **Módulos**: Se añade una "M" al prefijo (ejemplo: "MSTP_Trafico" sería un módulo de Sintraport)
+  - **Roles**: Se usa solo el prefijo (ejemplo: "STP_AsignadorTransporte" sería un rol de Sintraport)
+- Esto evita conflictos de nombres entre roles de diferentes aplicaciones y permite identificar fácilmente a qué aplicación pertenece cada rol o módulo
+
+**Archivos a revisar y corregir:**
+- `readme.md`: Actualizar modelo de datos, eventos, Background Worker, diagramas de arquitectura
+- `requirements.md`: Requisitos funcionales relacionados con aplicaciones, roles, módulos y consolidación de usuarios
+- `useCases.md`: Casos de uso afectados por estos cambios
+- Cualquier otro archivo que contenga información sobre estos aspectos
+
+**Resultado esperado:**
+- Documentación completa y coherente que refleje correctamente:
+  - El evento UserEvent incluye roles asignados por cada aplicación
+  - El Background Worker consolida tanto organizaciones como roles antes de sincronizar con Keycloak
+  - Sistema de prefijos documentado en el modelo de datos y en todas las secciones relevantes
+- Actualización de diagramas de secuencia y arquitectura para mostrar la consolidación de roles
+- Modelo de datos actualizado con el campo `RolePrefix` en la entidad Application
+
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
 ## Prompt 2.3.1
