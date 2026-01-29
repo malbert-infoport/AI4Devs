@@ -1321,7 +1321,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 
 **Tecnología**:
 - ASP.NET Core 8 (Web API)
-- Gestión segura de secretos (Azure Key Vault / HashiCorp Vault) solo para confidential clients
+- Gestión segura de secretos mediante dotnet user-secrets (desarrollo) y variables de entorno/Docker Secrets (producción)
 - Entity Framework Core
 
 **Funcionalidades principales**:
@@ -1432,6 +1432,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 CREATE TABLE UserConsolidationCache (
   Email NVARCHAR(255) PRIMARY KEY,
   ConsolidatedCompanyIds NVARCHAR(MAX), -- JSON array de c_ids
+  ConsolidatedRoles NVARCHAR(MAX), -- JSON array de roles consolidados de todas las apps
   LastConsolidationDate DATETIME2,
   LastEventHash NVARCHAR(64)
 );
@@ -1915,17 +1916,33 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 **Alcance**: Esta gestión aplica **exclusivamente a confidential clients** (APIs backend, servicios del servidor). Las aplicaciones Angular (public clients) utilizan PKCE y **no requieren almacenar secretos**.
 
-**Implementación**:
-- **Azure Key Vault / HashiCorp Vault**: Almacenamiento centralizado de secretos para backends
-- **Variables de Entorno**: En desarrollo local, uso de `dotnet user-secrets` para APIs backend
-- **Rotación Automática**: Proceso automatizado para rotar `client_secret` de APIs backend cada 90 días
+**Implementación por Entorno**:
+- **Desarrollo Local**: `dotnet user-secrets` para APIs backend - evita commits accidentales y aísla secretos del código
+- **Producción (Docker Swarm)**: 
+  - **Docker Secrets** (nativo de Swarm): Para datos ultra-sensibles como `client_secret` de Keycloak, passwords de BD
+  - **Variables de Entorno**: Para configuraciones menos críticas inyectadas por pipelines CI/CD según entorno (dev/staging/prod)
+- **Rotación de Credenciales**: Proceso manual/semiautomático para rotar `client_secret` de APIs backend cada 90 días
 - **Principio de Mínimo Privilegio**: Cada aplicación solo tiene acceso a sus propios secretos
 - **PKCE para SPAs**: Las aplicaciones Angular no almacenan secretos; usan code verifier/challenge dinámico por sesión
 
-**Ejemplo de acceso a Key Vault** (C#):
-```csharp
-var keyVaultUrl = configuration["KeyVault:Url"];
-var client = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+**Ejemplo de uso de Docker Secrets en Swarm** (docker-compose.yml):
+```yaml
+services:
+  infoportoneadmon-api:
+    image: infoportone/admon:latest
+    secrets:
+      - keycloak_client_secret
+      - db_password
+    environment:
+      - Keycloak__ClientId=infoportone-admin
+      - Keycloak__ClientSecret_File=/run/secrets/keycloak_client_secret
+      - ConnectionStrings__DefaultConnection_File=/run/secrets/db_password
+
+secrets:
+  keycloak_client_secret:
+    external: true  # Creado previamente: docker secret create keycloak_client_secret secret.txt
+  db_password:
+    external: true
 
 KeyVaultSecret secret = await client.GetSecretAsync("CrmApp-ClientSecret");
 string clientSecret = secret.Value;
@@ -2068,7 +2085,7 @@ public string ComputeEventHash(object payload)
 | Claims personalizados (c_ids) | Autorización | JWT | Multi-organización flexible |
 | Validación stateless | Rendimiento | RS256 + JWT | Escalabilidad sin bottleneck |
 | Segregación por tenant | Datos | EF Core Filters | Aislamiento de organizaciones |
-| Gestión de secretos | Infraestructura | Azure Key Vault | Sin secretos en código (solo backends) |
+| Gestión de secretos | Infraestructura | Docker Secrets + user-secrets | Sin secretos en código (solo backends) |
 | Auditoría inmutable | Compliance | AuditLog table | Trazabilidad completa |
 | Prepared Statements | Datos | EF Core | Prevención SQL Injection |
 | TLS/mTLS | Red | TLS 1.3 | Cifrado end-to-end |
@@ -2095,22 +2112,27 @@ erDiagram
     ORGANIZATION ||--|{ MODULE_ACCESS : "tiene acceso a"
     APPLICATION ||--|{ MODULE : "contiene"
     APPLICATION ||--|{ APP_ROLE_DEFINITION : "define roles"
+    APPLICATION ||--|{ APPLICATION_SECURITY : "tiene credenciales"
     MODULE ||--|{ MODULE_ACCESS : "asigna acceso"
     ORGANIZATION ||--o{ AUDIT_LOG : "genera auditoría"
     APPLICATION ||--o{ AUDIT_LOG : "genera auditoría"
     MODULE ||--o{ AUDIT_LOG : "genera auditoría"
     
     ORGANIZATION_GROUP {
-        int GroupId PK "AUTO_INCREMENT, Identificador único del grupo"
+        int Id PK "AUTO_INCREMENT, Identificador único del grupo"
         string GroupName UK "NOT NULL, Nombre del grupo (ej: Holding Norte)"
         string Description "Descripción del grupo"
-        datetime CreatedAt "NOT NULL, Fecha de creación"
-        datetime UpdatedAt "Fecha última actualización"
+        string AuditCreationUser "Usuario que creó el grupo"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
     ORGANIZATION {
-        int SecurityCompanyId PK "AUTO_INCREMENT, Identificador único inmutable"
-        int GroupId FK "NULL, Referencia a OrganizationGroup"
+        int Id PK "AUTO_INCREMENT, Identificador único autogenerado por Helix6"
+        int SecurityCompanyId UK "NOT NULL, Identificador de negocio inmutable"
+        int GroupId FK "NULL, Referencia a OrganizationGroup.Id"
         string Name UK "NOT NULL, Nombre de la organización"
         string TaxId UK "NOT NULL, NIF/CIF fiscal"
         string Address "Dirección postal"
@@ -2120,62 +2142,96 @@ erDiagram
         string ContactEmail "Email de contacto"
         string ContactPhone "Teléfono de contacto"
         bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
-        datetime CreatedAt "NOT NULL, Fecha de creación"
-        datetime UpdatedAt "Fecha última actualización"
-        string CreatedBy "Usuario que creó el registro"
-        string UpdatedBy "Usuario que modificó el registro"
+        string AuditCreationUser "Usuario que creó el registro"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
     APPLICATION {
-        int AppId PK "AUTO_INCREMENT, Identificador único de la aplicación"
+        int Id PK "AUTO_INCREMENT, Identificador único de la aplicación"
         string AppName UK "NOT NULL, Nombre de la aplicación (ej: CRM, ERP)"
         string Description "Descripción de la aplicación"
-        string RolePrefix UK "NOT NULL, Prefijo para roles y módulos (ej: STP para Sintraport)"
-        string ClientId UK "NOT NULL, OAuth2 client_id generado"
-        bool IsPublicClient "NOT NULL, DEFAULT TRUE, TRUE=SPA Angular (no secret), FALSE=Backend API (con secret)"
-        string ClientSecretHash "NULL para public clients, Hash bcrypt para confidential clients"
-        string RedirectUris "JSON array de URIs de redirección"
+        string RolePrefix UK "NOT NULL, Prefijo para roles y módulos (ej: STP)"
         bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
-        datetime CreatedAt "NOT NULL, Fecha de creación"
-        datetime UpdatedAt "Fecha última actualización"
-        datetime SecretRotatedAt "Fecha última rotación de secreto"
+        string AuditCreationUser "Usuario que creó el registro"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
+    }
+    
+    APPLICATION_SECURITY {
+        int Id PK "AUTO_INCREMENT, Identificador único de credencial"
+        int ApplicationId FK "NOT NULL, Referencia a Application.Id"
+        string CredentialType "NOT NULL, Tipo: CODE o ClientCredentials"
+        string ClientId UK "NOT NULL, OAuth2 client_id generado"
+        string ClientSecretHash "NULL para CODE, Hash bcrypt para ClientCredentials"
+        string RedirectUris "JSON array de URIs (solo CODE)"
+        string Scope "Scopes OAuth2 permitidos"
+        bool IsActive "NOT NULL, DEFAULT TRUE, Si la credencial está activa"
+        string AuditCreationUser "Usuario que creó la credencial"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
     MODULE {
-        int ModuleId PK "AUTO_INCREMENT, Identificador único del módulo"
-        int AppId FK "NOT NULL, Referencia a Application"
+        int Id PK "AUTO_INCREMENT, Identificador único del módulo"
+        int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string ModuleName "NOT NULL, Nombre del módulo (ej: Módulo Facturación)"
         string Description "Descripción del módulo"
         bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
         int DisplayOrder "Orden de visualización"
-        datetime CreatedAt "NOT NULL, Fecha de creación"
-        datetime UpdatedAt "Fecha última actualización"
+        string AuditCreationUser "Usuario que creó el módulo"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
     MODULE_ACCESS {
-        int ModuleAccessId PK "AUTO_INCREMENT, Identificador único"
-        int ModuleId FK "NOT NULL, Referencia a Module"
-        int SecurityCompanyId FK "NOT NULL, Referencia a Organization"
+        int Id PK "AUTO_INCREMENT, Identificador único"
+        int ModuleId FK "NOT NULL, Referencia a Module.Id"
+        int OrganizationId FK "NOT NULL, Referencia a Organization.Id"
         datetime GrantedAt "NOT NULL, Fecha de concesión de acceso"
-        string GrantedBy "Usuario que concedió el acceso"
         datetime ExpiresAt "NULL, Fecha de expiración (si aplica)"
+        string AuditCreationUser "Usuario que concedió el acceso"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
     APP_ROLE_DEFINITION {
-        int RoleId PK "AUTO_INCREMENT, Identificador único del rol"
-        int AppId FK "NOT NULL, Referencia a Application"
+        int Id PK "AUTO_INCREMENT, Identificador único del rol"
+        int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string RoleName "NOT NULL, Nombre del rol (ej: Vendedor, Gerente)"
         string Description "Descripción del rol"
         bool Active "NOT NULL, DEFAULT TRUE, Estado activo/deprecated"
-        datetime CreatedAt "NOT NULL, Fecha de creación"
-        datetime UpdatedAt "Fecha última actualización"
+        string AuditCreationUser "Usuario que creó el rol"
+        datetime AuditCreationDate "NOT NULL, Fecha de creación"
+        string AuditModificationUser "Usuario que modificó"
+        datetime AuditModificationDate "Fecha última actualización"
+        datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
+    }
+    
+    USER_CONSOLIDATION_CACHE {
+        int Id PK "AUTO_INCREMENT, Identificador único"
+        string Email UK "NOT NULL, Email del usuario (clave de búsqueda)"
+        string ConsolidatedCompanyIds "NOT NULL, JSON array de SecurityCompanyIds"
+        string ConsolidatedRoles "NOT NULL, JSON array de roles consolidados"
+        datetime LastConsolidationDate "NOT NULL, Última consolidación"
+        string LastEventHash "Hash SHA-256 del último evento procesado"
     }
     
     AUDIT_LOG {
-        bigint AuditLogId PK "AUTO_INCREMENT, Identificador único del log"
-        string EntityType "NOT NULL, Tipo de entidad (Organization, Application, Module)"
+        bigint Id PK "AUTO_INCREMENT, Identificador único del log"
+        string EntityType "NOT NULL, Tipo de entidad"
         string EntityId "NOT NULL, ID de la entidad afectada"
-        string Action "NOT NULL, Acción realizada (INSERT, UPDATE, DELETE)"
+        string Action "NOT NULL, Acción: INSERT, UPDATE, DELETE"
         string UserId "NOT NULL, Usuario que ejecutó la acción"
         datetime Timestamp "NOT NULL, Momento exacto del cambio"
         string OldValue "JSON con estado anterior (NULL en INSERT)"
@@ -2185,9 +2241,9 @@ erDiagram
     }
     
     EVENT_HASH_CONTROL {
-        string EntityType PK "NOT NULL, Tipo de entidad (Organization, Application, User)"
+        string EntityType PK "NOT NULL, Tipo de entidad"
         string EntityId PK "NOT NULL, ID de la entidad"
-        string LastEventHash "NOT NULL, Hash SHA-256 del último evento publicado"
+        string LastEventHash "NOT NULL, Hash SHA-256 del último evento"
         datetime LastEventTimestamp "NOT NULL, Timestamp del último evento"
     }
 ```
@@ -2199,6 +2255,7 @@ erDiagram
 | OrganizationGroup → Organization | 1:N | Un grupo agrupa múltiples organizaciones | ON DELETE SET NULL |
 | Application → Module | 1:N | Una aplicación contiene múltiples módulos | ON DELETE CASCADE |
 | Application → AppRoleDefinition | 1:N | Una aplicación define múltiples roles | ON DELETE CASCADE |
+| Application → ApplicationSecurity | 1:N | Una aplicación tiene múltiples credenciales OAuth2 | ON DELETE CASCADE |
 | Module → ModuleAccess | 1:N | Un módulo puede asignarse a múltiples organizaciones | ON DELETE CASCADE |
 | Organization → ModuleAccess | 1:N | Una organización puede tener acceso a múltiples módulos | ON DELETE CASCADE |
 | Organization → AuditLog | 1:N | Una organización genera múltiples registros de auditoría | ON DELETE NO ACTION |
@@ -2210,23 +2267,26 @@ Para optimizar las consultas más frecuentes, se definen los siguientes índices
 
 ```sql
 -- Índices únicos (restricciones de negocio)
+CREATE UNIQUE INDEX UX_Organization_SecurityCompanyId ON ORGANIZATION(SecurityCompanyId);
 CREATE UNIQUE INDEX UX_Organization_Name ON ORGANIZATION(Name);
 CREATE UNIQUE INDEX UX_Organization_TaxId ON ORGANIZATION(TaxId);
 CREATE UNIQUE INDEX UX_Application_AppName ON APPLICATION(AppName);
 CREATE UNIQUE INDEX UX_Application_RolePrefix ON APPLICATION(RolePrefix);
-CREATE UNIQUE INDEX UX_Application_ClientId ON APPLICATION(ClientId);
+CREATE UNIQUE INDEX UX_ApplicationSecurity_ClientId ON APPLICATION_SECURITY(ClientId);
 CREATE UNIQUE INDEX UX_OrganizationGroup_GroupName ON ORGANIZATION_GROUP(GroupName);
+CREATE UNIQUE INDEX UX_UserConsolidationCache_Email ON USER_CONSOLIDATION_CACHE(Email);
 
 -- Índices compuestos para módulos (evitar duplicados)
-CREATE UNIQUE INDEX UX_Module_AppId_ModuleName ON MODULE(AppId, ModuleName);
-CREATE UNIQUE INDEX UX_AppRole_AppId_RoleName ON APP_ROLE_DEFINITION(AppId, RoleName);
-CREATE UNIQUE INDEX UX_ModuleAccess_Module_Company ON MODULE_ACCESS(ModuleId, SecurityCompanyId);
+CREATE UNIQUE INDEX UX_Module_ApplicationId_ModuleName ON MODULE(ApplicationId, ModuleName);
+CREATE UNIQUE INDEX UX_AppRole_ApplicationId_RoleName ON APP_ROLE_DEFINITION(ApplicationId, RoleName);
+CREATE UNIQUE INDEX UX_ModuleAccess_ModuleId_OrganizationId ON MODULE_ACCESS(ModuleId, OrganizationId);
 
 -- Índices de búsqueda frecuente
 CREATE INDEX IX_Organization_GroupId ON ORGANIZATION(GroupId);
 CREATE INDEX IX_Organization_Active ON ORGANIZATION(Active);
-CREATE INDEX IX_Module_AppId ON MODULE(AppId);
-CREATE INDEX IX_ModuleAccess_SecurityCompanyId ON MODULE_ACCESS(SecurityCompanyId);
+CREATE INDEX IX_Module_ApplicationId ON MODULE(ApplicationId);
+CREATE INDEX IX_ModuleAccess_OrganizationId ON MODULE_ACCESS(OrganizationId);
+CREATE INDEX IX_ApplicationSecurity_ApplicationId ON APPLICATION_SECURITY(ApplicationId);
 CREATE INDEX IX_AuditLog_EntityType_EntityId ON AUDIT_LOG(EntityType, EntityId);
 CREATE INDEX IX_AuditLog_Timestamp ON AUDIT_LOG(Timestamp DESC);
 CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(EntityType, EntityId);
@@ -2234,15 +2294,40 @@ CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(Entit
 
 #### **Reglas de Integridad y Restricciones**
 
-1. **Organización debe tener nombre y TaxId únicos**: Previene duplicación de clientes
-2. **Aplicación debe tener al menos un módulo**: Validado a nivel de negocio (no FK)
-3. **ModuleAccess es relación N:M con restricción única**: Una organización no puede tener el mismo módulo asignado dos veces
-4. **AuditLog es append-only**: No permite UPDATE ni DELETE (tabla inmutable)
-5. **EventHashControl tiene clave compuesta**: (EntityType, EntityId) para prevención de duplicados
-6. **ClientSecretHash nunca almacena texto plano**: Siempre se hashea con bcrypt antes de insertar
-7. **Active por defecto es TRUE**: Nuevas organizaciones y aplicaciones nacen activas
+1. **Organización debe tener nombre, TaxId y SecurityCompanyId únicos**: Previene duplicación de clientes
+2. **SecurityCompanyId es índice único**: Es el identificador de negocio, mientras que Id es la PK técnica de Helix6
+3. **Aplicación debe tener al menos un módulo**: Validado a nivel de negocio (no FK)
+4. **ModuleAccess es relación N:M con restricción única**: Una organización no puede tener el mismo módulo asignado dos veces
+5. **AuditLog es append-only**: No permite UPDATE ni DELETE (tabla inmutable)
+6. **EventHashControl tiene clave compuesta**: (EntityType, EntityId) para prevención de duplicados
+7. **ApplicationSecurity.ClientSecretHash nunca almacena texto plano**: Siempre se hashea con bcrypt antes de insertar
+8. **Active por defecto es TRUE**: Nuevas organizaciones y aplicaciones nacen activas
+9. **Soft Delete con AuditDeletionDate**: Todas las entidades Helix6 soportan eliminación lógica mediante el campo AuditDeletionDate
 
 #### **Notas sobre el Diseño**
+
+**¿Por qué todas las PKs son Id autonumérico?**
+- Sigue el estándar de **Helix6 Framework** que utiliza `Id` como PK técnica en todas las entidades
+- `SecurityCompanyId` pasa a ser un índice único de negocio, no la PK física
+- Esto facilita la generación automática de repositorios y endpoints en Helix6
+
+**¿Por qué tabla separada ApplicationSecurity?**
+- Una aplicación puede tener múltiples credenciales activas simultáneamente (frontend + backend)
+- Permite rotación de secretos sin afectar credenciales activas
+- Soporta diferentes tipos de flujo OAuth2: CODE (Angular SPAs) vs ClientCredentials (APIs backend)
+- Cada credencial puede tener su propio ciclo de vida independiente
+
+**¿Por qué campos de auditoría Helix6?**
+- **AuditCreationUser / AuditCreationDate**: Trazabilidad de quién y cuándo creó el registro
+- **AuditModificationUser / AuditModificationDate**: Trazabilidad de modificaciones
+- **AuditDeletionDate**: Soft delete - permite "eliminar" sin borrar físicamente el registro
+- El framework Helix6 gestiona automáticamente estos campos en todas las operaciones CUD
+
+**¿Por qué UserConsolidationCache?**
+- Optimiza el proceso de consolidación de usuarios multi-organización
+- Evita consultas costosas a la BD en cada evento de usuario recibido
+- Almacena el hash del último evento procesado para detección de duplicados
+- Contiene los datos consolidados (organizaciones y roles) listos para sincronizar con Keycloak
 
 **¿Por qué OrganizationGroup no tiene campo Active?**
 - Los grupos se mantienen implícitamente por las aplicaciones satélite basándose en el `GroupId` de las organizaciones
@@ -2263,7 +2348,9 @@ CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(Entit
 
 ### **3.2. Descripción de entidades principales:**
 
-A continuación se describen en detalle las 8 entidades principales del modelo de datos de InfoportOneAdmon, incluyendo todos sus atributos, tipos, restricciones, relaciones y reglas de negocio.
+A continuación se describen en detalle las 9 entidades principales del modelo de datos de InfoportOneAdmon, incluyendo todos sus atributos, tipos, restricciones, relaciones y reglas de negocio.
+
+> **Nota sobre Helix6**: Todas las entidades siguen el estándar del Framework Helix6, con `Id` como PK autonumérica y campos de auditoría automáticos (`AuditCreationUser`, `AuditCreationDate`, `AuditModificationUser`, `AuditModificationDate`, `AuditDeletionDate`).
 
 ---
 
@@ -2275,11 +2362,14 @@ A continuación se describen en detalle las 8 entidades principales del modelo d
 
 | Nombre Campo | Tipo | Restricciones | Descripción |
 |--------------|------|---------------|-------------|
-| **GroupId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del grupo. Clave primaria. |
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único técnico del grupo (PK Helix6). |
 | **GroupName** | VARCHAR(200) | UNIQUE, NOT NULL | Nombre del grupo (ej: "Holding Norte", "Consorcio Logístico"). Debe ser único en toda la base de datos. |
 | **Description** | VARCHAR(500) | NULL | Descripción opcional del grupo y su propósito. |
-| **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha y hora de creación del grupo. |
-| **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha y hora de la última modificación. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Email del usuario que creó el grupo. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha y hora de creación del grupo. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Email del usuario que modificó el grupo. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha y hora de la última modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (soft delete). NULL = activo. |
 
 **Relaciones**:
 - **1:N con Organization**: Un grupo puede contener múltiples organizaciones. Relación opcional (una organización puede no pertenecer a ningún grupo).
@@ -2288,10 +2378,11 @@ A continuación se describen en detalle las 8 entidades principales del modelo d
 - El nombre del grupo debe ser único (índice `UX_OrganizationGroup_GroupName`)
 - No tiene campo `Active` porque los grupos se mantienen implícitamente basándose en las organizaciones que contienen
 - Un grupo sin organizaciones puede ser eliminado automáticamente por jobs de limpieza
+- Soft delete mediante `AuditDeletionDate` permite recuperar grupos eliminados
 
 **Índices**:
 ```sql
-PK: GroupId
+PK: Id
 UK: GroupName
 ```
 
@@ -2307,8 +2398,9 @@ UK: GroupName
 
 | Nombre Campo | Tipo | Restricciones | Descripción |
 |--------------|------|---------------|-------------|
-| **SecurityCompanyId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único inmutable de la organización. Es el pilar de la seguridad multi-tenant. Se incluye en el claim `c_ids` de los tokens JWT. |
-| **GroupId** | INT | FK → OrganizationGroup.GroupId, NULL | Referencia opcional al grupo al que pertenece. NULL si no pertenece a ningún grupo. |
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único técnico (PK Helix6). |
+| **SecurityCompanyId** | INT | UNIQUE, NOT NULL, AUTO_INCREMENT | Identificador de negocio inmutable. Es el pilar de la seguridad multi-tenant. Se incluye en el claim `c_ids` de los tokens JWT. |
+| **GroupId** | INT | FK → OrganizationGroup.Id, NULL | Referencia opcional al grupo al que pertenece. NULL si no pertenece a ningún grupo. |
 | **Name** | VARCHAR(200) | UNIQUE, NOT NULL | Nombre comercial de la organización. Debe ser único. |
 | **TaxId** | VARCHAR(50) | UNIQUE, NOT NULL | Identificador fiscal (NIF/CIF/RFC). Debe ser único. |
 | **Address** | VARCHAR(300) | NULL | Dirección postal completa. |
@@ -2318,10 +2410,11 @@ UK: GroupName
 | **ContactEmail** | VARCHAR(255) | NULL | Email de contacto administrativo. |
 | **ContactPhone** | VARCHAR(50) | NULL | Teléfono de contacto. |
 | **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/inactivo (kill-switch). Si es FALSE, la organización no puede acceder al ecosistema. |
-| **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación (onboarding). |
-| **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
-| **CreatedBy** | VARCHAR(255) | NULL | Email del administrador que creó la organización. |
-| **UpdatedBy** | VARCHAR(255) | NULL | Email del administrador que realizó la última modificación. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Email del administrador que creó la organización. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación (onboarding). |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Email del administrador que realizó la última modificación. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (soft delete). |
 
 **Relaciones**:
 - **N:1 con OrganizationGroup** (opcional): Una organización puede pertenecer a un grupo. FK: `GroupId`. ON DELETE SET NULL.
@@ -2329,14 +2422,17 @@ UK: GroupName
 - **1:N con AuditLog**: Una organización genera múltiples registros de auditoría a lo largo de su ciclo de vida.
 
 **Restricciones de Negocio**:
+- `SecurityCompanyId` debe ser único (índice `UX_Organization_SecurityCompanyId`)
 - `Name` debe ser único (índice `UX_Organization_Name`)
 - `TaxId` debe ser único (índice `UX_Organization_TaxId`)
 - `SecurityCompanyId` es inmutable; una vez creado, nunca cambia
 - Cuando `Active = FALSE`, las aplicaciones satélite deben denegar acceso a todos los usuarios de esa organización
+- `SecurityCompanyId` se autogenera mediante secuencia independiente de `Id`
 
 **Índices**:
 ```sql
-PK: SecurityCompanyId
+PK: Id
+UK: SecurityCompanyId
 UK: Name
 UK: TaxId
 IX: GroupId
@@ -2345,37 +2441,375 @@ IX: Active
 
 **Ejemplo de Registro**:
 ```sql
+Id: 1
 SecurityCompanyId: 12345
 GroupId: 10
 Name: "Transportes Rápidos S.L."
 TaxId: "B12345678"
 Active: TRUE
 ContactEmail: "admin@transportesrapidos.com"
-CreatedBy: "admin@infoportone.com"
+AuditCreationUser: "admin@infoportone.com"
+AuditCreationDate: "2026-01-08 10:00:00"
 ```
 
 ---
 
 #### **3.2.3. APPLICATION**
 
-**Propósito**: Representa las aplicaciones satélite del ecosistema (CRM, ERP, BI, etc.). Almacena credenciales OAuth2 y configuración de seguridad.
+**Propósito**: Representa las aplicaciones satélite del ecosistema (CRM, ERP, BI, etc.). Define el catálogo de aplicaciones sin almacenar credenciales OAuth2.
 
 **Tabla de Atributos**:
 
 | Nombre Campo | Tipo | Restricciones | Descripción |
 |--------------|------|---------------|-------------|
-| **AppId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único de la aplicación. |
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único técnico de la aplicación (PK Helix6). |
 | **AppName** | VARCHAR(100) | UNIQUE, NOT NULL | Nombre de la aplicación (ej: "CRM", "ERP Financiero"). Debe ser único. |
 | **Description** | VARCHAR(500) | NULL | Descripción de la aplicación y su propósito. |
-| **RolePrefix** | VARCHAR(10) | UNIQUE, NOT NULL | Prefijo utilizado para roles y módulos de la aplicación (ej: "STP" para Sintraport, "CRM" para CRM). Los módulos usarán "M" + prefijo (ej: MSTP_Trafico), y los roles usarán solo el prefijo (ej: STP_AsignadorTransporte). Debe ser único. |
-| **ClientId** | VARCHAR(255) | UNIQUE, NOT NULL | OAuth2 client_id generado automáticamente (ej: "crm-app-frontend", "crm-api-backend"). |
-| **IsPublicClient** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | TRUE para SPAs Angular (no requiere secret), FALSE para APIs backend (confidential). |
-| **ClientSecretHash** | VARCHAR(255) | NULL | Hash bcrypt del client_secret. NULL para public clients (Angular SPAs). Solo se almacena para confidential clients (backends). NUNCA se almacena en texto plano. |
-| **RedirectUris** | TEXT (JSON) | NULL | Array JSON de URIs de redirección permitidas para OAuth2 (ej: `["https://crm.infoportone.com/*"]`). |
+| **RolePrefix** | VARCHAR(10) | UNIQUE, NOT NULL | Prefijo utilizado para roles y módulos (ej: "STP" para Sintraport, "CRM" para CRM). Los módulos usarán "M" + prefijo, los roles usarán solo el prefijo. Debe ser único. |
 | **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/en mantenimiento. Si es FALSE, la aplicación no puede autenticar usuarios. |
-| **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de registro de la aplicación en el ecosistema. |
-| **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
-| **SecretRotatedAt** | DATETIME | NULL | Fecha de la última rotación del client_secret (solo aplica a confidential clients). |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó la aplicación. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de registro de la aplicación. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó la aplicación. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (soft delete). |
+
+**Relaciones**:
+- **1:N con Module**: Una aplicación contiene múltiples módulos. FK en Module: `ApplicationId`. ON DELETE CASCADE.
+- **1:N con AppRoleDefinition**: Una aplicación define múltiples roles. FK en AppRoleDefinition: `ApplicationId`. ON DELETE CASCADE.
+- **1:N con ApplicationSecurity**: Una aplicación puede tener múltiples credenciales OAuth2. FK en ApplicationSecurity: `ApplicationId`. ON DELETE CASCADE.
+- **1:N con AuditLog**: Una aplicación genera registros de auditoría.
+
+**Restricciones de Negocio**:
+- `AppName` debe ser único (índice `UX_Application_AppName`)
+- `RolePrefix` debe ser único (índice `UX_Application_RolePrefix`)
+- **Regla de negocio**: Toda aplicación debe tener al menos un módulo (validado a nivel de aplicación)
+- **Nomenclatura de roles**: Los roles deben usar el prefijo definido en `RolePrefix`
+- **Nomenclatura de módulos**: Los módulos deben usar "M" + `RolePrefix`
+
+**Índices**:
+```sql
+PK: Id
+UK: AppName
+UK: RolePrefix
+IX: Active
+```
+
+**Ejemplo de Registro**:
+```sql
+Id: 5
+AppName: "CRM Comercial"
+RolePrefix: "CRM"
+Active: TRUE
+AuditCreationUser: "admin@infoportone.com"
+```
+
+**Nota importante**: Las credenciales OAuth2 están en `APPLICATION_SECURITY`, no en esta tabla.
+
+---
+
+#### **3.2.4. APPLICATION_SECURITY**
+
+**Propósito**: Almacena credenciales OAuth2 para aplicaciones. Una aplicación puede tener múltiples credenciales (frontend CODE + backend ClientCredentials).
+
+**Tabla de Atributos**:
+
+| Nombre Campo | Tipo | Restricciones | Descripción |
+|--------------|------|---------------|-------------|
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único de la credencial (PK Helix6). |
+| **ApplicationId** | INT | FK → Application.Id, NOT NULL | Aplicación a la que pertenece esta credencial. |
+| **CredentialType** | VARCHAR(20) | NOT NULL | Tipo de credencial: "CODE" (Angular SPA con PKCE) o "ClientCredentials" (Backend API). |
+| **ClientId** | VARCHAR(255) | UNIQUE, NOT NULL | OAuth2 client_id generado (ej: "crm-app-frontend", "crm-api-backend"). |
+| **ClientSecretHash** | VARCHAR(255) | NULL | Hash bcrypt del client_secret. NULL para CODE (no requiere secret), obligatorio para ClientCredentials. NUNCA texto plano. |
+| **RedirectUris** | TEXT (JSON) | NULL | Array JSON de URIs de redirección (solo para CODE). Ej: `["https://crm.infoportone.com/*"]`. |
+| **Scope** | VARCHAR(500) | NULL | Scopes OAuth2 permitidos (ej: "openid profile email"). |
+| **IsActive** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Si la credencial está activa. Permite rotación sin eliminar credenciales antiguas. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó la credencial. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación de la credencial. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (soft delete). |
+
+**Relaciones**:
+- **N:1 con Application**: Múltiples credenciales pueden pertenecer a una aplicación. FK: `ApplicationId`. ON DELETE CASCADE.
+
+**Restricciones de Negocio**:
+- `ClientId` debe ser único (índice `UX_ApplicationSecurity_ClientId`)
+- `ClientSecretHash` es NULL para CredentialType="CODE"
+- `ClientSecretHash` es obligatorio para CredentialType="ClientCredentials"
+- `RedirectUris` solo aplica para CredentialType="CODE"
+- El secret nunca se devuelve en APIs; solo se muestra en texto plano en el momento de creación
+
+**Índices**:
+```sql
+PK: Id
+UK: ClientId
+IX: ApplicationId
+IX: IsActive
+```
+
+**Ejemplos de Registros**:
+```sql
+-- Credencial CODE (Angular SPA)
+Id: 1
+ApplicationId: 5
+CredentialType: "CODE"
+ClientId: "crm-app-frontend"
+ClientSecretHash: NULL
+RedirectUris: '["https://crm.infoportone.com/*"]'
+IsActive: TRUE
+
+-- Credencial ClientCredentials (Backend API)
+Id: 2
+ApplicationId: 5
+CredentialType: "ClientCredentials"
+ClientId: "crm-api-backend"
+ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
+RedirectUris: NULL
+Scope: "read:data write:data"
+IsActive: TRUE
+```
+
+**Ventajas de tabla separada**:
+- Permite múltiples credenciales activas simultáneamente
+- Rotación de secretos sin afectar otras credenciales
+- Diferentes flujos OAuth2 para frontend y backend
+- Historial completo de credenciales con soft delete
+
+---
+
+#### **3.2.5. MODULE**
+
+**Propósito**: Representa módulos funcionales dentro de una aplicación. Permite habilitar/deshabilitar funcionalidades por organización.
+
+**Tabla de Atributos**:
+
+| Nombre Campo | Tipo | Restricciones | Descripción |
+|--------------|------|---------------|-------------|
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del módulo (PK Helix6). |
+| **ApplicationId** | INT | FK → Application.Id, NOT NULL | Aplicación a la que pertenece el módulo. |
+| **ModuleName** | VARCHAR(100) | NOT NULL | Nombre del módulo siguiendo nomenclatura M+RolePrefix (ej: "MSTP_Trafico", "MCRM_Facturacion"). |
+| **Description** | VARCHAR(500) | NULL | Descripción de las funcionalidades que ofrece el módulo. |
+| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/deprecated. Si es FALSE, el módulo no se puede asignar a nuevas organizaciones. |
+| **DisplayOrder** | INT | NULL, DEFAULT 0 | Orden de visualización en interfaces (menor número = mayor prioridad). |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó el módulo. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del módulo. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó el módulo. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (soft delete). |
+
+**Relaciones**:
+- **N:1 con Application**: Un módulo pertenece a una aplicación. FK: `ApplicationId`. ON DELETE CASCADE.
+- **1:N con ModuleAccess**: Un módulo puede asignarse a múltiples organizaciones.
+
+**Restricciones de Negocio**:
+- Combinación (`ApplicationId`, `ModuleName`) debe ser única (índice `UX_Module_ApplicationId_ModuleName`)
+- Toda aplicación debe tener al menos un módulo activo
+- Cuando `Active = FALSE`, el módulo está deprecated pero organizaciones existentes pueden seguir usándolo
+- El nombre debe seguir la nomenclatura "M" + RolePrefix de la aplicación
+
+**Índices**:
+```sql
+PK: Id
+UK: (ApplicationId, ModuleName)
+IX: ApplicationId
+IX: Active
+```
+
+**Ejemplo de Registro**:
+```sql
+Id: 101
+ApplicationId: 5
+ModuleName: "MCRM_FacturacionElectronica"
+Description: "Emisión y gestión de facturas electrónicas con firma digital"
+Active: TRUE
+DisplayOrder: 10
+```
+
+---
+
+#### **3.2.6. MODULE_ACCESS**
+
+**Propósito**: Tabla de relación N:M entre módulos y organizaciones. Define qué organizaciones tienen acceso a qué módulos.
+
+**Tabla de Atributos**:
+
+| Nombre Campo | Tipo | Restricciones | Descripción |
+|--------------|------|---------------|-------------|
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único (PK Helix6). |
+| **ModuleId** | INT | FK → Module.Id, NOT NULL | Módulo al que se concede acceso. |
+| **OrganizationId** | INT | FK → Organization.Id, NOT NULL | Organización que recibe el acceso. |
+| **GrantedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha y hora en que se concedió el acceso. |
+| **ExpiresAt** | DATETIME | NULL | Fecha de expiración del acceso (para licencias temporales). NULL = sin expiración. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Email del administrador que concedió el acceso. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del registro. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (revocación de acceso). |
+
+**Relaciones**:
+- **N:1 con Module**: FK: `ModuleId`. ON DELETE CASCADE.
+- **N:1 con Organization**: FK: `OrganizationId`. ON DELETE CASCADE.
+
+**Restricciones de Negocio**:
+- Combinación (`ModuleId`, `OrganizationId`) debe ser única (índice `UX_ModuleAccess_ModuleId_OrganizationId`)
+- Una organización no puede tener el mismo módulo asignado dos veces
+- Si `ExpiresAt` está en el pasado, las aplicaciones deben denegar acceso al módulo
+- Soft delete permite historial de accesos concedidos/revocados
+
+**Índices**:
+```sql
+PK: Id
+UK: (ModuleId, OrganizationId)
+IX: OrganizationId
+IX: ExpiresAt
+```
+
+**Ejemplo de Registro**:
+```sql
+Id: 5001
+ModuleId: 101
+OrganizationId: 1
+GrantedAt: "2026-01-01 10:00:00"
+AuditCreationUser: "admin@infoportone.com"
+ExpiresAt: NULL
+```
+
+---
+
+#### **3.2.7. APP_ROLE_DEFINITION**
+
+**Propósito**: Catálogo maestro de roles disponibles en cada aplicación. Define "qué roles existen" (no quién los tiene).
+
+**Tabla de Atributos**:
+
+| Nombre Campo | Tipo | Restricciones | Descripción |
+|--------------|------|---------------|-------------|
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del rol (PK Helix6). |
+| **ApplicationId** | INT | FK → Application.Id, NOT NULL | Aplicación a la que pertenece el rol. |
+| **RoleName** | VARCHAR(100) | NOT NULL | Nombre del rol siguiendo nomenclatura RolePrefix (ej: "CRM_Vendedor", "STP_AsignadorTransporte"). |
+| **Description** | VARCHAR(500) | NULL | Descripción de los permisos y responsabilidades del rol. |
+| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/deprecated. Si es FALSE, el rol no se puede asignar a nuevos usuarios. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó el rol. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del rol. |
+| **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó. |
+| **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
+| **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (soft delete). |
+
+**Relaciones**:
+- **N:1 con Application**: Un rol pertenece a una aplicación. FK: `ApplicationId`. ON DELETE CASCADE.
+
+**Restricciones de Negocio**:
+- Combinación (`ApplicationId`, `RoleName`) debe ser única (índice `UX_AppRole_ApplicationId_RoleName`)
+- Cuando `Active = FALSE`, el rol está deprecated pero usuarios existentes pueden mantenerlo
+- **Principio de responsabilidad**: InfoportOneAdmon define roles, aplicaciones satélite los asignan a usuarios
+- El nombre debe seguir la nomenclatura RolePrefix de la aplicación
+
+**Índices**:
+```sql
+PK: Id
+UK: (ApplicationId, RoleName)
+IX: ApplicationId
+IX: Active
+```
+
+**Ejemplo de Registro**:
+```sql
+Id: 201
+ApplicationId: 5
+RoleName: "CRM_GerenteVentas"
+Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar descuentos hasta 15%"
+Active: TRUE
+```
+
+---
+
+#### **3.2.8. USER_CONSOLIDATION_CACHE**
+
+**Propósito**: Caché de consolidación de usuarios multi-organización y multi-aplicación. Optimiza el proceso del Background Worker.
+
+**Tabla de Atributos**:
+
+| Nombre Campo | Tipo | Restricciones | Descripción |
+|--------------|------|---------------|-------------|
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único (PK Helix6). |
+| **Email** | VARCHAR(255) | UNIQUE, NOT NULL | Email del usuario (clave de búsqueda global). |
+| **ConsolidatedCompanyIds** | TEXT (JSON) | NOT NULL | JSON array de todos los SecurityCompanyIds del usuario. Ej: `[12345, 67890, 11111]`. |
+| **ConsolidatedRoles** | TEXT (JSON) | NOT NULL | JSON array de todos los roles del usuario de todas las aplicaciones. Ej: `["CRM_Vendedor", "ERP_Contable", "STP_AsignadorTransporte"]`. |
+| **LastConsolidationDate** | DATETIME | NOT NULL | Timestamp de la última consolidación exitosa. |
+| **LastEventHash** | VARCHAR(64) | NULL | Hash SHA-256 del último UserEvent procesado para este usuario. |
+
+**Relaciones**: Ninguna (tabla de caché independiente).
+
+**Restricciones de Negocio**:
+- `Email` debe ser único (índice `UX_UserConsolidationCache_Email`)
+- Se actualiza cada vez que el Background Worker procesa un UserEvent
+- Se utiliza para detectar si un usuario ya existe en otra organización
+- Permite consolidación rápida sin consultar múltiples tablas
+
+**Índices**:
+```sql
+PK: Id
+UK: Email
+IX: LastConsolidationDate
+```
+
+**Ejemplo de Registro**:
+```sql
+Id: 1
+Email: "juan.perez@example.com"
+ConsolidatedCompanyIds: "[12345, 67890, 11111]"
+ConsolidatedRoles: "[\"CRM_Vendedor\", \"CRM_Gerente\", \"STP_AsignadorTransporte\"]"
+LastConsolidationDate: "2026-01-08 15:30:45"
+LastEventHash: "a3f5b8c9d2e1f4g6..."
+```
+
+**Uso en Background Worker**:
+```csharp
+// 1. Buscar en caché
+var cached = await _cache.FirstOrDefaultAsync(u => u.Email == email);
+
+// 2. Si existe, usar datos consolidados
+if (cached != null)
+{
+    var allCompanies = JsonSerializer.Deserialize<int[]>(cached.ConsolidatedCompanyIds);
+    var allRoles = JsonSerializer.Deserialize<string[]>(cached.ConsolidatedRoles);
+    // 3. Añadir nueva organización/roles si procede
+    // 4. Sincronizar con Keycloak
+}
+```
+
+---
+
+#### **3.2.9. AUDIT_LOG**
+
+**Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon.
+
+(La descripción de AUDIT_LOG se mantiene igual que antes, con `Id` como PK en lugar de `AuditLogId`)
+
+---
+
+#### **3.2.10. EVENT_HASH_CONTROL**
+
+**Propósito**: Tabla de control para prevención de duplicados en la publicación de eventos.
+
+(La descripción de EVENT_HASH_CONTROL se mantiene igual que antes)
+
+---
+
+#### **Resumen de Entidades**
+
+| Entidad | Propósito | PK | FKs | Restricciones Únicas | Relaciones |
+|---------|-----------|----|----|---------------------|------------|
+| **OrganizationGroup** | Agrupación de organizaciones | Id | - | GroupName | 1:N con Organization |
+| **Organization** | Cliente del ecosistema | Id | GroupId | SecurityCompanyId, Name, TaxId | N:1 con Group, 1:N con ModuleAccess |
+| **Application** | App satélite del portfolio | Id | - | AppName, RolePrefix | 1:N con Module, 1:N con AppRole, 1:N con ApplicationSecurity |
+| **ApplicationSecurity** | Credenciales OAuth2 | Id | ApplicationId | ClientId | N:1 con Application |
+| **Module** | Módulo funcional de app | Id | ApplicationId | (ApplicationId, ModuleName) | N:1 con App, 1:N con ModuleAccess |
+| **ModuleAccess** | Acceso módulo-organización | Id | ModuleId, OrganizationId | (ModuleId, OrganizationId) | N:1 con Module y Organization |
+| **AppRoleDefinition** | Catálogo de roles | Id | ApplicationId | (ApplicationId, RoleName) | N:1 con Application |
+| **UserConsolidationCache** | Caché consolidación usuarios | Id | - | Email | Ninguna (caché) |
+| **AuditLog** | Registro de auditoría | Id | - | - | N:1 lógico con todas las entidades |
+| **EventHashControl** | Control de duplicados | (EntityType, EntityId) | - | - | Ninguna (tabla de control) |
 
 **Relaciones**:
 - **1:N con Module**: Una aplicación contiene múltiples módulos. FK en Module: `AppId`. ON DELETE CASCADE (si se elimina la app, se eliminan sus módulos).

@@ -281,7 +281,7 @@ sequenceDiagram
 - **Precondiciones:** Se produce un cambio en los permisos de acceso de una organización.
 - **Flujo principal:**
   1. El sistema detecta el cambio en permisos de la organización.
-  2. Construye el array Apps con AppId, DatabaseName y AccessibleModules para cada aplicación.
+  2. Construye el array Apps con ApplicationId (Id de Application), DatabaseName y AccessibleModules (Ids de módulos) para cada aplicación.
   3. Publica el OrganizationEvent con toda la información de permisos.
 - **Criterios de éxito:**
   - Las aplicaciones satélite saben exactamente qué módulos puede usar cada organización procesando solo su OrganizationEvent.

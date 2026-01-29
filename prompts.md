@@ -421,7 +421,70 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 
 ### 3. Modelo de Datos
 
-## Prompt 3.1
+## Prompt 3.1: Corrección del modelo de datos para alineación con arquitectura Helix6
+
+**Rol:** Arquitecto de datos especialista en arquitectura Helix6, normalización de bases de datos y mejores prácticas de diseño de esquemas relacionales.
+
+**Objetivo:** Corregir completamente el modelo de datos de InfoportOneAdmon para alinearlo con la arquitectura Helix6 e incorporar mejoras arquitectónicas identificadas durante el análisis del sistema.
+
+**Cambios requeridos:**
+
+**Cambio 1: Alineación con Helix6 Framework**
+- Todas las claves primarias deben ser `Id` (autonumérico) en lugar de nombres personalizados como `GroupId`, `SecurityCompanyId`, `AppId`, `ModuleId`, etc.
+- `SecurityCompanyId` pasa a ser un índice único de negocio en la tabla `ORGANIZATION`, no la PK física
+- Todos los campos de auditoría deben seguir el estándar Helix6:
+  - `AuditCreationUser` (usuario que creó)
+  - `AuditCreationDate` (fecha de creación)
+  - `AuditModificationUser` (usuario que modificó)
+  - `AuditModificationDate` (fecha de modificación)
+  - `AuditDeletionDate` (soft delete - fecha de eliminación lógica)
+- Eliminar campos personalizados de auditoría como `CreatedAt`, `UpdatedAt`, `CreatedBy`, `UpdatedBy`, `GrantedBy`
+
+**Cambio 2: Tabla UserConsolidationCache**
+- Añadir la tabla `USER_CONSOLIDATION_CACHE` que faltaba en el modelo de datos
+- Esta tabla optimiza el proceso de consolidación de usuarios multi-organización
+- Campos requeridos:
+  - `Id` (PK, autonumérico)
+  - `Email` (índice único, clave de búsqueda)
+  - `ConsolidatedCompanyIds` (JSON array de SecurityCompanyIds)
+  - `ConsolidatedRoles` (JSON array de roles consolidados de todas las aplicaciones)
+  - `LastConsolidationDate` (timestamp de última consolidación)
+  - `LastEventHash` (SHA-256 hash del último evento procesado)
+
+**Cambio 3: Tabla ApplicationSecurity**
+- Separar las credenciales OAuth2 de la tabla `APPLICATION` en una nueva tabla `APPLICATION_SECURITY`
+- Una aplicación puede tener múltiples credenciales (frontend CODE + backend ClientCredentials)
+- Campos requeridos:
+  - `Id` (PK, autonumérico)
+  - `ApplicationId` (FK a Application.Id)
+  - `CredentialType` (CODE o ClientCredentials)
+  - `ClientId` (índice único)
+  - `ClientSecretHash` (NULL para CODE, hash bcrypt para ClientCredentials)
+  - `RedirectUris` (JSON, solo para CODE)
+  - `Scope` (scopes OAuth2)
+  - `IsActive` (bool, credencial activa/inactiva)
+  - Campos de auditoría Helix6
+- Eliminar de `APPLICATION`: `ClientId`, `IsPublicClient`, `ClientSecretHash`, `RedirectUris`, `SecretRotatedAt`
+
+**Cambio 4: Ajuste de Foreign Keys**
+- `ORGANIZATION.GroupId` debe referenciar `ORGANIZATION_GROUP.Id` (no GroupId)
+- `MODULE.AppId` debe renombrarse a `MODULE.ApplicationId` y referenciar `APPLICATION.Id`
+- `MODULE_ACCESS.SecurityCompanyId` debe renombrarse a `MODULE_ACCESS.OrganizationId` y referenciar `ORGANIZATION.Id`
+- `APP_ROLE_DEFINITION.AppId` debe renombrarse a `APP_ROLE_DEFINITION.ApplicationId` y referenciar `APPLICATION.Id`
+
+**Archivos a actualizar:**
+- `readme.md`: Diagrama mermaid (sección 3.1), descripción de entidades (sección 3.2), índices, restricciones
+- Actualizar todas las referencias en el documento que mencionen los campos antiguos
+- Revisar `requirements.md` y `useCases.md` para referencias a campos modificados
+- Añadir explicación de las ventajas de estos cambios en las "Notas sobre el Diseño"
+
+**Resultado esperado:**
+- Modelo de datos 100% alineado con Helix6 Framework
+- Tabla UserConsolidationCache documentada
+- Separación clara de credenciales OAuth2 en tabla dedicada
+- Eliminación de redundancias (SecretRotatedAt ya no necesario con tabla separada)
+- Nomenclatura consistente de Foreign Keys
+- Documentación completa con ventajas de cada decisión arquitectónica
 
 ## Prompt 3.2
 

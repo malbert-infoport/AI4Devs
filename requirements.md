@@ -72,7 +72,7 @@ Los requisitos cubren todos los módulos del sistema: gestión de organizaciones
 | **RF-015** | El sistema deberá mantener un catálogo maestro de roles por aplicación. | Alta | - Roles únicos por aplicación<br/>- Descripción de permisos asociados<br/>- No se permite duplicación de nombres |
 | **RF-016** | El sistema deberá incluir los roles en el payload de ApplicationEvent junto con la aplicación. | Alta | - Lista completa de roles en cada evento de aplicación<br/>- Sincronización atómica roles-aplicación<br/>- Sin eventos separados de roles |
 | **RF-017** | El sistema deberá permitir definir módulos con metadata descriptiva (nombre, descripción, funcionalidad). | Media | - Formulario de alta/edición de módulos<br/>- Validación de campos<br/>- Asociación obligatoria a aplicación |
-| **RF-018** | El sistema deberá incluir en el OrganizationEvent la lista de aplicaciones y módulos accesibles para cada organización. | Alta | - Por cada aplicación: AppId, DatabaseName y lista de ModuleIds accesibles<br/>- Sincronización completa en cada evento de organización<br/>- Permite a las apps satélite conocer qué puede hacer cada organización |
+| **RF-018** | El sistema deberá incluir en el OrganizationEvent la lista de aplicaciones y módulos accesibles para cada organización. | Alta | - Por cada aplicación: ApplicationId (Id de Application), DatabaseName y lista de Ids de módulos accesibles<br/>- Sincronización completa en cada evento de organización<br/>- Permite a las apps satélite conocer qué puede hacer cada organización |
 
 ---
 

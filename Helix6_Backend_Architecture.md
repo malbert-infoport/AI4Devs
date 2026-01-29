@@ -1709,7 +1709,6 @@ Todas las entidades incluyen campos administrados automáticamente:
 *   `AuditCreationUser` / `AuditCreationDate`
 *   `AuditModificationUser` / `AuditModificationDate`
 *   `AuditDeletionDate` (para soft delete)
-*   `AuditVersionKey` (cuando aplica a entidades versionadas)
 
 ### 11.2 Actualización Automática de Auditoría
 Los repositorios base capturan el `IUserContext` y actualizan los campos al insertar/modificar/eliminar. `BaseService` propaga los valores usando `appCtx.GetCurrentUserId()` durante `Insert`/`Update`/`Delete`.
