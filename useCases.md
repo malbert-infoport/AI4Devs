@@ -162,6 +162,46 @@ sequenceDiagram
 - **Criterios de éxito:**
   - La aplicación queda registrada con su prefijo único y sincronizada con Keycloak y el ecosistema.
 
+#### RF-008a: Soportar tipos de credenciales OAuth2 (CODE vs ClientCredentials)
+- **Nombre:** Registro de credenciales diferenciadas por tipo de cliente
+- **Objetivo:** Permitir el registro de aplicaciones con credenciales apropiadas según su naturaleza (frontend SPA o backend API).
+- **Actores:** Administrador InfoportOneAdmon
+- **Precondiciones:** Se está registrando una nueva aplicación o agregando credencial adicional.
+- **Flujo principal:**
+  1. El administrador selecciona el tipo de credencial: CODE (public client) o ClientCredentials (confidential client).
+  2. Si es CODE (Angular SPA):
+     a. Sistema genera solo client_id
+     b. Solicita RedirectURIs
+     c. Habilita PKCE (S256) automáticamente
+     d. ClientSecretHash queda NULL
+  3. Si es ClientCredentials (Backend API):
+     a. Sistema genera client_id y client_secret
+     b. Muestra el secret en texto plano ÚNA SOLA VEZ
+     c. Hashea el secret con bcrypt antes de almacenar
+     d. RedirectURIs queda NULL
+  4. Se crea registro en tabla APPLICATION_SECURITY.
+  5. Se registra el cliente en Keycloak vía Admin API.
+- **Flujos alternativos:**
+  - Si el usuario pierde el client_secret de un confidential client, debe rotarlo (no se puede recuperar).
+- **Criterios de éxito:**
+  - Public clients quedan registrados sin secretos, listos para PKCE.
+  - Confidential clients tienen secret hasheado y mostrado una única vez al administrador.
+
+#### RF-008b: Múltiples credenciales por aplicación
+- **Nombre:** Gestión de múltiples credenciales para una aplicación
+- **Objetivo:** Permitir que una aplicación tenga credenciales separadas para frontend (CODE) y backend (ClientCredentials).
+- **Actores:** Administrador InfoportOneAdmon
+- **Precondiciones:** La aplicación ya existe.
+- **Flujo principal:**
+  1. El administrador accede a la sección de credenciales de la aplicación.
+  2. Visualiza todas las credenciales existentes (frontend, backend, etc.).
+  3. Decide agregar una nueva credencial (ej: backend API si solo tenía frontend).
+  4. Sigue el flujo de RF-008a para el tipo correspondiente.
+  5. Ambas credenciales quedan activas simultáneamente.
+- **Criterios de éxito:**
+  - Aplicación puede autenticar tanto desde Angular (PKCE) como desde API backend (ClientCredentials).
+  - Cada credencial tiene su propio ciclo de vida independiente.
+
 #### RF-009: Definir roles de seguridad por aplicación
 - **Nombre:** Gestión de roles por aplicación
 - **Objetivo:** Permitir la creación, edición y eliminación de roles de seguridad para cada aplicación usando el prefijo de la aplicación.
@@ -174,6 +214,26 @@ sequenceDiagram
   4. Se actualiza la base de datos y se publica ApplicationEvent.
 - **Criterios de éxito:**
   - Los roles quedan correctamente gestionados con el prefijo adecuado y sincronizados.
+
+#### RF-009a: Validar nomenclatura de roles y módulos
+- **Nombre:** Validación automática de nomenclatura estándar
+- **Objetivo:** Garantizar que roles y módulos sigan la convención de nomenclatura basada en el prefijo de la aplicación.
+- **Actores:** Sistema InfoportOneAdmon
+- **Precondiciones:** Se está creando o editando un rol o módulo.
+- **Flujo principal:**
+  1. El sistema obtiene el RolePrefix de la aplicación.
+  2. Para roles:
+     a. Valida que el nombre comience con RolePrefix (ej: CRM_Vendedor si RolePrefix=CRM)
+     b. Valida que siga el patrón: {RolePrefix}_{NombreDescriptivo}
+  3. Para módulos:
+     a. Valida que el nombre comience con M{RolePrefix} (ej: MCRM_Facturacion si RolePrefix=CRM)
+     b. Valida que siga el patrón: M{RolePrefix}_{NombreDescriptivo}
+  4. Si no cumple el patrón, rechaza con error HTTP 400 Bad Request.
+- **Flujos alternativos:**
+  - El administrador puede corregir el nombre para que cumpla la nomenclatura.
+- **Criterios de éxito:**
+  - Todos los roles y módulos en el sistema siguen consistentemente la nomenclatura estándar.
+  - Evita conflictos de nombres entre aplicaciones (cada una tiene su prefijo único).
 
 #### RF-010: Definir módulos funcionales por aplicación
 - **Nombre:** Gestión de módulos por aplicación
@@ -444,9 +504,48 @@ sequenceDiagram
   2. Construye el array c_ids.
   3. Valida la existencia y estado de las organizaciones.
   4. Consulta todos los roles del usuario desde todas las aplicaciones en BD.
-  5. Construye array de roles consolidados usando prefijos de aplicación para evitar conflictos.
+  5. Construye array de roles consolidados usando prefijos de aplicación para evitar conflictos:
+     a. Usuario tiene rol "Vendedor" en CRM → "CRM_Vendedor"
+     b. Usuario tiene rol "AsignadorTransporte" en Sintraport → "STP_AsignadorTransporte"
+     c. Usuario tiene rol "Contable" en ERP → "ERP_Contable"
+  6. Almacena roles consolidados en UserConsolidationCache.
+- **Flujos alternativos:**
+  - Si dos aplicaciones tienen rol con mismo nombre (ej: "Admin"), el prefijo evita conflicto: CRM_Admin vs ERP_Admin.
 - **Criterios de éxito:**
-  - El claim c_ids refleja todas las organizaciones activas del usuario y todos sus roles están consolidados con prefijos únicos.
+  - El claim c_ids refleja todas las organizaciones activas del usuario.
+  - Todos los roles están consolidados con prefijos únicos que identifican la aplicación de origen.
+  - Keycloak recibe array de roles completo para asignación al usuario.
+
+#### RF-036: Eliminar grupos huérfanos automáticamente
+- **Nombre:** Limpieza de grupos sin organizaciones
+- **Objetivo:** Mantener la base de datos limpia eliminando grupos que quedaron sin miembros.
+- **Actores:** Job Programado / Background Worker
+- **Precondiciones:** Existen grupos en la base de datos.
+- **Flujo principal:**
+  1. Job se ejecuta periódicamente (ej: diariamente).
+  2. Consulta grupos que no tienen organizaciones asociadas (LEFT JOIN con count = 0).
+  3. Aplica soft delete (AuditDeletionDate) a grupos huérfanos.
+  4. Registra operación en logs.
+- **Criterios de éxito:**
+  - Grupos vacíos quedan marcados como eliminados.
+  - Apps satélite los eliminan de su caché local al procesar OrganizationEvents sin GroupId.
+
+#### RF-037: Almacenar roles consolidados en caché
+- **Nombre:** Caché de roles consolidados multi-aplicación
+- **Objetivo:** Optimizar consolidación de usuarios almacenando roles de todas las aplicaciones.
+- **Actores:** Background Worker InfoportOneAdmon
+- **Precondiciones:** Se procesa un UserEvent.
+- **Flujo principal:**
+  1. Worker obtiene roles del evento actual (con OriginApplicationId).
+  2. Consulta UserConsolidationCache para obtener roles previos de otras apps.
+  3. Fusiona roles nuevos con roles existentes:
+     a. Si rol ya existe con mismo prefijo, lo actualiza
+     b. Si rol es de nueva aplicación, lo agrega al array
+  4. Almacena array consolidado en campo ConsolidatedRoles (JSON).
+  5. Sincroniza array completo con Keycloak.
+- **Criterios de éxito:**
+  - UserConsolidationCache.ConsolidatedRoles contiene roles de todas las aplicaciones.
+  - Keycloak tiene asignados todos los roles del usuario con prefijos correctos.
 
 #### RF-033: Sincronizar con Keycloak sin publicar eventos adicionales
 - **Nombre:** Sincronización directa con Keycloak

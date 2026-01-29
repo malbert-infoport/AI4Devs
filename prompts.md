@@ -565,7 +565,183 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 **Resultado esperado:**
 - Un fichero `useCases.md` completo, organizado y visual, que sirva como referencia para desarrollo, validación y pruebas del sistema.
 
-## Prompt 5.3
+## Prompt 5.3: Generación de Historias de Usuario agrupadas por Épicas
+
+**Rol:** Product Owner senior especialista en metodologías ágiles, definición de User Stories y gestión de product backlog para sistemas empresariales complejos.
+
+**Objetivo:** Crear un conjunto completo y profesional de historias de usuario (User Stories) para el sistema InfoportOneAdmon, organizadas en épicas coherentes, siguiendo los estándares de excelencia de la industria y las mejores prácticas de desarrollo ágil.
+
+**Contexto del proyecto:**
+Analizar exhaustivamente toda la documentación existente del proyecto (readme.md, requirements.md, useCases.md) para comprender el alcance funcional completo del sistema InfoportOneAdmon: plataforma administrativa centralizada para gestión de portfolio de aplicaciones empresariales, control de acceso multi-organización, integración con Keycloak y arquitectura orientada a eventos.
+
+**Estructura requerida:**
+
+**1. Organización en Épicas:**
+- Agrupar las User Stories en épicas de alto nivel que representen capacidades de negocio completas
+- Cada épica debe tener: nombre descriptivo, objetivo de negocio, valor que aporta, criterios de aceptación de la épica
+- Épicas sugeridas (adaptar según análisis): 
+  - Gestión del Portfolio de Organizaciones Clientes
+  - Administración de Aplicaciones del Ecosistema
+  - Configuración de Módulos y Permisos de Acceso
+  - Gobierno de Roles y Seguridad
+  - Sincronización y Consolidación de Usuarios Multi-Organización
+  - Integración con Keycloak e Identity Management
+  - Arquitectura de Eventos y Sincronización
+
+**2. Características de las User Stories:**
+
+**a) Descripción informal y storytelling:**
+- Redacción en lenguaje natural, accesible, no técnico
+- Contar una historia desde la perspectiva del usuario, no listar funcionalidades
+- Incluir contexto emocional y motivacional cuando sea posible
+- Ejemplo: En lugar de "CRUD de organizaciones", escribir "Como administrador del ecosistema, quiero dar de alta una nueva organización cliente en pocos pasos para comenzar su onboarding rápidamente y sin errores"
+
+**b) Enfoque en el usuario (Avatar/Buyer Persona):**
+- Definir claramente los tipos de usuarios del sistema:
+  - **Administrador de la Organización Propietaria**: Responsable de onboarding y gestión de clientes
+  - **Gestor de Seguridad**: Administra roles, permisos y accesos
+  - **Administrador de Aplicaciones**: Configura el portfolio de aplicaciones
+  - **Auditor/Compliance Officer**: Revisa trazabilidad y cumplimiento
+  - **Usuario Final de Organización Cliente**: Beneficiario indirecto del sistema
+- Vincular cada User Story a uno de estos avatares específicos
+- Describir brevemente el contexto y necesidad del avatar cuando aporte valor
+
+**c) Estructura clásica obligatoria:**
+Cada User Story debe seguir rigurosamente el formato:
+```
+Como un [tipo de usuario específico],
+quiero [acción/capacidad que desea realizar],
+para [beneficio/valor que obtiene].
+```
+
+**d) Componentes adicionales de cada User Story:**
+- **ID único**: US-XXX (numeración secuencial)
+- **Épica asociada**: Referencia a la épica padre
+- **Título descriptivo**: Resumen de 5-10 palabras
+- **Descripción**: Formato "Como... quiero... para..."
+- **Contexto adicional** (opcional): Situación o escenario que desencadena la necesidad
+- **Criterios de aceptación**: Lista de condiciones verificables que deben cumplirse (formato Given/When/Then cuando aplique)
+- **Definición de hecho (DoD)**: Qué significa que la historia está completada
+- **Prioridad**: Alta/Media/Baja (según valor de negocio e impacto)
+- **Estimación**: Story Points (escala Fibonacci: 1, 2, 3, 5, 8, 13, 21) o T-Shirt sizes (XS, S, M, L, XL)
+- **Dependencias**: Referencias a otras User Stories que deben completarse antes
+- **Notas técnicas** (si son críticas): Consideraciones técnicas que el equipo debe conocer
+- **Conversaciones pendientes**: Preguntas o aclaraciones que requieren diálogo con stakeholders
+
+**e) Priorización:**
+- Aplicar criterio de priorización basado en:
+  - **Valor de negocio**: Impacto en los objetivos del producto
+  - **Riesgo técnico**: Complejidad e incertidumbre
+  - **Dependencias**: Funcionalidades que bloquean otras
+  - **Urgencia**: Necesidad temporal del mercado o cliente
+- Sugerir un orden lógico de implementación por épica
+- Identificar el **MVP (Producto Mínimo Viable)** con las User Stories críticas para un primer lanzamiento funcional
+
+**f) Estimación:**
+- Asignar estimación de esfuerzo relativo (Story Points en escala Fibonacci o T-Shirt sizes)
+- Considerar: complejidad técnica, incertidumbre, esfuerzo de desarrollo, esfuerzo de testing
+- Identificar User Stories épicas (>13 puntos) que deberían dividirse en historias más pequeñas
+
+**g) Conversación y confirmación:**
+- Para User Stories complejas o ambiguas, incluir sección de "Preguntas para el equipo" que fomenten el diálogo
+- Incluir "Criterios de demostración" que describan cómo se validará la historia en la Sprint Review
+
+**h) Evolución iterativa:**
+- Identificar User Stories que pueden evolucionar en futuras iteraciones
+- Sugerir versiones incrementales (v1, v2) cuando una funcionalidad pueda entregarse progresivamente
+- Ejemplo: "US-025 v1: Filtros básicos de organizaciones" → "US-025 v2: Filtros avanzados con guardado de preferencias"
+
+**3. Formato de salida:**
+Crear un documento markdown estructurado con:
+- Índice navegable
+- Sección de definición de avatares/buyer personas
+- Una sección por épica con:
+  - Descripción de la épica
+  - Tabla resumen de User Stories de la épica
+  - Detalle completo de cada User Story
+- Roadmap visual (diagrama mermaid) mostrando dependencias entre épicas e hitos
+- Backlog priorizado con las primeras 20-30 User Stories para Sprint Planning
+
+**4. Estándares profesionales a aplicar:**
+- Principio **INVEST**: Independent, Negotiable, Valuable, Estimable, Small, Testable
+- Evitar User Stories técnicas (refactorizaciones, migraciones) a menos que aporten valor visible
+- Mantener granularidad adecuada: historias completables en 1-3 días por desarrollador
+- Balancear historias funcionales con historias no funcionales (seguridad, rendimiento, UX)
+- Incluir "Spike Stories" para investigaciones técnicas cuando haya incertidumbre alta
+
+**5. Casos especiales a considerar:**
+- **Integraciones**: User Stories que involucren Keycloak, ActiveMQ Artemis
+- **Background Workers**: Historias de consolidación de usuarios multi-organización
+- **Eventos**: Historias de sincronización y publicación/consumo de eventos
+- **Seguridad**: Historias de autenticación OAuth2, PKCE, gestión de secretos
+- **Auditoría**: Historias de trazabilidad y compliance
+
+**Ejemplos de buenas User Stories para referencia:**
+
+**Ejemplo 1 - Story simple:**
+```
+ID: US-001
+Épica: Gestión del Portfolio de Organizaciones Clientes
+Título: Crear nueva organización cliente
+Prioridad: Alta | Estimación: 5 Story Points
+
+Como Administrador de la Organización Propietaria,
+quiero dar de alta una nueva organización cliente completando un formulario con sus datos básicos (nombre, CIF, contacto),
+para iniciar su proceso de onboarding en el ecosistema y permitir que sus usuarios accedan a las aplicaciones contratadas.
+
+Criterios de aceptación:
+- El formulario valida que nombre, CIF y email de contacto sean obligatorios
+- El sistema genera automáticamente un SecurityCompanyId único e inmutable
+- Se muestra confirmación visual del registro exitoso
+- Se publica un OrganizationEvent al broker ActiveMQ Artemis
+- El registro queda visible en el listado de organizaciones
+- Se registra en auditoría quién y cuándo creó la organización
+
+Definición de hecho:
+- Código revisado y aprobado
+- Tests unitarios y de integración pasando
+- Evento publicado correctamente verificado
+- Documentación de API actualizada
+
+Dependencias: Ninguna (historia fundacional)
+```
+
+**Ejemplo 2 - Story con conversación:**
+```
+ID: US-015
+Épica: Sincronización y Consolidación de Usuarios Multi-Organización
+Título: Consolidar usuarios duplicados por email
+Prioridad: Alta | Estimación: 8 Story Points
+
+Como el Background Worker del sistema,
+quiero detectar automáticamente cuando un usuario existe en múltiples organizaciones (por email duplicado),
+para consolidar todas sus organizaciones en el claim c_ids del token JWT y permitirle acceder a datos de todas ellas con un solo login.
+
+Criterios de aceptación:
+- Given: Dos organizaciones publican UserEvent con el mismo email
+- When: El Background Worker procesa el segundo evento
+- Then: Detecta el email duplicado, consulta la BD y construye array c_ids con ambos SecurityCompanyId
+- And: Sincroniza el claim consolidado con Keycloak via Admin API
+- And: El token JWT del usuario contiene c_ids: [12345, 67890]
+
+Preguntas para el equipo:
+- ¿Cómo manejamos el caso de emails duplicados con diferente capitalización (juan@example.com vs Juan@Example.com)?
+- ¿Qué hacemos si una organización marca al usuario como inactivo pero en otra está activo?
+
+Notas técnicas:
+- Usar tabla UserConsolidationCache para optimizar detección de duplicados
+- El claim c_ids debe ser atributo multivalor en Keycloak
+
+Dependencias: US-012 (Alta de usuarios desde apps satélite)
+```
+
+**Resultado esperado:**
+- Documento `userStories.md` completo, profesional y accionable
+- Organización clara en épicas con roadmap visual
+- Historias bien escritas, priorizadas y estimadas
+- Backlog listo para Sprint Planning
+- Fomento de conversación entre equipo de producto y técnico
+- Base sólida para desarrollo iterativo e incremental del sistema InfoportOneAdmon
 
 ---
 
