@@ -2196,8 +2196,6 @@ erDiagram
         int Id PK "AUTO_INCREMENT, Identificador único"
         int ModuleId FK "NOT NULL, Referencia a Module.Id"
         int OrganizationId FK "NOT NULL, Referencia a Organization.Id"
-        datetime GrantedAt "NOT NULL, Fecha de concesión de acceso"
-        datetime ExpiresAt "NULL, Fecha de expiración (si aplica)"
         string AuditCreationUser "Usuario que concedió el acceso"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
         string AuditModificationUser "Usuario que modificó"
@@ -2232,7 +2230,6 @@ erDiagram
         string EntityType "NOT NULL, Tipo de entidad"
         string EntityId "NOT NULL, ID de la entidad afectada"
         string Action "NOT NULL, Acción: INSERT, UPDATE, DELETE"
-        string UserId "NOT NULL, Usuario que ejecutó la acción"
         datetime Timestamp "NOT NULL, Momento exacto del cambio"
         string OldValue "JSON con estado anterior (NULL en INSERT)"
         string NewValue "JSON con estado posterior (NULL en DELETE)"
@@ -2638,10 +2635,8 @@ DisplayOrder: 10
 | **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único (PK Helix6). |
 | **ModuleId** | INT | FK → Module.Id, NOT NULL | Módulo al que se concede acceso. |
 | **OrganizationId** | INT | FK → Organization.Id, NOT NULL | Organización que recibe el acceso. |
-| **GrantedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha y hora en que se concedió el acceso. |
-| **ExpiresAt** | DATETIME | NULL | Fecha de expiración del acceso (para licencias temporales). NULL = sin expiración. |
 | **AuditCreationUser** | VARCHAR(255) | NULL | Email del administrador que concedió el acceso. |
-| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del registro. |
+| **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del registro (fecha de concesión). |
 | **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó. |
 | **AuditModificationDate** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de modificación. |
 | **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (revocación de acceso). |
@@ -2653,15 +2648,15 @@ DisplayOrder: 10
 **Restricciones de Negocio**:
 - Combinación (`ModuleId`, `OrganizationId`) debe ser única (índice `UX_ModuleAccess_ModuleId_OrganizationId`)
 - Una organización no puede tener el mismo módulo asignado dos veces
-- Si `ExpiresAt` está en el pasado, las aplicaciones deben denegar acceso al módulo
-- Soft delete permite historial de accesos concedidos/revocados
+- Soft delete permite historial de accesos concedidos/revocados mediante `AuditDeletionDate`
+- `AuditCreationDate` representa la fecha de concesión del acceso
+- Revocación de acceso se realiza mediante soft delete (estableciendo `AuditDeletionDate`)
 
 **Índices**:
 ```sql
 PK: Id
 UK: (ModuleId, OrganizationId)
 IX: OrganizationId
-IX: ExpiresAt
 ```
 
 **Ejemplo de Registro**:
@@ -2669,9 +2664,9 @@ IX: ExpiresAt
 Id: 5001
 ModuleId: 101
 OrganizationId: 1
-GrantedAt: "2026-01-01 10:00:00"
 AuditCreationUser: "admin@infoportone.com"
-ExpiresAt: NULL
+AuditCreationDate: "2026-01-01 10:00:00"
+AuditDeletionDate: NULL
 ```
 
 ---
@@ -2966,16 +2961,7 @@ ExpiresAt: NULL
 ```
 
 **Uso en Aplicaciones**:
-Las aplicaciones satélite consultan esta relación (sincronizada vía `OrganizationEvent`) para validar si una organización puede acceder a un módulo específico:
-```csharp
-bool HasModuleAccess(int companyId, int moduleId)
-{
-    return _moduleAccessCache.Any(ma => 
-        ma.SecurityCompanyId == companyId && 
-        ma.ModuleId == moduleId &&
-        (ma.ExpiresAt == null || ma.ExpiresAt > DateTime.UtcNow));
-}
-```
+Las aplicaciones satélite consultan esta relación (sincronizada vía `OrganizationEvent`) para validar si una organización puede acceder a un módulo específico mediante la presencia del registro activo (no soft-deleted).
 
 ---
 
@@ -3005,17 +2991,17 @@ bool HasModuleAccess(int companyId, int moduleId)
 
 **Índices**:
 ```sql
-PK: RoleId
-UK: (AppId, RoleName)
-IX: AppId
+PK: Id
+UK: (ApplicationId, RoleName)
+IX: ApplicationId
 IX: Active
 ```
 
 **Ejemplo de Registro**:
 ```sql
-RoleId: 201
-AppId: 5
-RoleName: "Gerente de Ventas"
+Id: 201
+ApplicationId: 5
+RoleName: "CRM_GerenteVentas"
 Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar descuentos hasta 15%"
 Active: TRUE
 ```
@@ -3028,15 +3014,16 @@ Active: TRUE
 
 **Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon. Esencial para compliance y auditorías.
 
+> **Nota importante**: El usuario que ejecutó cada acción (INSERT, UPDATE, DELETE) NO se almacena en esta tabla porque ya está capturado en los **campos de auditoría Helix6** de cada entidad modificada (`AuditCreationUser`, `AuditModificationUser`). Esta tabla se centra en capturar el estado antes/después de cada cambio para análisis forense.
+
 **Tabla de Atributos**:
 
 | Nombre Campo | Tipo | Restricciones | Descripción |
 |--------------|------|---------------|-------------|
-| **AuditLogId** | BIGINT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del registro de auditoría. |
+| **Id** | BIGINT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del registro de auditoría (PK Helix6). |
 | **EntityType** | VARCHAR(50) | NOT NULL | Tipo de entidad afectada ("Organization", "Application", "Module", "AppRoleDefinition"). |
 | **EntityId** | VARCHAR(100) | NOT NULL | ID de la entidad afectada (como string para flexibilidad). |
 | **Action** | VARCHAR(20) | NOT NULL | Acción realizada: "INSERT", "UPDATE", "DELETE". |
-| **UserId** | VARCHAR(255) | NOT NULL | Email o ID del administrador que ejecutó la acción. |
 | **Timestamp** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Momento exacto en que se ejecutó la acción (UTC). |
 | **OldValue** | TEXT (JSON) | NULL | Estado anterior de la entidad en formato JSON. NULL en INSERT. |
 | **NewValue** | TEXT (JSON) | NULL | Estado posterior de la entidad en formato JSON. NULL en DELETE. |
@@ -3054,19 +3041,17 @@ Active: TRUE
 
 **Índices**:
 ```sql
-PK: AuditLogId
+PK: Id
 IX: (EntityType, EntityId)
 IX: Timestamp DESC
-IX: UserId
 ```
 
 **Ejemplo de Registro**:
 ```sql
-AuditLogId: 987654
+Id: 987654
 EntityType: "Organization"
-EntityId: "12345"
+EntityId: "1"
 Action: "UPDATE"
-UserId: "admin@infoportone.com"
 Timestamp: "2026-01-08 14:35:22"
 OldValue: '{"Active": true}'
 NewValue: '{"Active": false}'
@@ -3074,10 +3059,13 @@ IpAddress: "192.168.1.100"
 UserAgent: "Mozilla/5.0..."
 ```
 
+> **Nota**: Para saber QUIÉN desactivó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`.
+
 **Uso en Compliance**:
-- Demostrar quién desactivó una organización y cuándo
-- Rastrear cambios en configuración de módulos y permisos
+- Rastrear cambios en configuración de módulos y permisos (estados antes/después)
 - Responder a auditorías regulatorias (GDPR Article 30, ISO 27001)
+- Análisis forense de cambios críticos en el sistema
+- El "quién" se obtiene de los campos `AuditCreationUser`/`AuditModificationUser` de cada entidad
 
 ---
 
@@ -3151,13 +3139,15 @@ await UpdateEventHashControl(entityType, entityId, currentHash, DateTime.UtcNow)
 
 | Entidad | Propósito | PK | FKs | Restricciones Únicas | Relaciones |
 |---------|-----------|----|----|---------------------|------------|
-| **OrganizationGroup** | Agrupación de organizaciones | GroupId | - | GroupName | 1:N con Organization |
-| **Organization** | Cliente del ecosistema | SecurityCompanyId | GroupId | Name, TaxId | N:1 con Group, 1:N con ModuleAccess |
-| **Application** | App satélite del portfolio | AppId | - | AppName, ClientId | 1:N con Module, 1:N con AppRole |
-| **Module** | Módulo funcional de app | ModuleId | AppId | (AppId, ModuleName) | N:1 con App, 1:N con ModuleAccess |
-| **ModuleAccess** | Acceso módulo-organización | ModuleAccessId | ModuleId, SecurityCompanyId | (ModuleId, SecurityCompanyId) | N:1 con Module y Organization |
-| **AppRoleDefinition** | Catálogo de roles | RoleId | AppId | (AppId, RoleName) | N:1 con Application |
-| **AuditLog** | Registro de auditoría | AuditLogId | - | - | N:1 lógico con todas las entidades |
+| **OrganizationGroup** | Agrupación de organizaciones | Id | - | GroupName | 1:N con Organization |
+| **Organization** | Cliente del ecosistema | Id | GroupId | SecurityCompanyId, Name, TaxId | N:1 con Group, 1:N con ModuleAccess |
+| **Application** | App satélite del portfolio | Id | - | AppName, RolePrefix | 1:N con Module, 1:N con AppRole, 1:N con ApplicationSecurity |
+| **ApplicationSecurity** | Credenciales OAuth2 | Id | ApplicationId | ClientId | N:1 con Application |
+| **Module** | Módulo funcional de app | Id | ApplicationId | (ApplicationId, ModuleName) | N:1 con App, 1:N con ModuleAccess |
+| **ModuleAccess** | Acceso módulo-organización | Id | ModuleId, OrganizationId | (ModuleId, OrganizationId) | N:1 con Module y Organization |
+| **AppRoleDefinition** | Catálogo de roles | Id | ApplicationId | (ApplicationId, RoleName) | N:1 con Application |
+| **UserConsolidationCache** | Caché consolidación usuarios | Id | - | Email | Ninguna (caché) |
+| **AuditLog** | Registro de auditoría | Id | - | - | N:1 lógico con todas las entidades |
 | **EventHashControl** | Control de duplicados | (EntityType, EntityId) | - | - | Ninguna (tabla de control) |
 
 > Recuerda incluir el máximo detalle de cada entidad, como el nombre y tipo de cada atributo, descripción breve si procede, claves primarias y foráneas, relaciones y tipo de relación, restricciones (unique, not null…), etc.
