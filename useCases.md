@@ -274,17 +274,17 @@ sequenceDiagram
 - **Criterios de éxito:**
   - Los módulos tienen metadata completa y válida.
 
-#### RF-018: Incluir módulos y organizaciones en ApplicationEvent
-- **Nombre:** Sincronización de módulos y accesos
-- **Objetivo:** Incluir en cada ApplicationEvent la lista de módulos y las organizaciones con acceso a cada uno.
+#### RF-018: Incluir aplicaciones y módulos accesibles en OrganizationEvent
+- **Nombre:** Sincronización de permisos de módulos por organización
+- **Objetivo:** Incluir en cada OrganizationEvent la lista de aplicaciones y módulos accesibles para esa organización.
 - **Actores:** Sistema InfoportOneAdmon
-- **Precondiciones:** Se produce un cambio en módulos o accesos.
+- **Precondiciones:** Se produce un cambio en los permisos de acceso de una organización.
 - **Flujo principal:**
-  1. El sistema detecta el cambio.
-  2. Incluye la información en el evento.
-  3. Publica el ApplicationEvent.
+  1. El sistema detecta el cambio en permisos de la organización.
+  2. Construye el array Apps con AppId, DatabaseName y AccessibleModules para cada aplicación.
+  3. Publica el OrganizationEvent con toda la información de permisos.
 - **Criterios de éxito:**
-  - Los módulos y accesos quedan sincronizados en las aplicaciones satélite.
+  - Las aplicaciones satélite saben exactamente qué módulos puede usar cada organización procesando solo su OrganizationEvent.
 
 ### Arquitectura de Eventos (RF-019 a RF-024)
 #### RF-019: Publicar eventos con patrón State Transfer Event

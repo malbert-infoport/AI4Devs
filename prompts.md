@@ -305,6 +305,53 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 - Actualización de diagramas de secuencia y arquitectura para mostrar la consolidación de roles
 - Modelo de datos actualizado con el campo `RolePrefix` en la entidad Application
 
+---
+
+## Prompt 2.2.5: Corrección de diseño de eventos - Permisos de módulos en OrganizationEvent
+
+**Rol:** Arquitecto de Software especialista en arquitecturas event-driven, diseño de eventos y sistemas multi-organización.
+
+**Objetivo:** Corregir un error de diseño en la arquitectura de eventos del sistema que afecta a la cohesión y eficiencia.
+
+**Problema detectado:**
+- El `ApplicationEvent` incluye actualmente `AccessibleByCompanies` dentro de cada módulo
+- Esto viola el principio de cohesión: la información de "qué organizaciones tienen acceso" no es parte del estado de la aplicación, es parte del estado de cada organización
+- Para modificar permisos de UNA organización, se requiere republicar eventos de MÚLTIPLES aplicaciones
+- Las apps satélite deben procesar TODOS los ApplicationEvents y filtrar por SecurityCompanyId para saber qué puede hacer cada organización
+
+**Corrección arquitectónica requerida:**
+
+**ApplicationEvent debe contener solo el CATÁLOGO:**
+- Lista de módulos disponibles (sin información de permisos)
+- Lista de roles disponibles
+- Información técnica de la aplicación (ClientId, RolePrefix, etc.)
+- NO debe incluir `AccessibleByCompanies` ni información de permisos
+
+**OrganizationEvent debe contener los PERMISOS:**
+- Añadir una propiedad `Apps` (array) al payload de `OrganizationEvent`
+- Cada elemento de `Apps` debe contener:
+  - `AppId` (int): Identificador de la aplicación
+  - `DatabaseName` (string): Nombre de la base de datos específica para esa organización y aplicación
+  - `AccessibleModules` (int[]): IDs de los módulos a los que tiene acceso esta organización
+- Esto coloca toda la información de permisos de una organización en SU propio evento
+
+**Ventajas del nuevo diseño:**
+- ✅ Cohesión perfecta: Toda la información de una organización está en su evento
+- ✅ Eficiencia: Cambiar permisos de una org = 1 solo OrganizationEvent (no N ApplicationEvents)
+- ✅ Simplicidad: Apps satélite procesan solo eventos de organizaciones relevantes
+- ✅ State Transfer correcto: Cada evento describe el estado completo de la entidad
+
+**Archivos a actualizar:**
+- `readme.md`: Estructura de eventos ApplicationEvent y OrganizationEvent
+- `requirements.md`: RF-018 (debe reflejar que módulos accesibles van en OrganizationEvent)
+- `useCases.md`: Caso de uso RF-018
+
+**Resultado esperado:**
+- ApplicationEvent es un catálogo puro de la aplicación (módulos y roles disponibles)
+- OrganizationEvent incluye array Apps con permisos específicos de esa organización
+- Documentación coherente con separación clara de responsabilidades
+- Mejor eficiencia en procesamiento de eventos por las aplicaciones satélite
+
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
 ## Prompt 2.3.1

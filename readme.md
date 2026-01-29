@@ -148,7 +148,7 @@ Define agrupaciones funcionales (módulos) dentro de cada aplicación y configur
 **Capacidades principales:**
 - 🧩 **Definición de Módulos**: Crear módulos para una aplicación siguiendo la nomenclatura "M" + RolePrefix (ej: si RolePrefix="STP", módulos como "MSTP_Trafico", "MSTP_Almacen", "MSTP_Facturacion")
 - ⚙️ **Configuración de Acceso**: Asignar qué organizaciones tienen acceso a qué módulos (relación N:M)
-- 📢 **Propagación de Cambios**: Los cambios se publican en eventos `ApplicationEvent` que incluyen módulos y sus asignaciones
+- 📢 **Propagación de Cambios**: Los cambios se publican en eventos `ApplicationEvent` (catálogo de módulos) y `OrganizationEvent` (permisos de acceso)
 - 📊 **Visibilidad de Contratación**: Permite a las aplicaciones saber exactamente qué funcionalidades están habilitadas para cada organización
 
 **Regla de negocio**: Toda aplicación debe tener como mínimo un módulo. Los módulos son obligatorios.
@@ -366,6 +366,18 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
       "IsDeleted": false,
       "GroupId": 100,
       "GroupName": "Holding Empresarial",
+      "Apps": [
+        {
+          "AppId": 5,
+          "DatabaseName": "org_12345_crm",
+          "AccessibleModules": [10, 11]
+        },
+        {
+          "AppId": 8,
+          "DatabaseName": "org_12345_erp",
+          "AccessibleModules": [25, 26, 27]
+        }
+      ],
       "CreatedDate": "2025-06-01T10:00:00Z",
       "ModifiedDate": "2026-01-15T15:00:00Z"
     }
@@ -373,9 +385,32 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 }
 ```
 
-#### **Evento de Aplicación (incluye Módulos y Roles)**
+**Campos del objeto ORGANIZATION:**
+- `SecurityCompanyId` (int, required): Identificador único de la organización
+- `Name` (string, required): Nombre de la organización
+- `TaxId` (string): Identificador fiscal
+- `Address`, `City`, `Country` (string): Datos de ubicación
+- `IsActive` (bool): Si la organización está activa
+- `IsDeleted` (bool): Flag de soft delete
+- `GroupId` (int, optional): ID del grupo al que pertenece
+- `GroupName` (string, optional): Nombre del grupo
+- `Apps` (array): **Lista de aplicaciones con acceso y configuración específica de esta organización**
+  - `AppId` (int): ID de la aplicación
+  - `DatabaseName` (string): Nombre de la base de datos específica para esta org y app
+  - `AccessibleModules` (int[]): IDs de los módulos a los que tiene acceso esta organización
+- `CreatedDate`, `ModifiedDate` (ISO 8601): Fechas de auditoría
+
+**Ventajas de este diseño:**
+- ✅ **Cohesión perfecta**: Toda la información de permisos de una organización está en su propio evento
+- ✅ **Eficiencia**: Cambiar acceso a módulos de una org = 1 solo OrganizationEvent (no N ApplicationEvents)
+- ✅ **Simplicidad**: Apps satélite procesan solo eventos de organizaciones relevantes
+- ✅ **Onboarding natural**: Alta de organización incluye directamente qué puede usar
+
+#### **Evento de Aplicación (Catálogo de Módulos y Roles)**
 
 **Tópico**: `infoportone.events.application`
+
+**Propósito**: Define QUÉ ES la aplicación (su catálogo de módulos y roles disponibles). NO incluye información de permisos por organización, eso va en OrganizationEvent.
 
 **Estructura del Payload**:
 ```json
@@ -390,34 +425,33 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
     {
       "ApplicationId": 5,
       "Name": "CRM Application",
+      "RolePrefix": "CRM",
       "ClientId": "crm-app-backend",
       "IsActive": true,
       "Modules": [
         {
           "ModuleId": 10,
-          "Name": "Sales Module",
+          "Name": "MCRM_Sales",
           "Description": "Gestión de ventas",
-          "IsActive": true,
-          "AccessibleByCompanies": [12345, 67890]
+          "IsActive": true
         },
         {
           "ModuleId": 11,
-          "Name": "Reporting Module",
+          "Name": "MCRM_Reporting",
           "Description": "Reportes avanzados",
-          "IsActive": true,
-          "AccessibleByCompanies": [12345]
+          "IsActive": true
         }
       ],
       "Roles": [
         {
           "RoleId": 20,
-          "Name": "Sales",
+          "Name": "CRM_Sales",
           "Description": "Vendedor",
           "IsActive": true
         },
         {
           "RoleId": 21,
-          "Name": "Manager",
+          "Name": "CRM_Manager",
           "Description": "Gerente",
           "IsActive": true
         }
@@ -426,6 +460,17 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
   ]
 }
 ```
+
+**Campos del objeto APPLICATION:**
+- `ApplicationId` (int): Identificador único de la aplicación
+- `Name` (string): Nombre de la aplicación
+- `RolePrefix` (string): Prefijo para nomenclatura de roles y módulos
+- `ClientId` (string): OAuth2 client_id
+- `IsActive` (bool): Si la aplicación está activa
+- `Modules` (array): Catálogo de módulos disponibles (sin permisos)
+- `Roles` (array): Catálogo de roles disponibles
+
+**Nota importante**: Este evento define el CATÁLOGO de la aplicación. Los permisos de acceso por organización se definen en el `OrganizationEvent`.
 
 #### **Patrones de Procesamiento de Eventos**
 
@@ -1063,7 +1108,7 @@ graph LR
 
 **Características clave**:
 - **Patrón State Transfer Event**: Los eventos contienen el estado completo de la entidad, no solo notificaciones de cambio
-- **Payload como Array**: Permite sincronizaciones masivas (ej: catálogo completo de roles en ApplicationEvent)
+- **Payload como Array**: Permite sincronizaciones masivas (ej: catálogo completo de aplicaciones con sus módulos y roles)
 - **Segregación de tópicos**: Cada entidad tiene su tópico, facilitando suscripciones selectivas
 - **Solo 3 tópicos activos**: `organization`, `application`, `user` (integración directa con Keycloak desde Background Worker)
 - **Mensajería persistente**: ActiveMQ garantiza durabilidad y entrega eventual
@@ -1289,7 +1334,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 **Interacciones**:
 - Escribe en la **Base de Datos Core**
 - Utiliza el **Servicio de Orquestación** para registrar clientes en Keycloak
-- Publica eventos `ApplicationEvent` (incluye módulos, roles y permisos) a **ActiveMQ Artemis**
+- Publica eventos `ApplicationEvent` (catálogo de módulos y roles) y `OrganizationEvent` (permisos de acceso) a **ActiveMQ Artemis**
 
 #### **2.2.3. Módulo de Catálogo de Roles**
 
@@ -1325,7 +1370,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 
 **Interacciones**:
 - Escribe en la **Base de Datos Core**
-- Publica cambios mediante **ApplicationEvent** que incluye la configuración completa de módulos
+- Publica cambios de permisos mediante **OrganizationEvent** que incluye los módulos accesibles por cada aplicación
 
 #### **2.2.5. Background Worker de InfoportOneAdmon**
 
@@ -2487,7 +2532,7 @@ ExpiresAt: NULL
 ```
 
 **Uso en Aplicaciones**:
-Las aplicaciones satélite consultan esta relación (sincronizada vía `ApplicationEvent`) para validar si una organización puede acceder a un módulo específico:
+Las aplicaciones satélite consultan esta relación (sincronizada vía `OrganizationEvent`) para validar si una organización puede acceder a un módulo específico:
 ```csharp
 bool HasModuleAccess(int companyId, int moduleId)
 {
