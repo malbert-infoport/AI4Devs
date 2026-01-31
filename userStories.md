@@ -568,8 +568,7 @@ El ComplianceOfficer debe preparar evidencias para una auditoría ISO 27001. Nec
 | US-010 | Registrar aplicación backend (API) | Alta | 5 | US-001 |
 | US-011 | Definir prefijo único de aplicación | Alta | 2 | US-009, US-010 |
 | US-012 | Agregar credencial adicional a aplicación | Media | 3 | US-009, US-010 |
-| US-013 | Rotar secreto de aplicación backend | Media | 3 | US-010 |
-| US-014 | Listar catálogo de aplicaciones | Media | 3 | US-009 |
+| US-013 | Listar catálogo de aplicaciones | Media | 3 | US-009 |
 | US-015 | Desactivar aplicación temporalmente | Media | 2 | US-009 |
 
 ---
@@ -736,43 +735,7 @@ La aplicación de CRM inicialmente solo tenía frontend Angular. Ahora se desarr
 
 ---
 
-#### **US-013: Rotar secreto de aplicación backend**
-
-**Épica:** Administración de Aplicaciones del Ecosistema  
-**Rol:** SecurityManager  
-**Prioridad:** Media | **Estimación:** 3 Story Points
-
-**Historia:**
-```
-Como SecurityManager,
-quiero rotar el `client_secret` de una aplicación backend sin afectar su disponibilidad,
-para cumplir con políticas de seguridad que exigen renovación periódica de credenciales.
-```
-
-**Criterios de aceptación:**
-- Desde detalle de credencial de tipo ClientCredentials, botón "Rotar secreto"
-- Modal de confirmación advierte que el secreto anterior dejará de funcionar
-- Al confirmar:
-  - Se genera nuevo `client_secret`
-  - Se hashea con bcrypt
-  - Se actualiza `ClientSecretHash` en BD
-  - Se actualiza el client en Keycloak con nuevo secret
-  - Se muestra el nuevo secreto UNA SOLA VEZ
-- Opción de mantener ambos secretos activos temporalmente (período de gracia de 24h) para migración sin downtime
-
-**Definición de hecho:**
-- Rotación funcional con actualización en Keycloak
-- Período de gracia opcional implementado
-- Logs de auditoría registran cuándo se rotó cada secreto
-
-**Dependencias:** US-010
-
-**Preguntas para el equipo:**
-- ¿Implementamos notificación automática al equipo de la aplicación cuando se rota un secreto?
-
----
-
-#### **US-014: Listar catálogo de aplicaciones**
+#### **US-013: Listar catálogo de aplicaciones**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
 **Rol:** ApplicationManager  
@@ -1804,7 +1767,7 @@ El MVP incluye las User Stories esenciales para tener un sistema funcional end-t
 ### **Funcionalidades Excluidas del MVP (para iteraciones futuras):**
 - US-006, US-007 (Grupos de organizaciones)
 - US-008 (Auditoría completa)
-- US-012, US-013 (Múltiples credenciales, rotación de secretos)
+- US-012 (Múltiples credenciales)
 - US-015 (Desactivar aplicación)
 - US-018, US-019, US-020 (Configuración masiva de permisos, matriz de permisos)
 - US-023 (Deprecar roles)

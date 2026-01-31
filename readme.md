@@ -132,6 +132,7 @@ Permite registrar y configurar las aplicaciones satélite que forman parte del e
 - 🔐 **Registro de Aplicación Backend (API)**: Alta como confidential client con generación de `client_id` y `client_secret`, con gestión segura de credenciales
 - 🏷️ **Prefijo de Aplicación**: Cada aplicación tiene un prefijo único (ej: "STP" para Sintraport, "CRM" para CRM) que se utiliza para nomenclatura de roles y módulos. Los módulos usan "M" + prefijo (ej: MSTP_Trafico), los roles usan solo el prefijo (ej: STP_AsignadorTransporte)
 - 🔄 **Gestión de Secretos**: Rotación y administración segura de credenciales solo para confidential clients (backends)
+ - 🔄 **Gestión de Secretos**: Administración segura de credenciales solo para confidential clients (backends)
 - 🚦 **Control de Acceso**: Definir si una aplicación está activa, en mantenimiento o desactivada
 - 🧩 **Definición de Módulos**: Cada aplicación debe tener al menos un módulo. Los módulos representan agrupaciones funcionales vendibles por separado
 - 📘 **Catálogo de Roles**: Definir qué roles existen dentro de cada aplicación (ej: "Tráfico", "Mensajería", "Administrador")
