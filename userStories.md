@@ -2,7 +2,7 @@
 
 ## Índice
 
-1. [Avatares y Buyer Personas](#1-avatares-y-buyer-personas)
+1. [Roles del Sistema](#1-roles-del-sistema)
 2. [Épicas del Proyecto](#2-épicas-del-proyecto)
 3. [Roadmap y Dependencias](#3-roadmap-y-dependencias)
 4. [Historias de Usuario por Épica](#4-historias-de-usuario-por-épica)
@@ -18,62 +18,57 @@
 
 ---
 
-## 1. Avatares y Buyer Personas
+## 1. Roles del Sistema
 
-### **Avatar 1: Laura - Administradora de la Organización Propietaria**
+### **Rol 1: OrganizationManager**
 
-**Perfil:**
-- **Rol**: Responsable de Onboarding y Gestión de Clientes
-- **Edad**: 35 años
-- **Experiencia**: 8 años en gestión de clientes B2B
+**Descripción del rol:**
+- **Responsabilidad principal**: Gestión del portfolio de organizaciones clientes y onboarding
+- **Alcance**: Creación, edición, desactivación y agrupación de organizaciones clientes
 - **Objetivos**: Incorporar nuevos clientes de forma rápida y sin errores, mantener información actualizada de organizaciones
-- **Frustraciones**: Procesos manuales que generan errores, falta de visibilidad sobre el estado de cada cliente
-- **Habilidades técnicas**: Medias - Maneja interfaces web pero no es desarrolladora
-- **Cita**: "Necesito poder dar de alta un cliente en minutos, no en días. Cada error en los datos nos cuesta tiempo y credibilidad."
+- **Desafíos**: Procesos manuales que generan errores, falta de visibilidad sobre el estado de cada cliente
+- **Nivel técnico**: Intermedio - Maneja interfaces web de administración
+- **Caso de uso típico**: "Dar de alta una nueva organización cliente en minutos completando un formulario simple con sus datos básicos, para iniciar su proceso de incorporación al ecosistema sin errores que retrasen el acceso a las aplicaciones."
 
-### **Avatar 2: Carlos - Gestor de Seguridad**
+### **Rol 2: SecurityManager**
 
-**Perfil:**
-- **Rol**: Administrador de Accesos y Permisos
-- **Edad**: 42 años
-- **Experiencia**: 12 años en ciberseguridad y gestión de identidades
+**Descripción del rol:**
+- **Responsabilidad principal**: Administración de accesos, permisos y seguridad del ecosistema
+- **Alcance**: Control de autorizaciones, gestión de roles, gobierno de credenciales OAuth2
 - **Objetivos**: Garantizar que solo las organizaciones autorizadas accedan a cada aplicación, controlar permisos de forma granular
-- **Frustraciones**: Procesos de autorización lentos, falta de auditoría clara de cambios de permisos
-- **Habilidades técnicas**: Altas - Conoce OAuth2, tokens JWT, conceptos de seguridad
-- **Cita**: "La seguridad no puede ser un cuello de botella. Necesito poder revocar accesos inmediatamente si hay una incidencia."
+- **Desafíos**: Procesos de autorización lentos, falta de auditoría clara de cambios de permisos
+- **Nivel técnico**: Avanzado - Conocimientos profundos de OAuth2, tokens JWT, conceptos de ciberseguridad
+- **Caso de uso típico**: "Desactivar inmediatamente una organización cliente sin eliminar su información, para bloquear su acceso a todas las aplicaciones del ecosistema en caso de impago, incidencia de seguridad o fin de contrato."
 
-### **Avatar 3: Mónica - Administradora de Aplicaciones**
+### **Rol 3: ApplicationManager**
 
-**Perfil:**
-- **Rol**: Product Owner de las aplicaciones satélite del ecosistema
-- **Edad**: 38 años
-- **Experiencia**: 10 años en gestión de producto de software empresarial
-- **Objetivos**: Configurar qué funcionalidades (módulos) están disponibles para cada cliente, gestionar el portfolio de aplicaciones
-- **Frustraciones**: Descoordinación entre equipos, configuraciones inconsistentes entre aplicaciones
-- **Habilidades técnicas**: Medias-Altas - Entiende arquitectura de software pero no programa
-- **Cita**: "Cada aplicación tiene sus propias reglas. Necesito un lugar centralizado donde definir qué ofrece cada una y a quién."
+**Descripción del rol:**
+- **Responsabilidad principal**: Gestión del portfolio de aplicaciones satélite y configuración de módulos
+- **Alcance**: Registro de aplicaciones, definición de módulos funcionales, configuración de permisos por organización
+- **Objetivos**: Configurar qué funcionalidades (módulos) están disponibles para cada cliente, gestionar el catálogo de aplicaciones
+- **Desafíos**: Descoordinación entre equipos, configuraciones inconsistentes entre aplicaciones
+- **Nivel técnico**: Intermedio-Avanzado - Comprende arquitectura de software y modelos de integración
+- **Caso de uso típico**: "Definir los módulos funcionales de una aplicación usando nomenclatura estándar (ej: MCRM_Facturacion), para establecer el catálogo de funcionalidades que se pueden vender y activar de forma granular por cliente."
 
-### **Avatar 4: David - Auditor / Compliance Officer**
+### **Rol 4: ComplianceOfficer**
 
-**Perfil:**
-- **Rol**: Responsable de Cumplimiento Normativo
-- **Edad**: 45 años
-- **Experiencia**: 15 años en auditoría de sistemas y compliance (ISO 27001, GDPR)
+**Descripción del rol:**
+- **Responsabilidad principal**: Auditoría de sistemas y cumplimiento normativo
+- **Alcance**: Verificación de trazabilidad, generación de reportes de compliance (ISO 27001, GDPR)
 - **Objetivos**: Verificar trazabilidad de todos los cambios, demostrar cumplimiento en auditorías externas
-- **Frustraciones**: Logs dispersos, falta de información de "quién hizo qué y cuándo"
-- **Habilidades técnicas**: Medias - Lee logs y reportes pero no accede a bases de datos directamente
-- **Cita**: "En una auditoría, me piden demostrar que solo usuarios autorizados modificaron configuraciones críticas. Si no puedo, hay multas."
+- **Desafíos**: Logs dispersos, falta de información de "quién hizo qué y cuándo"
+- **Nivel técnico**: Intermedio - Consulta logs y reportes, sin acceso directo a bases de datos
+- **Caso de uso típico**: "Consultar el historial completo de cambios realizados en una organización específica, para demostrar en auditorías externas que solo usuarios autorizados modificaron datos críticos y verificar trazabilidad completa."
 
-### **Avatar 5: Ana - Usuario Final de Organización Cliente (Beneficiario Indirecto)**
+### **Rol 5: EndUser**
 
-**Perfil:**
-- **Rol**: Gerente de Operaciones en empresa cliente
-- **Edad**: 40 años
-- **Experiencia**: 15 años en logística y operaciones
-- **Objetivos**: Acceder fácilmente a las aplicaciones del ecosistema (CRM, ERP, BI) sin problemas de autenticación
-- **Frustraciones**: Tener que recordar múltiples contraseñas, retrasos cuando cambia de empresa y necesita nuevos accesos
-- **Habilidades técnicas**: Bajas - Usuaria de aplicaciones, no técnica
-- **Cita**: "Solo quiero que cuando hago login una vez, pueda acceder a todas las herramientas que necesito. SSO debería ser invisible."
+**Descripción del rol:**
+- **Responsabilidad principal**: Consumidor final de las aplicaciones satélite del ecosistema
+- **Alcance**: Acceso a aplicaciones del ecosistema (CRM, ERP, BI) desde organización cliente
+- **Objetivos**: Acceder fácilmente a las aplicaciones del ecosistema sin problemas de autenticación
+- **Desafíos**: Múltiples contraseñas, retrasos cuando cambia de empresa y necesita nuevos accesos
+- **Nivel técnico**: Básico - Usuario de aplicaciones sin conocimientos técnicos
+- **Caso de uso típico**: "Hacer login una sola vez y acceder a todas las aplicaciones del ecosistema sin volver a introducir credenciales, para ahorrar tiempo y tener una experiencia fluida sin interrupciones por autenticaciones repetidas (SSO)."
 
 ---
 
@@ -258,31 +253,31 @@ gantt
 #### **US-001: Crear nueva organización cliente**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Laura - Administradora de la Organización Propietaria  
+**Rol:** OrganizationManager  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Laura, administradora responsable del onboarding de clientes,
+Como OrganizationManager responsable del onboarding de clientes,
 quiero dar de alta una nueva organización cliente completando un formulario simple con sus datos básicos (nombre, CIF, dirección, contacto),
 para iniciar su proceso de incorporación al ecosistema en pocos minutos y sin cometer errores que retrasen su acceso a las aplicaciones.
 ```
 
 **Contexto adicional:**
-Laura acaba de cerrar un contrato con una nueva empresa de logística que necesita acceder al ecosistema de aplicaciones. El cliente espera comenzar a usar las herramientas en 48 horas. Laura no puede permitirse errores en los datos ni procesos manuales complejos.
+El OrganizationManager acaba de cerrar un contrato con una nueva empresa de logística que necesita acceder al ecosistema de aplicaciones. El cliente espera comenzar a usar las herramientas en 48 horas. El proceso no puede permitir errores en los datos ni pasos manuales complejos.
 
 **Criterios de aceptación:**
-- **Given:** Laura accede a la sección de "Organizaciones" en InfoportOneAdmon
+- **Given:** El OrganizationManager accede a la sección de "Organizaciones" en InfoportOneAdmon
 - **When:** Hace clic en "Crear nueva organización"
 - **Then:** Se muestra un formulario con campos: Nombre (obligatorio), CIF (obligatorio), Dirección, Ciudad, Código Postal, País, Email de contacto (obligatorio), Teléfono
 - **And:** El formulario valida que nombre, CIF y email sean obligatorios antes de enviar
 - **And:** El sistema verifica que el CIF no esté duplicado (validación de unicidad)
-- **When:** Laura completa los campos y hace clic en "Guardar"
+- **When:** El OrganizationManager completa los campos y hace clic en "Guardar"
 - **Then:** El sistema genera automáticamente un `SecurityCompanyId` único e inmutable
 - **And:** Se muestra un mensaje de confirmación: "Organización [Nombre] creada exitosamente con ID [SecurityCompanyId]"
 - **And:** El registro queda visible inmediatamente en el listado de organizaciones con estado "Activa"
 - **And:** Se publica un `OrganizationEvent` al tópico `infoportone.events.organization` en ActiveMQ Artemis
-- **And:** Se registra en la tabla `AuditLog` quién (Laura) y cuándo creó la organización
+- **And:** Se registra en la tabla `AuditLog` quién y cuándo creó la organización
 
 **Definición de hecho (DoD):**
 - Código implementado y revisado (code review aprobado)
@@ -306,25 +301,25 @@ Laura acaba de cerrar un contrato con una nueva empresa de logística que necesi
 #### **US-002: Editar información de organización existente**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Laura - Administradora de la Organización Propietaria  
+**Rol:** OrganizationManager  
 **Prioridad:** Alta | **Estimación:** 3 Story Points
 
 **Historia:**
 ```
-Como Laura, administradora responsable de mantener datos actualizados de clientes,
+Como OrganizationManager responsable de mantener datos actualizados de clientes,
 quiero modificar la información de una organización existente (dirección, contacto, etc.) cuando el cliente nos notifica cambios,
 para garantizar que toda la información del ecosistema esté actualizada y evitar comunicaciones a direcciones o emails obsoletos.
 ```
 
 **Contexto adicional:**
-Una organización cliente se ha mudado de oficina y ha cambiado su email de contacto administrativo. Laura necesita actualizar estos datos rápidamente para que las notificaciones del sistema lleguen a la dirección correcta.
+Una organización cliente se ha mudado de oficina y ha cambiado su email de contacto administrativo. El OrganizationManager necesita actualizar estos datos rápidamente para que las notificaciones del sistema lleguen a la dirección correcta.
 
 **Criterios de aceptación:**
-- **Given:** Laura accede al detalle de una organización existente
+- **Given:** El OrganizationManager accede al detalle de una organización existente
 - **When:** Hace clic en "Editar organización"
 - **Then:** Se muestra el formulario con los datos actuales pre-rellenados
 - **And:** El campo `SecurityCompanyId` NO es editable (es inmutable)
-- **When:** Laura modifica dirección, email de contacto y hace clic en "Guardar cambios"
+- **When:** El OrganizationManager modifica dirección, email de contacto y hace clic en "Guardar cambios"
 - **Then:** El sistema valida los cambios (email válido, campos obligatorios completos)
 - **And:** Se actualiza el registro en la base de datos
 - **And:** Se muestra confirmación: "Organización actualizada exitosamente"
@@ -350,24 +345,24 @@ Una organización cliente se ha mudado de oficina y ha cambiado su email de cont
 #### **US-003: Desactivar organización (kill-switch)**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Carlos - Gestor de Seguridad  
+**Rol:** SecurityManager  
 **Prioridad:** Alta | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como Carlos, gestor de seguridad,
+Como SecurityManager,
 quiero desactivar inmediatamente una organización cliente sin eliminar su información,
 para bloquear su acceso a todas las aplicaciones del ecosistema en caso de impago, incidencia de seguridad o fin de contrato.
 ```
 
 **Contexto adicional:**
-Una organización cliente acumula 3 meses de impago. El departamento comercial ha solicitado a Carlos que suspenda su acceso hasta que regularice la situación. Carlos necesita hacerlo inmediatamente sin perder el histórico de datos.
+Una organización cliente acumula 3 meses de impago. El departamento comercial ha solicitado al SecurityManager que suspenda su acceso hasta que regularice la situación. El proceso debe ejecutarse inmediatamente sin perder el histórico de datos.
 
 **Criterios de aceptación:**
-- **Given:** Carlos accede al detalle de una organización activa
+- **Given:** El SecurityManager accede al detalle de una organización activa
 - **When:** Hace clic en "Desactivar organización"
 - **Then:** Se muestra un modal de confirmación: "¿Está seguro? Esto bloqueará el acceso de todos los usuarios de esta organización"
-- **When:** Carlos confirma la acción
+- **When:** El SecurityManager confirma la acción
 - **Then:** El sistema establece `AuditDeletionDate` a la fecha actual (soft delete)
 - **And:** Se muestra confirmación: "Organización desactivada. Los usuarios no podrán acceder a las aplicaciones"
 - **And:** Se publica un `OrganizationEvent` con flag `IsDeleted: true`
@@ -398,12 +393,12 @@ Una organización cliente acumula 3 meses de impago. El departamento comercial h
 #### **US-004: Listar organizaciones con filtros y paginación**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Laura - Administradora de la Organización Propietaria  
+**Rol:** OrganizationManager  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Laura, administradora que gestiona cientos de organizaciones clientes,
+Como OrganizationManager que gestiona cientos de organizaciones clientes,
 quiero visualizar el listado de organizaciones con opciones de filtrado (por nombre, estado, grupo) y paginación,
 para encontrar rápidamente la organización que busco sin tener que desplazarme por listas interminables.
 ```
@@ -435,12 +430,12 @@ para encontrar rápidamente la organización que busco sin tener que desplazarme
 #### **US-005: Ver detalle completo de organización**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Laura - Administradora de la Organización Propietaria  
+**Rol:** OrganizationManager  
 **Prioridad:** Media | **Estimación:** 3 Story Points
 
 **Historia:**
 ```
-Como Laura, administradora,
+Como OrganizationManager,
 quiero ver toda la información detallada de una organización incluyendo aplicaciones y módulos contratados,
 para tener una visión completa de qué servicios tiene activos el cliente y poder responder consultas comerciales.
 ```
@@ -464,18 +459,18 @@ para tener una visión completa de qué servicios tiene activos el cliente y pod
 #### **US-006: Crear grupo de organizaciones**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 3 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora de aplicaciones que gestiona holdings empresariales,
+Como ApplicationManager que gestiona holdings empresariales,
 quiero crear grupos lógicos de organizaciones (ej: "Holding Logístico Norte", "Consorcio Financiero"),
 para que las aplicaciones satélite puedan implementar funcionalidades colaborativas entre organizaciones del mismo grupo.
 ```
 
 **Contexto adicional:**
-Un holding de transporte tiene 5 empresas subsidiarias que necesitan compartir ciertos datos (ej: flotas de camiones, rutas compartidas). Mónica necesita agruparlas para que la aplicación de logística pueda identificarlas como parte del mismo ecosistema empresarial.
+Un holding de transporte tiene 5 empresas subsidiarias que necesitan compartir ciertos datos (ej: flotas de camiones, rutas compartidas). El ApplicationManager necesita agruparlas para que la aplicación de logística pueda identificarlas como parte del mismo ecosistema empresarial.
 
 **Criterios de aceptación:**
 - Formulario de creación de grupo con campos: Nombre del grupo (obligatorio, único), Descripción
@@ -499,12 +494,12 @@ Un holding de transporte tiene 5 empresas subsidiarias que necesitan compartir c
 #### **US-007: Asignar organizaciones a un grupo**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora de aplicaciones,
+Como ApplicationManager,
 quiero asignar (o reasignar) una organización a un grupo específico,
 para reflejar la estructura empresarial real de holdings o consorcios en el sistema.
 ```
@@ -528,18 +523,18 @@ para reflejar la estructura empresarial real de holdings o consorcios en el sist
 #### **US-008: Consultar auditoría de cambios en organización**
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes  
-**Avatar:** David - Auditor / Compliance Officer  
+**Rol:** ComplianceOfficer  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como David, auditor responsable de compliance,
+Como ComplianceOfficer,
 quiero consultar el historial completo de cambios realizados en una organización específica,
 para demostrar en auditorías externas que solo usuarios autorizados modificaron datos críticos y verificar trazabilidad completa.
 ```
 
 **Contexto adicional:**
-David debe preparar evidencias para una auditoría ISO 27001. Necesita demostrar que cuando se cambió la dirección fiscal de la organización "Transportes Rápidos", fue realizado por un administrador autorizado, en una fecha específica, y se registró el valor anterior.
+El ComplianceOfficer debe preparar evidencias para una auditoría ISO 27001. Necesita demostrar que cuando se cambió la dirección fiscal de la organización "Transportes Rápidos", fue realizado por un administrador autorizado, en una fecha específica, y se registró el valor anterior.
 
 **Criterios de aceptación:**
 - Vista de auditoría accesible desde detalle de organización
@@ -582,18 +577,21 @@ David debe preparar evidencias para una auditoría ISO 27001. Necesita demostrar
 #### **US-009: Registrar aplicación frontend (SPA Angular)**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+#### **US-009: Registrar aplicación frontend (SPA Angular)**
+
+**Épica:** Administración de Aplicaciones del Ecosistema  
+**Rol:** ApplicationManager  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora del portfolio de aplicaciones,
+Como ApplicationManager del portfolio de aplicaciones,
 quiero registrar una nueva aplicación frontend (Angular SPA) como cliente público OAuth2 sin almacenar secretos,
 para que los usuarios puedan autenticarse de forma segura usando PKCE sin exponer credenciales en el navegador.
 ```
 
 **Contexto adicional:**
-El equipo de desarrollo acaba de completar una nueva aplicación de Business Intelligence en Angular 20. Mónica necesita registrarla en el ecosistema para que use el SSO de Keycloak sin configurar secretos que podrían comprometerse en el cliente.
+El equipo de desarrollo acaba de completar una nueva aplicación de Business Intelligence en Angular 20. El ApplicationManager necesita registrarla en el ecosistema para que use el SSO de Keycloak sin configurar secretos que podrían comprometerse en el cliente.
 
 **Criterios de aceptación:**
 - Formulario de registro con campos: Nombre de la aplicación, Descripción, Prefijo de aplicación (ej: "BI"), RedirectURIs (múltiples)
@@ -626,12 +624,12 @@ El equipo de desarrollo acaba de completar una nueva aplicación de Business Int
 #### **US-010: Registrar aplicación backend (API)**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora del portfolio de aplicaciones,
+Como ApplicationManager del portfolio de aplicaciones,
 quiero registrar una nueva aplicación backend (API) como cliente confidencial OAuth2 con secret seguro,
 para que pueda autenticarse en Keycloak y obtener tokens para comunicarse con otros servicios del ecosistema.
 ```
@@ -670,12 +668,12 @@ para que pueda autenticarse en Keycloak y obtener tokens para comunicarse con ot
 #### **US-011: Definir prefijo único de aplicación**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Alta | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora de aplicaciones,
+Como ApplicationManager,
 quiero asignar un prefijo único a cada aplicación (ej: "CRM", "STP", "BI"),
 para establecer una nomenclatura consistente de roles y módulos que evite conflictos de nombres entre aplicaciones.
 ```
@@ -708,18 +706,18 @@ Dos aplicaciones diferentes podrían tener un rol llamado "Admin". Con prefijos,
 #### **US-012: Agregar credencial adicional a aplicación**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 3 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora de aplicaciones,
+Como ApplicationManager,
 quiero agregar una segunda credencial OAuth2 a una aplicación existente (ej: backend API a una app que solo tenía frontend),
 para soportar arquitecturas donde una aplicación tiene múltiples componentes que se autentican de forma diferente.
 ```
 
 **Contexto adicional:**
-La aplicación de CRM inicialmente solo tenía frontend Angular. Ahora se desarrolló una API backend que necesita autenticarse para publicar eventos. Mónica necesita agregar credenciales de tipo ClientCredentials sin afectar las credenciales CODE del frontend.
+La aplicación de CRM inicialmente solo tenía frontend Angular. Ahora se desarrolló una API backend que necesita autenticarse para publicar eventos. El ApplicationManager necesita agregar credenciales de tipo ClientCredentials sin afectar las credenciales CODE del frontend.
 
 **Criterios de aceptación:**
 - Desde detalle de aplicación, botón "Agregar credencial"
@@ -741,12 +739,12 @@ La aplicación de CRM inicialmente solo tenía frontend Angular. Ahora se desarr
 #### **US-013: Rotar secreto de aplicación backend**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Carlos - Gestor de Seguridad  
+**Rol:** SecurityManager  
 **Prioridad:** Media | **Estimación:** 3 Story Points
 
 **Historia:**
 ```
-Como Carlos, gestor de seguridad,
+Como SecurityManager,
 quiero rotar el `client_secret` de una aplicación backend sin afectar su disponibilidad,
 para cumplir con políticas de seguridad que exigen renovación periódica de credenciales.
 ```
@@ -777,12 +775,12 @@ para cumplir con políticas de seguridad que exigen renovación periódica de cr
 #### **US-014: Listar catálogo de aplicaciones**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 3 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora del portfolio,
+Como ApplicationManager del portfolio,
 quiero visualizar el catálogo completo de aplicaciones registradas con su estado y prefijo,
 para tener visibilidad de todo el ecosistema en un solo lugar.
 ```
@@ -804,12 +802,12 @@ para tener visibilidad de todo el ecosistema en un solo lugar.
 #### **US-015: Desactivar aplicación temporalmente**
 
 **Épica:** Administración de Aplicaciones del Ecosistema  
-**Avatar:** Carlos - Gestor de Seguridad  
+**Rol:** SecurityManager  
 **Prioridad:** Media | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como Carlos, gestor de seguridad,
+Como SecurityManager,
 quiero desactivar temporalmente una aplicación sin eliminarla,
 para bloquear autenticaciones durante mantenimientos programados o incidencias de seguridad.
 ```
@@ -847,18 +845,18 @@ para bloquear autenticaciones durante mantenimientos programados o incidencias d
 #### **US-016: Definir módulos funcionales de una aplicación**
 
 **Épica:** Configuración de Módulos y Permisos de Acceso  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora de aplicaciones,
+Como ApplicationManager,
 quiero definir los módulos funcionales de una aplicación usando la nomenclatura "M + Prefijo + Nombre" (ej: MCRM_Facturacion),
 para establecer el catálogo de funcionalidades que se pueden vender y activar de forma granular por cliente.
 ```
 
 **Contexto adicional:**
-La aplicación de CRM tiene 5 grandes módulos vendibles por separado: Facturación, Reporting Avanzado, Integración con ERPs, Gestión de Oportunidades y Marketing Automation. Mónica necesita registrar cada uno como módulo independiente para que comercial pueda activarlos según el paquete contratado por cada cliente.
+La aplicación de CRM tiene 5 grandes módulos vendibles por separado: Facturación, Reporting Avanzado, Integración con ERPs, Gestión de Oportunidades y Marketing Automation. El ApplicationManager necesita registrar cada uno como módulo independiente para que el área comercial pueda activarlos según el paquete contratado por cada cliente.
 
 **Criterios de aceptación:**
 - Desde detalle de aplicación, sección "Módulos"
@@ -886,18 +884,18 @@ La aplicación de CRM tiene 5 grandes módulos vendibles por separado: Facturaci
 #### **US-017: Asignar módulos a organización**
 
 **Épica:** Configuración de Módulos y Permisos de Acceso  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora responsable de configurar permisos,
+Como ApplicationManager responsable de configurar permisos,
 quiero asignar módulos específicos de una aplicación a una organización cliente,
 para que sus usuarios solo puedan acceder a las funcionalidades que han contratado.
 ```
 
 **Contexto adicional:**
-La organización "Transportes Rápidos" contrató el CRM pero solo el paquete básico que incluye Gestión de Oportunidades y Facturación. NO tienen acceso a Marketing Automation ni Reporting Avanzado. Mónica necesita configurar estos permisos granularmente.
+La organización "Transportes Rápidos" contrató el CRM pero solo el paquete básico que incluye Gestión de Oportunidades y Facturación. NO tienen acceso a Marketing Automation ni Reporting Avanzado. El ApplicationManager necesita configurar estos permisos granularmente.
 
 **Criterios de aceptación:**
 - Desde detalle de organización, sección "Aplicaciones y módulos"
@@ -925,18 +923,18 @@ La organización "Transportes Rápidos" contrató el CRM pero solo el paquete b�
 #### **US-018: Configurar acceso masivo de módulos**
 
 **Épica:** Configuración de Módulos y Permisos de Acceso  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora que debe configurar accesos para múltiples clientes,
+Como ApplicationManager que debe configurar accesos para múltiples clientes,
 quiero asignar un conjunto de módulos a múltiples organizaciones de una sola vez,
 para ahorrar tiempo cuando tengo que activar el mismo paquete de funcionalidades para varias organizaciones.
 ```
 
 **Contexto adicional:**
-El departamento comercial acaba de cerrar contratos con 10 nuevas empresas de logística, todas con el "Paquete Estándar" que incluye los mismos 3 módulos del CRM. Mónica necesita configurar los permisos sin hacer la asignación 10 veces manualmente.
+El departamento comercial acaba de cerrar contratos con 10 nuevas empresas de logística, todas con el "Paquete Estándar" que incluye los mismos 3 módulos del CRM. El ApplicationManager necesita configurar los permisos sin hacer la asignación 10 veces manualmente.
 
 **Criterios de aceptación:**
 - Vista de "Configuración masiva" con selector múltiple de organizaciones
@@ -966,12 +964,12 @@ El departamento comercial acaba de cerrar contratos con 10 nuevas empresas de lo
 #### **US-019: Revocar acceso a módulo de organización**
 
 **Épica:** Configuración de Módulos y Permisos de Acceso  
-**Avatar:** Carlos - Gestor de Seguridad  
+**Rol:** SecurityManager  
 **Prioridad:** Media | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como Carlos, gestor de seguridad,
+Como SecurityManager,
 quiero revocar inmediatamente el acceso de una organización a un módulo específico,
 para bloquear funcionalidades cuando hay impago, downgrade de contrato o incidencia de seguridad.
 ```
@@ -995,12 +993,12 @@ para bloquear funcionalidades cuando hay impago, downgrade de contrato o inciden
 #### **US-020: Visualizar matriz de permisos organización-módulo**
 
 **Épica:** Configuración de Módulos y Permisos de Acceso  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora,
+Como ApplicationManager,
 quiero visualizar una matriz completa que cruce organizaciones con módulos de todas las aplicaciones,
 para tener una vista consolidada de qué cliente tiene acceso a qué funcionalidades y detectar inconsistencias fácilmente.
 ```
@@ -1037,18 +1035,18 @@ para tener una vista consolidada de qué cliente tiene acceso a qué funcionalid
 #### **US-021: Definir catálogo de roles de una aplicación**
 
 **Épica:** Gobierno de Roles y Seguridad  
-**Avatar:** Carlos - Gestor de Seguridad  
+**Rol:** SecurityManager  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Carlos, gestor de seguridad,
+Como SecurityManager,
 quiero definir el catálogo maestro de roles de una aplicación usando el prefijo de la aplicación (ej: CRM_Vendedor, CRM_Gerente),
 para garantizar nomenclatura consistente y evitar conflictos de nombres cuando un usuario tiene roles en múltiples aplicaciones.
 ```
 
 **Contexto adicional:**
-La aplicación de CRM define 5 roles: Vendedor, GerenteVentas, Supervisor, Operador, Administrador. Carlos necesita registrarlos con el prefijo CRM_ para que queden como CRM_Vendedor, CRM_GerenteVentas, etc. Esto evita confusión cuando un usuario tiene también el rol ERP_Administrador en otra aplicación.
+La aplicación de CRM define 5 roles: Vendedor, GerenteVentas, Supervisor, Operador, Administrador. El SecurityManager necesita registrarlos con el prefijo CRM_ para que queden como CRM_Vendedor, CRM_GerenteVentas, etc. Esto evita confusión cuando un usuario tiene también el rol ERP_Administrador en otra aplicación.
 
 **Criterios de aceptación:**
 - Desde detalle de aplicación, sección "Roles"
@@ -1113,12 +1111,12 @@ para mantener coherencia en todo el ecosistema y rechazar nombres incorrectos co
 #### **US-023: Deprecar rol obsoleto sin eliminarlo**
 
 **Épica:** Gobierno de Roles y Seguridad  
-**Avatar:** Carlos - Gestor de Seguridad  
+**Rol:** SecurityManager  
 **Prioridad:** Media | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como Carlos, gestor de seguridad,
+Como SecurityManager,
 quiero marcar un rol como "deprecated" sin eliminarlo físicamente,
 para evitar que se asigne a nuevos usuarios pero permitir que usuarios existentes con ese rol mantengan su acceso.
 ```
@@ -1183,7 +1181,7 @@ para garantizar que las aplicaciones satélite siempre tengan el catálogo actua
 #### **US-025: Consumir UserEvent desde aplicaciones satélite**
 
 **Épica:** Sincronización y Consolidación de Usuarios Multi-Organización  
-**Avatar:** Sistema InfoportOneAdmon (Background Worker)  
+**Rol:** Sistema (Background Worker)  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1221,7 +1219,7 @@ para centralizar la gestión de identidades y mantener Keycloak sincronizado sin
 #### **US-026: Detectar usuarios duplicados por email**
 
 **Épica:** Sincronización y Consolidación de Usuarios Multi-Organización  
-**Avatar:** Sistema InfoportOneAdmon (Background Worker)  
+**Rol:** Sistema (Background Worker)  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1232,7 +1230,7 @@ para iniciar el proceso de consolidación multi-organización en lugar de crear 
 ```
 
 **Contexto adicional:**
-Juan Pérez trabaja como consultor para dos empresas clientes del ecosistema: "Transportes Rápidos" (SecurityCompanyId: 12345) y "Logística del Norte" (SecurityCompanyId: 67890). Ambas apps publican UserEvent con email "juan.perez@consultora.com". El sistema debe detectar el duplicado y consolidar las organizaciones en el claim c_ids.
+Un consultor trabaja para dos empresas clientes del ecosistema: "Transportes Rápidos" (SecurityCompanyId: 12345) y "Logística del Norte" (SecurityCompanyId: 67890). Ambas apps publican UserEvent con el mismo email. El sistema debe detectar el duplicado y consolidar las organizaciones en el claim c_ids.
 
 **Criterios de aceptación:**
 - Al recibir UserEvent con email "juan.perez@consultora.com":
@@ -1258,7 +1256,7 @@ Juan Pérez trabaja como consultor para dos empresas clientes del ecosistema: "T
 #### **US-027: Consolidar organizaciones en claim c_ids**
 
 **Épica:** Sincronización y Consolidación de Usuarios Multi-Organización  
-**Avatar:** Sistema InfoportOneAdmon (Background Worker)  
+**Rol:** Sistema (Background Worker)  
 **Prioridad:** Alta | **Estimación:** 8 Story Points
 
 **Historia:**
@@ -1297,7 +1295,7 @@ para generar el claim c_ids que viajará en su token JWT y le permitirá acceder
 #### **US-028: Consolidar roles multi-aplicación con prefijos**
 
 **Épica:** Sincronización y Consolidación de Usuarios Multi-Organización  
-**Avatar:** Sistema InfoportOneAdmon (Background Worker)  
+**Rol:** Sistema (Background Worker)  
 **Prioridad:** Alta | **Estimación:** 8 Story Points
 
 **Historia:**
@@ -1308,7 +1306,7 @@ para que su token JWT incluya roles únicos con prefijos que identifiquen la apl
 ```
 
 **Contexto adicional:**
-Juan Pérez tiene:
+Un usuario multi-organización tiene:
 - En CRM: roles "Vendedor" y "GerenteVentas"
 - En ERP: rol "Contable"
 - En Sintraport: rol "AsignadorTransporte"
@@ -1341,7 +1339,7 @@ El sistema debe consolidar como: `["CRM_Vendedor", "CRM_GerenteVentas", "ERP_Con
 #### **US-029: Sincronizar claim c_ids con Keycloak**
 
 **Épica:** Sincronización y Consolidación de Usuarios Multi-Organización  
-**Avatar:** Sistema InfoportOneAdmon (Background Worker)  
+**Rol:** Sistema (Background Worker)  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1380,7 +1378,7 @@ para que su próximo login genere un token JWT con toda su información multi-or
 #### **US-030: Optimizar consolidación con caché**
 
 **Épica:** Sincronización y Consolidación de Usuarios Multi-Organización  
-**Avatar:** Sistema InfoportOneAdmon (Background Worker)  
+**Rol:** Sistema (Background Worker)  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1524,23 +1522,23 @@ para no tener que consultar Keycloak en cada petición y evitar que sea un cuell
 #### **US-034: Implementar SSO entre aplicaciones**
 
 **Épica:** Integración con Keycloak e Identity Management  
-**Avatar:** Ana - Usuario Final de Organización Cliente  
+**Rol:** EndUser  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Ana, usuaria final que trabaja con múltiples aplicaciones del ecosistema (CRM, ERP, BI),
+Como EndUser que trabaja con múltiples aplicaciones del ecosistema (CRM, ERP, BI),
 quiero hacer login una sola vez y acceder a todas las aplicaciones sin volver a introducir credenciales,
 para ahorrar tiempo y tener una experiencia fluida sin interrupciones por autenticaciones repetidas.
 ```
 
 **Criterios de aceptación:**
-- Ana hace login en CRM (primera aplicación)
+- El EndUser hace login en CRM (primera aplicación)
 - Cuando navega a ERP (segunda aplicación):
   - ERP redirige a Keycloak
   - Keycloak detecta sesión activa
   - Redirige automáticamente de vuelta a ERP con token
-  - Ana accede sin introducir credenciales nuevamente
+  - El EndUser accede sin introducir credenciales nuevamente
 - El SSO funciona entre TODAS las aplicaciones del realm InfoportOne
 - Al hacer logout en cualquier aplicación, se cierra sesión en Keycloak (logout centralizado)
 
@@ -1570,7 +1568,7 @@ para ahorrar tiempo y tener una experiencia fluida sin interrupciones por autent
 #### **US-035: Publicar OrganizationEvent al crear/editar organización**
 
 **Épica:** Arquitectura de Eventos y Sincronización  
-**Avatar:** Sistema InfoportOneAdmon (Event Publisher)  
+**Rol:** Sistema (Event Publisher)  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1606,7 +1604,7 @@ para sincronizar su estado con todas las aplicaciones satélite sin que tengan q
 #### **US-036: Publicar ApplicationEvent al crear/editar aplicación**
 
 **Épica:** Arquitectura de Eventos y Sincronización  
-**Avatar:** Sistema InfoportOneAdmon (Event Publisher)  
+**Rol:** Sistema (Event Publisher)  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1633,7 +1631,7 @@ para que las aplicaciones satélite sincronicen el catálogo actualizado.
 #### **US-037: Implementar prevención de duplicados con hash SHA-256**
 
 **Épica:** Arquitectura de Eventos y Sincronización  
-**Avatar:** Sistema InfoportOneAdmon (Event Publisher)  
+**Rol:** Sistema (Event Publisher)  
 **Prioridad:** Alta | **Estimación:** 5 Story Points
 
 **Historia:**
@@ -1667,12 +1665,12 @@ para evitar publicar eventos duplicados que no contengan cambios reales y reduci
 #### **US-038: Republicar eventos completos para sincronización inicial**
 
 **Épica:** Arquitectura de Eventos y Sincronización  
-**Avatar:** Mónica - Administradora de Aplicaciones  
+**Rol:** ApplicationManager  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
 ```
-Como Mónica, administradora que acaba de incorporar una nueva aplicación satélite al ecosistema,
+Como ApplicationManager que acaba de incorporar una nueva aplicación satélite al ecosistema,
 quiero poder republicar el snapshot completo de organizaciones o aplicaciones,
 para sincronizar la caché local de la nueva aplicación sin tener que esperar a que ocurran cambios naturales.
 ```
@@ -1702,7 +1700,7 @@ para sincronizar la caché local de la nueva aplicación sin tener que esperar a
 #### **US-039: Implementar consumo idempotente en apps satélite**
 
 **Épica:** Arquitectura de Eventos y Sincronización  
-**Avatar:** Aplicación Satélite (Background Worker)  
+**Rol:** Sistema (Background Worker de App Satélite)  
 **Prioridad:** Media | **Estimación:** 5 Story Points
 
 **Historia:**
