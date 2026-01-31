@@ -69,103 +69,20 @@ La funcionalidad debe cumplir con los criterios de aceptación de la User Story 
 - Validar que nombre, CIF y email de contacto sean obligatorios
 - Generar `SecurityCompanyId` único automáticamente mediante secuencia de PostgreSQL
 - Validar unicidad de CIF (no permitir duplicados)
-- Registrar auditoría completa con campos Helix6
-- Implementar soft delete mediante `AuditDeletionDate`
 
-**CONTEXTO TÉCNICO:**
-- **Framework**: Helix6 Framework sobre .NET 8
-- **Base de datos**: PostgreSQL 16 con Entity Framework Core 9.0
-- **Patrón arquitectónico**: Repository/Service pattern de Helix6
-- **Auditoría**: Campos Helix6 (AuditCreationUser, AuditCreationDate, AuditModificationUser, AuditModificationDate, AuditDeletionDate)
-- **Soft Delete**: Usar AuditDeletionDate (no DELETE físico de SQL)
-- **Validaciones**: Implementar en ValidateView del servicio
-- **SecurityCompanyId**: Generado por secuencia de PostgreSQL independiente
+Registrar auditoría completa con campos Helix6
 
-**CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
-- [ ] Entidad `Organization` creada en DataModel implementando IEntityBase
-- [ ] Secuencia de PostgreSQL `seq_security_company_id` creada para generar IDs únicos
-- [ ] ViewModel `OrganizationView` creada en Entities implementando IViewBase
-- [ ] Servicio `OrganizationService` creado heredando de BaseService<OrganizationView, Organization, BaseMetadata>
-- [ ] Validaciones implementadas en ValidateView: nombre, CIF y email obligatorios, CIF único
-- [ ] Endpoints generados con EndpointHelper (GET, GET/{id}, POST, PUT, DELETE)
-- [ ] Migración de Entity Framework Core generada y aplicada
-- [ ] Índice único en campo `Cif` configurado
-- [ ] Índice único en campo `SecurityCompanyId` configurado
-- [ ] Inyección de dependencias configurada en DependencyInjection.cs
-- [ ] Tests unitarios del servicio con cobertura >80%
-- [ ] Tests de integración de endpoints (GET, POST, PUT, DELETE)
-- [ ] Documentación Swagger actualizada con comentarios XML
-- [ ] Sin warnings de compilación ni vulnerabilidades
+Modificar `PostActions` para registrar auditoría detallada (sin código generado):
 
-**GUÍA DE IMPLEMENTACIÓN:**
+- Definir la entidad `AuditLog` en `InfoportOneAdmon.DataModel.Entities` con campos mínimos: `Id`, `EntityName`, `EntityKey`, `Action`, `UserId`, `OldValue` (JSON), `NewValue` (JSON), `CreatedAt`, `CorrelationId`.
+- Añadir `IAuditLogRepository` (o implementar siguiendo el patrón `BaseRepository`) que encapsule el acceso a `DbSet<AuditLog>`; registrar el repositorio en DI.
+- Implementar `IAuditLogService` (por ejemplo `AuditLogService`) con un método `Task LogAsync(AuditEntry entry, CancellationToken ct)` que reciba una estructura `AuditEntry` y use el repositorio para persistir el registro. Mantener la serialización (JSON) dentro del servicio de auditoría.
+- En los servicios de dominio (`OrganizationService`, etc.) capturar el estado previo en `PreviousActions` (antes de mapear o aplicar cambios) y construir el `AuditEntry` con `OldValue` y `NewValue`.
+- Invocar `IAuditLogService.LogAsync(...)` desde `PostActions` para persistir el registro de auditoría. No inyectar directamente `DbContext` ni persistir entradas de auditoría desde múltiples lugares dispersos; centralizar la lógica en `IAuditLogService`.
+- Consideraciones transaccionales: preferir persistir la entidad principal y luego registrar el `AuditLog` en `PostActions` para disponer del `EntityKey` y reducir riesgos de inconsistencia. Si se requiere atomicidad absoluta entre entidad y auditoría, coordinar la persistencia dentro de la misma unidad de trabajo (DbContext) dentro del `IAuditLogService` o mediante un manejador transaccional explícito.
+- Añadir migración para la tabla `AuditLogs` y pruebas unitarias/integración que verifiquen que `IAuditLogService` se invoca en `PostActions` y que `OldValue`/`NewValue` contienen los JSON esperados.
 
-**Paso 1: Crear la Secuencia de PostgreSQL para SecurityCompanyId**
-
-Crear migración manual para la secuencia (antes de crear la entidad):
-
-Archivo: `InfoportOneAdmon.DataModel/Migrations/XXXXXX_CreateSecurityCompanyIdSequence.cs`
-
-```csharp
-using Microsoft.EntityFrameworkCore.Migrations;
-
-namespace InfoportOneAdmon.DataModel.Migrations
-{
-    public partial class CreateSecurityCompanyIdSequence : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            // Crear secuencia para SecurityCompanyId (empieza en 10000)
-            migrationBuilder.Sql(@"
-                CREATE SEQUENCE IF NOT EXISTS seq_security_company_id
-                START WITH 10000
-                INCREMENT BY 1
-                NO MAXVALUE
-                NO CYCLE;
-            ");
-        }
-
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.Sql("DROP SEQUENCE IF EXISTS seq_security_company_id;");
-        }
-    }
-}
-```
-
-**Paso 2: Crear la Entidad en DataModel**
-
-Archivo: `InfoportOneAdmon.DataModel/Entities/Organization.cs`
-
-```csharp
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Helix6.Base.Domain.BaseInterfaces;
-
-namespace InfoportOneAdmon.DataModel.Entities
-{
-    /// <summary>
-    /// Representa una organización cliente del ecosistema InfoportOne
-    /// </summary>
-    [Table("ORGANIZATION")]
-    public class Organization : IEntityBase
-    {
-        /// <summary>
-        /// Identificador único interno (PK autonumérica)
-        /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        
-        /// <summary>
-        /// Identificador de negocio único e inmutable (generado por secuencia)
-        /// Este ID viaja en el claim c_ids del token JWT
-        /// </summary>
-        [Required]
-        public int SecurityCompanyId { get; set; }
-        
-        /// <summary>
-        /// Nombre de la organización cliente
-        /// </summary>
+Nota: No se incluyen fragmentos de código en este documento. La implementación debe realizarse en los servicios del proyecto siguiendo las pautas de `Helix6_Backend_Architecture.md`.
         [Required]
         [StringLength(200)]
         public string Name { get; set; }
@@ -950,6 +867,13 @@ Las aplicaciones satélite suscriptoras procesarán estos eventos para sincroniz
 - [ ] Test verifica persistencia en tabla IntegrationEvents
 - [ ] Documentación del evento actualizada (estructura del payload)
 
+**CHECKLIST DE PUBLICACIÓN DE EVENTOS (aplicar a todos los tickets EV-PUB):**
+- **IMessagePublisher**: inyectar `IMessagePublisher` en el servicio y usarlo desde `PostActions`.
+- **Persistencia previa al envío**: `PublishAsync` debe persistir el evento en la tabla `IntegrationEvents` antes de enviarlo al broker.
+- **Resiliencia**: `PostActions` NO debe lanzar excepción que revierta la operación de negocio si la publicación falla; registrar error y confiar en reintentos/DLQ desde `IntegrationEvents`.
+- **Configuración**: definir los tópicos en `appsettings.json` (ej. `EventBroker:Topics:OrganizationEvents`).
+- **Tests**: añadir tests de integración con Testcontainers (Artemis + Postgres) cuando el ticket lo requiera; en unit tests usar mocks para `IMessagePublisher`.
+
 **GUÍA DE IMPLEMENTACIÓN:**
 
 **Paso 1: Crear la Clase del Evento**
@@ -1598,26 +1522,16 @@ protected override async Task<bool> ValidateView(OrganizationView view, Cancella
 
 **Paso 3: Registrar Auditoría Detallada en PostActions**
 
-Modificar `PostActions` para registrar cambios en `AUDIT_LOG`:
+Recomendación de implementación (sin fragmentos de código en este documento):
 
-```csharp
-using InfoportOneAdmon.DataModel.Entities;
-using System.Text.Json;
+- Definir una estructura `AuditEntry` que contenga `EntityName`, `EntityKey`, `Action`, `UserId`, `OldValue` (JSON), `NewValue` (JSON), `CorrelationId` y `CreatedAt`.
+- Implementar `IAuditLogService.LogAsync(AuditEntry entry, CancellationToken ct)` que centralice la serialización y persistencia en la tabla `AuditLogs` a través de `IAuditLogRepository`.
+- En `PreviousActions` del flujo de actualización, capturar el estado original de la entidad (antes de aplicar mapeos desde el `View`) y generar `OldValue`.
+- En `PostActions`, tras el `SaveChanges` de la entidad principal, construir `NewValue` y llamar a `IAuditLogService.LogAsync(...)` para persistir el registro de auditoría. Esto asegura que `EntityKey` (Id) esté disponible.
+- Evitar que la lógica de negocio escriba directamente en tablas de auditoría; siempre pasar por `IAuditLogService` para mantener uniformidad, validaciones y pruebas.
+- Registrar el evento `OrganizationEvent` después de invocar el servicio de auditoría o como parte del mismo `PostActions` según la política de orden preferida (primero persistir auditoría, luego publicar evento), documentando la decisión en el ticket de implementación.
 
-protected override async Task PostActions(OrganizationView view, Organization entity, CancellationToken cancellationToken)
-{
-    await base.PostActions(view, entity, cancellationToken);
-
-    // Registrar auditoría detallada si es actualización (Id > 0)
-    if (view.Id > 0)
-    {
-        await RegisterDetailedAudit(view, entity, cancellationToken);
-    }
-
-    // Publicar evento (ya implementado en TASK-001-EV-PUB)
-    await PublishOrganizationEvent(entity, cancellationToken);
-}
-
+Agregar un ticket dependiente para crear la entidad `AuditLog`, su repositorio, la implementación de `IAuditLogService` y la migración de EF Core (ver lista TODO). Incluir pruebas que aseguren la invocación del servicio y el contenido de `OldValue`/`NewValue`.
 /// <summary>
 /// Registra en AUDIT_LOG los cambios realizados (before/after)
 /// </summary>
@@ -2762,6 +2676,7 @@ Esto permite auditorías de cumplimiento (ISO 27001, GDPR) y trazabilidad comple
 **CONTEXTO TÉCNICO:**
 - Los campos de auditoría Helix6 (AuditCreationDate, AuditModificationDate, etc.) ya se populan automáticamente
 - La tabla AUDIT_LOG puede almacenar cambios detallados (si se implementa en TASK-002-BE extendido)
+ - Se ha añadido un scaffold de la entidad `AuditLog` en `InfoportOneAdmon.DataModel/Entities/AuditLog.cs` para comenzar la implementación de la persistencia detallada
 - Este endpoint consulta tanto los campos de auditoría de la entidad como registros de AUDIT_LOG
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**

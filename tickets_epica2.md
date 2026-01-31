@@ -124,36 +124,20 @@ namespace InfoportOneAdmon.DataModel.Entities
         /// <summary>
         /// Nombre de la aplicación (ej: "CRM", "Sintraport", "Business Intelligence")
         /// </summary>
-        [Required]
-        [StringLength(200)]
-        public string Name { get; set; }
-        
-        /// <summary>
-        /// Descripción de la aplicación
-        /// </summary>
-        [StringLength(500)]
-        public string Description { get; set; }
-        
-        /// <summary>
-        /// Prefijo único para roles y módulos (ej: "CRM", "STP", "BI")
-        /// 2-5 caracteres, solo mayúsculas, INMUTABLE
-        /// </summary>
-        [Required]
-        [StringLength(5)]
-        public string RolePrefix { get; set; }
-        
-        /// <summary>
-        /// Prefijo para nombres de bases de datos (ej: "crm", "sintraport", "bi")
-        /// Se usa para generar nombres de BD específicos por organización
-        /// </summary>
-        [Required]
-        [StringLength(50)]
-        public string DatabasePrefix { get; set; }
-        
-        /// <summary>
-        /// Colección de credenciales OAuth2 para esta aplicación
-        /// Una aplicación puede tener múltiples credenciales (frontend CODE + backend ClientCredentials)
-        /// </summary>
+        Use markup de `@cl/common-library` para la vista del modal. Ejemplo conceptual:
+
+        - Mostrar `clientId` y `clientSecret` con `ClFormFields` en modo `readonly`.
+        - Proveer un botón `ClButton` para copiar usando `navigator.clipboard.writeText(data.clientSecret)`.
+        - Incluir un checkbox `ClCheckbox` o un control de confirmación para que el usuario confirme haber guardado el secreto antes de permitir cerrar.
+        - Evitar dependencias de `flex-layout` y `MatDialog` en las vistas de la app; usar estilos CSS/SCSS y utilidades de `ClModal`.
+
+        Ejemplo de estructura (concepto, no código exacto):
+        - Contenedor modal: proporciona cabecera, cuerpo y acciones.
+        - Cabecera: título y subtítulo con advertencia de seguridad.
+        - Cuerpo: `ClFormFields` para `clientId` / `clientSecret` (readonly).
+        - Acciones: botón `Copiar` (usa `navigator.clipboard`), checkbox `Confirmar` y botón `Aceptar` habilitado solo si `Confirmar` está marcado.
+
+        Ver `Helix6_Frontend_Architecture.md` para patrones recomendados de accesibilidad y testing.
         public virtual ICollection<ApplicationSecurity> Credentials { get; set; }
         
         /// <summary>
@@ -174,36 +158,14 @@ namespace InfoportOneAdmon.DataModel.Entities
         public DateTime? AuditDeletionDate { get; set; }
     }
 }
-```
+Para las pruebas unitarias del modal, mockear `CL_MODAL_DATA` y `ClModalRef` en lugar de `MAT_DIALOG_DATA` y `MatDialogRef`.
 
-**Paso 2: Crear Entidad ApplicationSecurity**
+Resumen de testing recomendado:
+- Configurar `TestBed` con `providers` que suministren `CL_MODAL_DATA` y un spy para el modal ref.
+- Mockear el servicio `Clipboard` si se utiliza.
+- Verificar comportamiento de copiar al portapapeles y la confirmación antes de cerrar.
 
-Archivo: `InfoportOneAdmon.DataModel/Entities/ApplicationSecurity.cs`
-
-```csharp
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Helix6.Base.Domain.BaseInterfaces;
-
-namespace InfoportOneAdmon.DataModel.Entities
-{
-    /// <summary>
-    /// Credenciales OAuth2 de una aplicación
-    /// Una aplicación puede tener múltiples credenciales (frontend + backend)
-    /// </summary>
-    [Table("APPLICATION_SECURITY")]
-    public class ApplicationSecurity : IEntityBase
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        
-        /// <summary>
-        /// FK a la aplicación
-        /// </summary>
-        [Required]
-        public int ApplicationId { get; set; }
-        
+No incluir código específico en el documento; seguir el patrón de tests unitarios de `Helix6_Frontend_Architecture.md`.
         [ForeignKey(nameof(ApplicationId))]
         public virtual Application Application { get; set; }
         
@@ -454,39 +416,18 @@ namespace InfoportOneAdmon.Services.Services
                 }
             }
 
-            return true;
-        }
+            En lugar de `@angular/material/dialog`, implementar este modal usando `ClModal` de `@cl/common-library` para mantener consistencia visual y de comportamiento en la aplicación.
 
-        protected override async Task PreviousActions(ApplicationView view, Application entity, CancellationToken cancellationToken)
-        {
-            entity.Name = entity.Name?.Trim();
-            entity.Description = entity.Description?.Trim();
-            entity.RolePrefix = entity.RolePrefix?.Trim().ToUpperInvariant();
-            entity.DatabasePrefix = entity.DatabasePrefix?.Trim().ToLowerInvariant();
-            
-            await base.PreviousActions(view, entity, cancellationToken);
-        }
-    }
-}
-```
+            - Implementación recomendada: crear un componente standalone que reciba `clientSecret` vía `CL_MODAL_DATA` y exponer botones con `ClButton`.
+            - Abrir el modal desde la página con `ClModalService.openModal(modalConfig)` pasando `data` y `disableClose: true`.
+            - Tests: mockear `CL_MODAL_DATA` y `ClModalRef` en lugar de `MatDialogRef`.
 
-**Paso 6: Implementar Servicio ApplicationSecurityService**
+            Ejemplo (pseudocódigo en docs):
 
-Archivo: `InfoportOneAdmon.Services/Services/ApplicationSecurityService.cs`
+            - Componente: `SecretModalComponent` (Standalone, usa `ClFormFields` para mostrar el secreto y `ClButtons` para acciones).
+            - Apertura: `clModalService.openModal({ component: SecretModalComponent, data: { clientSecret, clientId }, disableClose: true })`.
 
-```csharp
-using Helix6.Base.Application.Services;
-using Helix6.Base.Domain.Repositories;
-using InfoportOneAdmon.DataModel.Entities;
-using InfoportOneAdmon.Entities.Views;
-using Microsoft.Extensions.Logging;
-using System.Security.Cryptography;
-using System.Text;
-using BCrypt.Net;
-
-namespace InfoportOneAdmon.Services.Services
-{
-    public class ApplicationSecurityService : BaseService<ApplicationSecurityView, ApplicationSecurity, BaseMetadata>
+            Nota: Evitar fragmentos largos de código en la documentación; implementar siguiendo los patrones de `Helix6_Frontend_Architecture.md`.
     {
         private readonly IRepository<Application> _applicationRepository;
 
@@ -540,39 +481,24 @@ namespace InfoportOneAdmon.Services.Services
                 return false;
             }
 
-            return true;
-        }
+            Para las pruebas unitarias del modal con `ClModal`:
 
-        protected override async Task PreviousActions(ApplicationSecurityView view, ApplicationSecurity entity, CancellationToken cancellationToken)
-        {
-            // Generar client_id si es creación
-            if (view.Id == 0)
-            {
-                var application = await _applicationRepository.GetByIdAsync(view.ApplicationId, cancellationToken);
-                var suffix = view.CredentialType == "CODE" ? "frontend" : "api";
-                entity.ClientId = $"{application.DatabasePrefix}-{suffix}".ToLowerInvariant();
-            }
+            - Testear el componente standalone sin dependencias de `MatDialog`.
+            - Mockear `ClModalService` para abrir/instanciar el modal y pasar datos simulados.
+            - Para el portapapeles, preferir mockear `navigator.clipboard.writeText`:
 
-            // Si es ClientCredentials, generar y hashear client_secret
-            if (view.CredentialType == "ClientCredentials" && view.Id == 0)
-            {
-                // Generar secret seguro (32 caracteres)
-                var secret = GenerateSecureSecret(32);
-                
-                // Guardar en view para mostrarlo UNA VEZ al usuario
-                view.ClientSecret = secret;
-                
-                // Hashear con bcrypt (factor de trabajo 12)
-                entity.ClientSecretHash = BCrypt.Net.BCrypt.HashPassword(secret, 12);
-            }
-            else if (view.CredentialType == "CODE")
-            {
-                // Public clients no tienen secret
-                entity.ClientSecretHash = null;
-                view.ClientSecret = null;
-            }
+              - En Jasmine: `spyOn(navigator.clipboard, 'writeText').and.resolveTo(undefined);`
+              - Verificar que se llama con el secreto correcto.
 
-            // Serializar RedirectUris a JSON
+            - Verificar comportamiento UI:
+              - `clientId` y `clientSecret` se renderizan como readonly.
+              - `Aceptar`/`Confirmar` permanece deshabilitado hasta confirmar.
+
+            - Evitar pruebas que dependan de `Clipboard` del CDK; usar `navigator.clipboard` o abstraer acceso al portapapeles detrás de un servicio que pueda inyectarse y mockearse en tests.
+
+            Ejemplo conceptual de aserciones:
+            - `expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expectedSecret)`
+            - `expect(confirmButton.disabled).toBeTrue()` antes y `toBeFalse()` después de marcar confirmación.
             if (view.RedirectUris != null && view.RedirectUris.Any())
             {
                 entity.RedirectUris = System.Text.Json.JsonSerializer.Serialize(view.RedirectUris);
@@ -670,33 +596,15 @@ services.AddScoped<ApplicationSecurityService>();
 
 **Paso 9: Instalar paquete BCrypt**
 
-```powershell
-dotnet add package BCrypt.Net-Next --version 4.0.3
-```
+En la apertura del modal, usar `ClModalService` en lugar de `MatDialog`.
 
-**Paso 10: Generar Migración**
+Ejemplo de flujo (documental):
 
-```powershell
-dotnet ef migrations add AddApplicationAndSecurityTables --project ..\InfoportOneAdmon.DataModel --startup-project InfoportOneAdmon.Api
-dotnet ef database update
-```
+- Inyectar `ClModalService` en el componente.
+- Tras la creación de la credencial, si `CredentialType === 'ClientCredentials'` y `ClientSecret` está presente, llamar a `clModalService.openModal({ component: SecretModalComponent, data: { clientSecret: response.ClientSecret, clientId: response.ClientId }, disableClose: true });`.
+- Refrescar la lista de credenciales después del cierre del modal.
 
-**Paso 11: Tests Unitarios**
-
-Archivo: `InfoportOneAdmon.Services.Tests/Services/ApplicationServiceTests.cs`
-
-```csharp
-using Xunit;
-using Moq;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Helix6.Base.Domain.Repositories;
-using InfoportOneAdmon.Services.Services;
-using InfoportOneAdmon.Entities.Views;
-using InfoportOneAdmon.DataModel.Entities;
-using System.Linq.Expressions;
-
-namespace InfoportOneAdmon.Services.Tests.Services
+Este patrón garantiza el comportamiento estándar de modales (`disableClose`, botón de confirmación) usando `@cl/common-library`.
 {
     public class ApplicationServiceTests
     {
@@ -1592,6 +1500,13 @@ El evento sigue el patrón State Transfer: contiene el estado completo de la apl
 - [ ] Evento se persiste en INTEGRATION_EVENTS
 - [ ] Documentación del schema del evento
 
+**CHECKLIST DE PUBLICACIÓN DE EVENTOS (aplicar a todos los tickets EV-PUB):**
+- **IMessagePublisher**: inyectar `IMessagePublisher` en el servicio y usarlo desde `PostActions`.
+- **Persistencia previa al envío**: `PublishAsync` debe persistir el evento en la tabla `IntegrationEvents` antes de enviarlo al broker.
+- **Resiliencia**: `PostActions` NO debe lanzar excepción que revierta la operación de negocio si la publicación falla; registrar error y confiar en reintentos/DLQ desde `IntegrationEvents`.
+- **Configuración**: definir los tópicos en `appsettings.json` (ej. `EventBroker:Topics:ApplicationEvents`).
+- **Tests**: añadir tests de integración con Testcontainers (Artemis + Postgres) cuando el ticket lo requiera; en unit tests usar mocks para `IMessagePublisher`.
+
 **GUÍA DE IMPLEMENTACIÓN:**
 
 **Paso 1: Crear Clase ApplicationEvent**
@@ -2000,7 +1915,7 @@ Evento publicado cuando se crea, modifica o desactiva una aplicación.
 ## Suscriptores
 
 - Todas las aplicaciones satélite para sincronizar catálogo
-- Sistema de auditoría para trazabilidad
+- Servicio de auditoría (`IAuditLogService`) para trazabilidad — persistencia en `AuditLogs` y llamado desde `PreviousActions`/`PostActions`.
 ```
 
 **ARCHIVOS A CREAR/MODIFICAR:**
@@ -2069,6 +1984,9 @@ Este ticket documenta que **NO se requiere desarrollo backend adicional** para U
 - Modal que muestre el secret UNA SOLA VEZ tras la creación
 - Botón "Copiar al portapapeles"
 - Advertencia: "Guarde este secreto ahora. No se podrá recuperar después"
+
+**NOTA IMPLEMENTACIÓN FRONTEND:**
+En la implementación frontend utilizar **`ClModal`** y componentes de `@cl/common-library` (`ClFormFields`, `ClButtons`) en lugar de `@angular/material/dialog` para mantener consistencia con el repositorio. Evitar el uso de `toPromise()`; preferir observables o `firstValueFrom()` cuando sea necesario obtener un solo resultado desde un cliente NSwag.
 
 **Evidencia de implementación:**
 
@@ -2147,102 +2065,38 @@ Crear modal Angular que se muestre inmediatamente después de crear una credenci
 
 Archivo: `SintraportV4.Front/src/app/modules/admin/components/secret-modal/secret-modal.component.ts`
 
-```typescript
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Clipboard } from '@angular/cdk/clipboard';
+En este documento no incluimos implementaciones con `@angular/material`.
+Implementar `SecretModalComponent` como Standalone Component usando `ClModal` y `ClFormFields` de `@cl/common-library`.
 
-@Component({
-  selector: 'app-secret-modal',
-  templateUrl: './secret-modal.component.html',
-  styleUrls: ['./secret-modal.component.scss']
-})
-export class SecretModalComponent {
-  copied = false;
-  confirmed = false;
+Recomendaciones de implementación (resumen):
+- Componente standalone `SecretModalComponent` que recibe `clientSecret` y `clientId` vía `CL_MODAL_DATA`.
+- Usar `ClInput` o `cl-input` para mostrar `clientId` y `clientSecret` en modo solo lectura.
+- Para copiar al portapapeles, preferir `navigator.clipboard.writeText()` (o mockear `Clipboard` en tests si se requiere compatibilidad amplia).
+- Botón de confirmación debe usar `ClButton` y deshabilitar el cierre hasta que el usuario confirme haber guardado el secreto.
+- Evitar código con `setTimeout` para feedback; usar binding de estado en el componente para mostrar feedback temporal.
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { clientSecret: string; clientId: string },
-    private dialogRef: MatDialogRef<SecretModalComponent>,
-    private clipboard: Clipboard
-  ) {}
-
-  copyToClipboard(): void {
-    this.clipboard.copy(this.data.clientSecret);
-    this.copied = true;
-    
-    // Resetear feedback después de 2 segundos
-    setTimeout(() => this.copied = false, 2000);
-  }
-
-  close(): void {
-    if (this.confirmed) {
-      this.dialogRef.close();
-    }
-  }
-
-  canClose(): boolean {
-    return this.confirmed;
-  }
-}
-```
+Nota: En el repositorio, seguir las prácticas descritas en `Helix6_Frontend_Architecture.md` y utilizar `ClModalService.openModal(...)` para abrir el modal.
 
 **Paso 2: Template del Modal**
 
 Archivo: `SintraportV4.Front/src/app/modules/admin/components/secret-modal/secret-modal.component.html`
 
-```html
-<h2 mat-dialog-title class="warning-title">
-  <mat-icon class="warning-icon">warning</mat-icon>
-  Secreto de Cliente Generado
-</h2>
+Evitar plantillas que utilicen `@angular/material` (por ejemplo `mat-dialog-*`, `mat-icon`, `mat-checkbox`, `mat-raised-button`).
 
-<mat-dialog-content>
-  <div class="warning-banner">
-    <p><strong>⚠️ IMPORTANTE:</strong> Este es el único momento en que podrá ver este secreto. 
-    No se almacena en texto plano y no podrá recuperarlo después.</p>
-  </div>
+Plantilla recomendada (concepto):
 
-  <div class="secret-section">
-    <label>Client ID:</label>
-    <p class="client-id">{{ data.clientId }}</p>
+- Cabecera: título y advertencia visual (usar elementos HTML estándar o utilidades de `ClModal` para la cabecera).
+- Cuerpo: `ClFormFields` para mostrar `clientId` y `clientSecret` en modo readonly con estilos accesibles.
+- Botón de copia: usar `ClButton` que ejecuta `navigator.clipboard.writeText(data.clientSecret)` y muestra feedback mediante bindings de estado (`copied`).
+- Confirmación: `ClCheckbox` o control equivalente para que el usuario confirme haber guardado el secreto; el botón de cierre solo estará habilitado si `confirmed` es verdadero.
+- Acciones: botones de acción usando `ClButton` con estados `disabled`/`aria-disabled` gestionados por el componente.
 
-    <label>Client Secret:</label>
-    <div class="secret-display">
-      <input 
-        type="text" 
-        readonly 
-        [value]="data.clientSecret" 
-        class="secret-input"
-        #secretInput>
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="copyToClipboard()"
-        [class.copied]="copied">
-        <mat-icon>{{ copied ? 'check' : 'content_copy' }}</mat-icon>
-        {{ copied ? 'Copiado!' : 'Copiar' }}
-      </button>
-    </div>
-  </div>
+Estructura recomendada (no código exacto):
+- Header: título + banner de advertencia (alto contraste).
+- Body: readonly fields para `Client ID` y `Client Secret`.
+- Actions: `Copiar` (usa `navigator.clipboard`), checkbox `He copiado el secreto`, `Aceptar/Cerrar` habilitado solo tras confirmación.
 
-  <div class="confirmation-section">
-    <mat-checkbox [(ngModel)]="confirmed">
-      He copiado el secreto en un lugar seguro
-    </mat-checkbox>
-  </div>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button 
-    mat-raised-button 
-    color="warn" 
-    (click)="close()" 
-    [disabled]="!canClose()">
-    Cerrar (no se podrá recuperar)
-  </button>
-</mat-dialog-actions>
-```
+Ver `Helix6_Frontend_Architecture.md` para pautas de accesibilidad, i18n y testing.
 
 **Paso 3: Estilos del Modal**
 
@@ -3444,7 +3298,7 @@ public async Task PostActions_Undelete_ReactivatesApplicationAndClients()
 - [ ] Endpoint POST /applications/DeleteUndeleteLogicById funcional (ya existe)
 - [ ] ApplicationEvent publicado con IsDeleted correcto
 - [ ] Tests unitarios pasando
-- [ ] Log de auditoría registrado
+ - [ ] Auditoría registrada mediante `IAuditLogService` (captura en `PreviousActions`, persistencia en `PostActions`)
 - [ ] Code review aprobado
 
 **RECURSOS:**

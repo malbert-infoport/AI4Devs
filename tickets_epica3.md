@@ -26,6 +26,16 @@ Esta épica implementa el sistema de licenciamiento granular mediante módulos f
 - Eventos: ActiveMQ Artemis con IPVInterchangeShared (patrón State Transfer)
 - Exportación: SheetJS para generación de Excel desde frontend
 
+**CHECKLIST DE PUBLICACIÓN DE EVENTOS (aplicar a todos los tickets EV-PUB):**
+- **IMessagePublisher**: inyectar `IMessagePublisher` en el servicio y usarlo desde `PostActions`.
+- **Persistencia previa al envío**: `PublishAsync` debe persistir el evento en la tabla `IntegrationEvents` antes de enviarlo al broker.
+- **Resiliencia**: `PostActions` NO debe lanzar excepción que revierta la operación de negocio si la publicación falla; registrar error y confiar en reintentos/DLQ desde `IntegrationEvents`.
+- **Configuración**: definir los tópicos en `appsettings.json` (ej. `EventBroker:Topics:ApplicationEvents`, `EventBroker:Topics:OrganizationEvents`).
+- **Tests**: añadir tests de integración con Testcontainers (Artemis + Postgres) cuando el ticket lo requiera; en unit tests usar mocks para `IMessagePublisher`.
+
+**NOTA ENDPOINTS MASIVOS:**
+Para endpoints de configuración masiva (ej. `TASK-018-BE`), preferir la generación coherente con Helix6 mediante helpers de endpoints (`EndpointHelper.GenerateCustomEndpoint` o equivalentes) y documentar la firma esperada (request DTO y comportamiento transaccional). Evitar crear endpoints manuales fuera de las convenciones del framework salvo que exista justificación técnica.
+
 ---
 
 ## Índice de Tickets - Épica 3
@@ -327,7 +337,7 @@ namespace InfoportOneAdmon.Services.Services
                 OrganizationId = organization.Id,
                 SecurityCompanyId = organization.SecurityCompanyId,
                 Name = organization.Name,
-                FiscalId = organization.FiscalId,
+                Cif = organization.Cif,
                 GroupId = organization.GroupId,
                 IsDeleted = organization.AuditDeletionDate.HasValue,
                 CreatedAt = organization.AuditCreationDate,
