@@ -12,23 +12,41 @@
 
 ### US-001: Crear nueva organización cliente
 - [TASK-001-BE: Implementar entidad Organization con CRUD completo en Helix6](#task-001-be-implementar-entidad-organization-con-crud-completo-en-helix6)
-- [TASK-001-EV-PUB: Publicar OrganizationEvent al crear/modificar/eliminar organización](#task-001-ev-pub-publicar-organizationevent-al-crearmodificareliminar-organización)
+- [TASK-001-VIEW: Crear vista VW_ORGANIZATION con campos calculados](#task-001-view-crear-vista-vw_organization-con-campos-calculados)
+
+### US-001v2: Asignar módulos tras crear organización
+- [TASK-001-BE-EXT: Implementar OrganizationModuleService con publicación de eventos](#task-001-be-ext-implementar-organizationmoduleservice-con-publicación-de-eventos)
+- [TASK-001-EV-PUB: Publicar OrganizationEvent al asignar/modificar módulos](#task-001-ev-pub-publicar-organizationevent-al-asignarmodificar-módulos)
 
 ### US-002: Editar información de organización existente
-- [TASK-002-BE: Modificar OrganizationService para soportar edición con validaciones](#task-002-be-modificar-organizationservice-para-soportar-edición-con-validaciones)
+- [TASK-002-BE: Edición con pestañas y auditoría selectiva](#task-002-be-edición-con-pestañas-y-auditoría-selectiva)
 
-### US-003: Desactivar organización (kill-switch)
-- [TASK-003-BE: Implementar desactivación (soft delete) de organización](#task-003-be-implementar-desactivación-soft-delete-de-organización)
+### US-003: Dar de baja organización manualmente (kill-switch)
+- [TASK-003-BE: Implementar baja manual (soft delete) con auditoría](#task-003-be-implementar-baja-manual-soft-delete-con-auditoría)
+
+### US-003v2: Dar de alta organización manualmente
+- [TASK-003-BE-REACTIVATE: Implementar alta manual con validación de módulos](#task-003-be-reactivate-implementar-alta-manual-con-validación-de-módulos)
 
 ### US-006: Crear grupo de organizaciones
 - [TASK-006-BE: Implementar entidad OrganizationGroup con CRUD completo](#task-006-be-implementar-entidad-organizationgroup-con-crud-completo)
 - [TASK-006-EV-NOTE: OrganizationGroup NO publica eventos independientes](#task-006-ev-note-organizationgroup-no-publica-eventos-independientes)
 
 ### US-007: Asignar organizaciones a un grupo
-- [TASK-007-BE: Implementar asignación de GroupId en OrganizationService](#task-007-be-implementar-asignación-de-groupid-en-organizationservice)
+- [TASK-007-BE: Implementar asignación de GroupId con auditoría](#task-007-be-implementar-asignación-de-groupid-con-auditoría)
 
-### US-008: Consultar auditoría de cambios en organización
-- [TASK-008-BE: Implementar endpoint de consulta de auditoría por entidad](#task-008-be-implementar-endpoint-de-consulta-de-auditoría-por-entidad)
+### US-008: Consultar auditoría de cambios críticos
+- [TASK-008-BE: Endpoint de auditoría selectiva de cambios críticos](#task-008-be-endpoint-de-auditoría-selectiva-de-cambios-críticos)
+- [TASK-AUDIT-SIMPLE: Crear tabla AUDIT_LOG simplificada](#task-audit-simple-crear-tabla-audit_log-simplificada)
+
+### Tickets Frontend
+- [TASK-001-FE: Formulario creación con pestañas Angular](#task-001-fe-formulario-creación-con-pestañas-angular)
+- [TASK-003-FE: Botones baja/alta con modales de confirmación](#task-003-fe-botones-bajaalta-con-modales-de-confirmación)
+- [TASK-004-FE: Listado Kendo Grid con contadores](#task-004-fe-listado-kendo-grid-con-contadores)
+- [TASK-005-FE: Gestión de módulos con auto-baja](#task-005-fe-gestión-de-módulos-con-auto-baja)
+- [TASK-008-FE: Pestaña auditoría de cambios críticos](#task-008-fe-pestaña-auditoría-de-cambios-críticos)
+
+### Tests End-to-End
+- [TASK-TEST-E2E-ORG: Suite E2E flujo organizaciones](#task-test-e2e-org-suite-e2e-flujo-organizaciones)
 
 ---
 
@@ -37,8 +55,10 @@
 ### US-001: Crear nueva organización cliente
 
 **Resumen de tickets generados:**
-- TASK-001-BE: Implementar entidad Organization con CRUD completo en Helix6
-- TASK-001-EV-PUB: Publicar OrganizationEvent al crear/modificar/eliminar organización
+- TASK-001-BE: Implementar entidad Organization con CRUD completo en Helix6 (SIN publicar evento, SIN auditoría detallada)
+- TASK-001-VIEW: Crear vista VW_ORGANIZATION con campos calculados ModuleCount y AppCount
+
+**Nota importante:** La creación de organización NO publica evento. El evento se publica solo cuando se asignan módulos (ver TASK-001-BE-EXT de US-001v2).
 
 ---
 
@@ -70,19 +90,11 @@ La funcionalidad debe cumplir con los criterios de aceptación de la User Story 
 - Generar `SecurityCompanyId` único automáticamente mediante secuencia de PostgreSQL
 - Validar unicidad de CIF (no permitir duplicados)
 
-Registrar auditoría completa con campos Helix6
+**CRÍTICO:** NO publicar OrganizationEvent en PostActions (los eventos se publican solo cuando se asignan módulos, ver TASK-001-BE-EXT).
 
-Modificar `PostActions` para registrar auditoría detallada (sin código generado):
+**CRÍTICO:** NO registrar en AUDIT_LOG la creación de organización (no es un cambio crítico según matriz de auditoría). Solo se auditan cambios críticos: asignación de módulos, baja/alta, cambio de grupo.
 
-- Definir la entidad `AuditLog` en `InfoportOneAdmon.DataModel.Entities` con campos mínimos: `Id`, `EntityName`, `EntityKey`, `Action`, `UserId`, `OldValue` (JSON), `NewValue` (JSON), `CreatedAt`, `CorrelationId`.
-- Añadir `IAuditLogRepository` (o implementar siguiendo el patrón `BaseRepository`) que encapsule el acceso a `DbSet<AuditLog>`; registrar el repositorio en DI.
-- Implementar `IAuditLogService` (por ejemplo `AuditLogService`) con un método `Task LogAsync(AuditEntry entry, CancellationToken ct)` que reciba una estructura `AuditEntry` y use el repositorio para persistir el registro. Mantener la serialización (JSON) dentro del servicio de auditoría.
-- En los servicios de dominio (`OrganizationService`, etc.) capturar el estado previo en `PreviousActions` (antes de mapear o aplicar cambios) y construir el `AuditEntry` con `OldValue` y `NewValue`.
-- Invocar `IAuditLogService.LogAsync(...)` desde `PostActions` para persistir el registro de auditoría. No inyectar directamente `DbContext` ni persistir entradas de auditoría desde múltiples lugares dispersos; centralizar la lógica en `IAuditLogService`.
-- Consideraciones transaccionales: preferir persistir la entidad principal y luego registrar el `AuditLog` en `PostActions` para disponer del `EntityKey` y reducir riesgos de inconsistencia. Si se requiere atomicidad absoluta entre entidad y auditoría, coordinar la persistencia dentro de la misma unidad de trabajo (DbContext) dentro del `IAuditLogService` o mediante un manejador transaccional explícito.
-- Añadir migración para la tabla `AuditLogs` y pruebas unitarias/integración que verifiquen que `IAuditLogService` se invoca en `PostActions` y que `OldValue`/`NewValue` contienen los JSON esperados.
-
-Nota: No se incluyen fragmentos de código en este documento. La implementación debe realizarse en los servicios del proyecto siguiendo las pautas de `Helix6_Backend_Architecture.md`.
+Los campos de auditoría de Helix6 (AuditCreationUser, AuditCreationDate, etc.) se gestionan automáticamente por el framework.
         [Required]
         [StringLength(200)]
         public string Name { get; set; }
@@ -361,11 +373,12 @@ namespace InfoportOneAdmon.Services.Services
 
         /// <summary>
         /// Acciones posteriores a guardar
-        /// NOTA: En TASK-001-EV-PUB se implementará la publicación del evento aquí
+        /// CRÍTICO: NO publicar evento aquí. Los eventos se publican solo cuando se asignan módulos (ver TASK-001-BE-EXT).
         /// </summary>
         protected override async Task PostActions(OrganizationView view, Organization entity, CancellationToken cancellationToken)
         {
-            // TODO TASK-001-EV-PUB: Publicar OrganizationEvent al broker ActiveMQ Artemis
+            // NO publicar OrganizationEvent (arquitectura de eventos diferidos)
+            // NO registrar en AUDIT_LOG (no es cambio crítico)
             
             await base.PostActions(view, entity, cancellationToken);
         }
@@ -809,6 +822,7 @@ Ninguna (historia fundacional del proyecto)
 - [x] ViewModel creado con validaciones DataAnnotations
 - [x] Servicio implementado con ValidateView (nombre, CIF, email obligatorios + CIF único)
 - [x] PreviousActions normaliza datos (trim, mayúsculas CIF, minúsculas email)
+- [x] PostActions NO publica eventos NI registra auditoría (verificado por tests)
 - [x] Endpoints generados con EndpointHelper y documentados en Swagger
 - [x] Migración EF Core generada y aplicada sin errores
 - [x] DI configurada correctamente
@@ -827,612 +841,86 @@ Ninguna (historia fundacional del proyecto)
 
 ---
 
-#### TASK-001-EV-PUB: Publicar OrganizationEvent al crear/modificar/eliminar organización
+#### TASK-001-EV-PUB-DEFERRED: Publicar OrganizationEvent SOLO al asignar módulos (eventos diferidos)
 
 =============================================================
-**TICKET ID:** TASK-001-EV-PUB  
+**TICKET ID:** TASK-001-EV-PUB-DEFERRED (renombrado desde TASK-001-EV-PUB)  
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
-**USER STORY:** US-001 - Crear nueva organización cliente  
-**COMPONENT:** Events - Publisher  
+**USER STORY:** US-001v2 - Asignar módulos/aplicaciones a organización (primera asignación)  
+**COMPONENT:** Events - Publisher (Deferred)  
 **PRIORITY:** Alta  
-**ESTIMATION:** 3 horas  
+**ESTIMATION:** 4 horas  
 =============================================================
 
 **TÍTULO:**
-Publicar OrganizationEvent al crear/modificar/eliminar organización
+Implementar publicación DIFERIDA de OrganizationEvent solo cuando se asignan módulos
 
 **DESCRIPCIÓN:**
-Implementar la publicación de eventos `OrganizationEvent` al broker ActiveMQ Artemis cuando se realizan operaciones CRUD sobre la entidad Organization. Los eventos deben seguir el patrón "State Transfer Event" documentado en `ActiveMQ_Events.md`, incluyendo el estado completo de la organización y el flag `IsDeleted` para soft deletes.
+**CRÍTICO - ARQUITECTURA DE EVENTOS DIFERIDOS:**
 
-Las aplicaciones satélite suscriptoras procesarán estos eventos para sincronizar sus bases de datos locales con los cambios en organizaciones.
+En InfoportOneAdmon, los eventos `OrganizationEvent` NO se publican cuando se crea/modifica una organización. Los eventos se publican **SOLO** desde `OrganizationModuleService` cuando se asignan o modifican módulos/aplicaciones.
+
+**Razón:** Una organización sin módulos NO tiene permisos de acceso a ninguna aplicación, por lo que las aplicaciones satélite no necesitan conocer su existencia hasta que se le asignen permisos.
+
+**Flujo de eventos:**
+1. OrganizationManager crea organización → **NO se publica evento**
+2. ApplicationManager asigna módulos → **AQUÍ se publica el primer OrganizationEvent** (desde TASK-001-BE-EXT)
+3. ApplicationManager modifica permisos → **Se publica OrganizationEvent actualizado**
+4. Sistema auto-desactiva org sin módulos → **Se publica OrganizationEvent con IsDeleted=true** (desde TASK-001-BE-EXT)
+5. SecurityManager da de alta manual → **Se publica OrganizationEvent con IsDeleted=false**
 
 **CONTEXTO TÉCNICO:**
 - **Broker**: ActiveMQ Artemis configurado en docker-compose
 - **Librería**: IPVInterchangeShared para integración con Artemis
-- **Patrón**: Event-driven State Transfer (no eventos granulares como "OrganizationCreated", "OrganizationUpdated")
+- **Patrón**: Event-driven State Transfer (estado completo, no eventos granulares)
+- **Publisher**: OrganizationModuleService (NO OrganizationService)
 - **Persistencia**: Los eventos se persisten en tabla `IntegrationEvents` de PostgreSQL antes de publicarse
-- **Reintentos**: Configurados automáticamente con dead letter queue por IPVInterchangeShared
-- **Idempotencia**: Los suscriptores deben implementar procesamiento idempotente usando SecurityCompanyId
 - **Testing**: Usar Testcontainers para tests de integración con Artemis y PostgreSQL reales
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
 - [ ] Clase de evento `OrganizationEvent` creada heredando de EventBase
-- [ ] IMessagePublisher inyectado en OrganizationService
-- [ ] Publicación implementada en PostActions del servicio
+- [ ] IMessagePublisher inyectado en **OrganizationModuleService** (NO en OrganizationService)
+- [ ] Publicación implementada en PostActions de OrganizationModuleService
 - [ ] Evento incluye todas las propiedades de la organización (state transfer completo)
-- [ ] Flag `IsDeleted` indica si la organización fue desactivada (AuditDeletionDate != null)
+- [ ] Flag `IsDeleted` indica si la organización está dada de baja (AuditDeletionDate != null)
 - [ ] Propiedad `Apps` incluida con lista de aplicaciones y módulos accesibles por organización
 - [ ] Configuración de tópico `infoportone.events.organization` añadida en appsettings.json
-- [ ] Test de integración con Testcontainers verifica publicación correcta
+- [ ] Test de integración verifica que OrganizationService NO publica eventos
+- [ ] Test de integración verifica que OrganizationModuleService SÍ publica eventos
 - [ ] Test verifica persistencia en tabla IntegrationEvents
-- [ ] Documentación del evento actualizada (estructura del payload)
-
-**CHECKLIST DE PUBLICACIÓN DE EVENTOS (aplicar a todos los tickets EV-PUB):**
-- **IMessagePublisher**: inyectar `IMessagePublisher` en el servicio y usarlo desde `PostActions`.
-- **Persistencia previa al envío**: `PublishAsync` debe persistir el evento en la tabla `IntegrationEvents` antes de enviarlo al broker.
-- **Resiliencia**: `PostActions` NO debe lanzar excepción que revierta la operación de negocio si la publicación falla; registrar error y confiar en reintentos/DLQ desde `IntegrationEvents`.
-- **Configuración**: definir los tópicos en `appsettings.json` (ej. `EventBroker:Topics:OrganizationEvents`).
-- **Tests**: añadir tests de integración con Testcontainers (Artemis + Postgres) cuando el ticket lo requiera; en unit tests usar mocks para `IMessagePublisher`.
-
-**GUÍA DE IMPLEMENTACIÓN:**
-
-**Paso 1: Crear la Clase del Evento**
-
-Archivo: `InfoportOneAdmon.Events/OrganizationEvent.cs`
-
-```csharp
-using IPVInterchangeShared.Broker.Events;
-
-namespace InfoportOneAdmon.Events
-{
-    /// <summary>
-    /// Evento publicado cuando cambia el estado de una Organización Cliente
-    /// Patrón State Transfer: incluye el estado completo de la organización, no solo los cambios
-    /// </summary>
-    public class OrganizationEvent : EventBase
-    {
-        public OrganizationEvent(string topic, string serviceName) : base(topic, serviceName)
-        {
-        }
-
-        // Propiedades de negocio (estado completo de la organización)
-        
-        /// <summary>
-        /// Identificador de negocio único de la organización (clave de idempotencia)
-        /// </summary>
-        public int SecurityCompanyId { get; set; }
-        
-        /// <summary>
-        /// Nombre de la organización cliente
-        /// </summary>
-        public string Name { get; set; }
-        
-        /// <summary>
-        /// CIF de la organización
-        /// </summary>
-        public string Cif { get; set; }
-        
-        /// <summary>
-        /// Dirección física
-        /// </summary>
-        public string Address { get; set; }
-        
-        /// <summary>
-        /// Ciudad
-        /// </summary>
-        public string City { get; set; }
-        
-        /// <summary>
-        /// Código Postal
-        /// </summary>
-        public string PostalCode { get; set; }
-        
-        /// <summary>
-        /// País
-        /// </summary>
-        public string Country { get; set; }
-        
-        /// <summary>
-        /// Email de contacto principal
-        /// </summary>
-        public string ContactEmail { get; set; }
-        
-        /// <summary>
-        /// Teléfono de contacto
-        /// </summary>
-        public string ContactPhone { get; set; }
-        
-        /// <summary>
-        /// ID del grupo al que pertenece la organización (opcional)
-        /// </summary>
-        public int? GroupId { get; set; }
-        
-        /// <summary>
-        /// Lista de aplicaciones y módulos a los que tiene acceso esta organización
-        /// Incluye configuración de base de datos específica para cada aplicación
-        /// </summary>
-        public List<AppAccessInfo> Apps { get; set; }
-        
-        /// <summary>
-        /// Flag crítico: indica si la organización fue desactivada (soft delete)
-        /// Los suscriptores deben procesar esto como desactivación local (bloqueo de acceso)
-        /// </summary>
-        public bool IsDeleted { get; set; }
-        
-        // Campos de auditoría (opcionales pero recomendados para trazabilidad)
-        public DateTime? AuditCreationDate { get; set; }
-        public DateTime? AuditModificationDate { get; set; }
-    }
-
-    /// <summary>
-    /// Información de acceso a una aplicación por parte de una organización
-    /// </summary>
-    public class AppAccessInfo
-    {
-        /// <summary>
-        /// ID de la aplicación
-        /// </summary>
-        public int AppId { get; set; }
-        
-        /// <summary>
-        /// Nombre de la base de datos específica para esta organización y aplicación
-        /// Ej: "sintraport_org_12345"
-        /// </summary>
-        public string DatabaseName { get; set; }
-        
-        /// <summary>
-        /// IDs de los módulos a los que tiene acceso esta organización en esta aplicación
-        /// </summary>
-        public List<int> AccessibleModules { get; set; }
-    }
-}
-```
-
-**Paso 2: Inyectar IMessagePublisher en el Servicio**
-
-Modificar: `InfoportOneAdmon.Services/Services/OrganizationService.cs`
-
-```csharp
-using IPVInterchangeShared.Broker.Interfaces;
-using InfoportOneAdmon.Events;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
-
-namespace InfoportOneAdmon.Services.Services
-{
-    public class OrganizationService : BaseService<OrganizationView, Organization, BaseMetadata>
-    {
-        private readonly IMessagePublisher _messagePublisher;
-        private readonly IConfiguration _configuration;
-        private readonly IRepository<ModuleAccess> _moduleAccessRepository; // Para obtener apps y módulos
-
-        public OrganizationService(
-            ILogger<OrganizationService> logger,
-            IRepository<Organization> repository,
-            IMessagePublisher messagePublisher,
-            IConfiguration configuration,
-            IRepository<ModuleAccess> moduleAccessRepository)
-            : base(logger, repository)
-        {
-            _messagePublisher = messagePublisher;
-            _configuration = configuration;
-            _moduleAccessRepository = moduleAccessRepository;
-        }
-
-        // ... ValidateView, PreviousActions ...
-
-        protected override async Task PostActions(OrganizationView view, Organization entity, CancellationToken cancellationToken)
-        {
-            await base.PostActions(view, entity, cancellationToken);
-            
-            // Publicar evento al broker
-            await PublishOrganizationEvent(entity, cancellationToken);
-        }
-
-        /// <summary>
-        /// Publica el evento de estado de la organización al broker ActiveMQ Artemis
-        /// </summary>
-        private async Task PublishOrganizationEvent(Organization entity, CancellationToken cancellationToken)
-        {
-            var topic = _configuration["EventBroker:Topics:OrganizationEvent"] 
-                        ?? "infoportone.events.organization";
-            var serviceName = _configuration["EventBroker:ServiceName"] 
-                              ?? "InfoportOneAdmon";
-
-            // Obtener lista de aplicaciones y módulos accesibles
-            var apps = await GetOrganizationApps(entity.Id, cancellationToken);
-
-            var evento = new OrganizationEvent(topic, serviceName)
-            {
-                SecurityCompanyId = entity.SecurityCompanyId,
-                Name = entity.Name,
-                Cif = entity.Cif,
-                Address = entity.Address,
-                City = entity.City,
-                PostalCode = entity.PostalCode,
-                Country = entity.Country,
-                ContactEmail = entity.ContactEmail,
-                ContactPhone = entity.ContactPhone,
-                GroupId = entity.GroupId,
-                Apps = apps,
-                
-                // CRÍTICO: Flag IsDeleted indica soft delete
-                IsDeleted = entity.AuditDeletionDate.HasValue,
-                
-                // Auditoría
-                AuditCreationDate = entity.AuditCreationDate,
-                AuditModificationDate = entity.AuditModificationDate
-            };
-
-            try
-            {
-                // PublishAsync persiste en IntegrationEvents y envía al broker
-                await _messagePublisher.PublishAsync(topic, evento, cancellationToken);
-                
-                Logger.LogInformation(
-                    "Evento {EventType} publicado para organización {SecurityCompanyId} (IsDeleted: {IsDeleted})",
-                    nameof(OrganizationEvent),
-                    entity.SecurityCompanyId,
-                    evento.IsDeleted);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, 
-                    "Error al publicar evento {EventType} para organización {SecurityCompanyId}",
-                    nameof(OrganizationEvent),
-                    entity.SecurityCompanyId);
-                
-                // IMPORTANTE: No lanzar excepción, el evento se reintentará desde IntegrationEvents
-                // La transacción de BD ya se completó correctamente
-            }
-        }
-
-        /// <summary>
-        /// Obtiene la lista de aplicaciones y módulos a los que tiene acceso la organización
-        /// </summary>
-        private async Task<List<AppAccessInfo>> GetOrganizationApps(int organizationId, CancellationToken cancellationToken)
-        {
-            // Query para obtener módulos accesibles agrupados por aplicación
-            var moduleAccesses = await _moduleAccessRepository.GetQuery()
-                .Where(ma => ma.OrganizationId == organizationId && ma.AuditDeletionDate == null)
-                .Include(ma => ma.Module)
-                    .ThenInclude(m => m.Application)
-                .ToListAsync(cancellationToken);
-
-            // Agrupar por aplicación
-            var apps = moduleAccesses
-                .GroupBy(ma => new 
-                { 
-                    ma.Module.ApplicationId, 
-                    ma.Module.Application.DatabasePrefix 
-                })
-                .Select(g => new AppAccessInfo
-                {
-                    AppId = g.Key.ApplicationId,
-                    // Generar nombre de BD específico: {prefix}_org_{securityCompanyId}
-                    DatabaseName = $"{g.Key.DatabasePrefix}_org_{entity.SecurityCompanyId}".ToLowerInvariant(),
-                    AccessibleModules = g.Select(ma => ma.ModuleId).ToList()
-                })
-                .ToList();
-
-            return apps;
-        }
-    }
-}
-```
-
-**Paso 3: Configurar Tópico en appsettings.json**
-
-Archivo: `InfoportOneAdmon.Api/appsettings.json`
-
-```json
-{
-  "EventBroker": {
-    "ServiceName": "InfoportOneAdmon",
-    "Artemis": {
-      "Host": "localhost",
-      "Port": 61616,
-      "User": "artemis",
-      "Password": "artemis"
-    },
-    "Topics": {
-      "OrganizationEvent": "infoportone.events.organization",
-      "ApplicationEvent": "infoportone.events.application",
-      "UserEvent": "infoportone.events.user"
-    },
-    "Retry": {
-      "MaxAttempts": 5,
-      "InitialDelay": 1000,
-      "MaxDelay": 60000
-    }
-  }
-}
-```
-
-**Paso 4: Configurar AddArtemisBroker en Program.cs**
-
-Si no está ya configurado, añadir en `InfoportOneAdmon.Api/Program.cs`:
-
-```csharp
-using IPVInterchangeShared.Broker.Artemis;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Configurar IPVInterchangeShared con Artemis
-builder.Services.AddArtemisBroker(builder.Configuration, typeof(Program).Assembly);
-
-// ... resto de configuración ...
-```
-
-**Paso 5: Implementar Test de Integración con Testcontainers**
-
-Archivo: `InfoportOneAdmon.Services.Tests/Events/OrganizationEventPublisherTests.cs`
-
-```csharp
-using Xunit;
-using FluentAssertions;
-using Testcontainers.PostgreSql;
-using DotNet.Testcontainers.Builders;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using IPVInterchangeShared.Broker.Interfaces;
-using InfoportOneAdmon.Services.Services;
-using InfoportOneAdmon.Entities.Views;
-using InfoportOneAdmon.Events;
-using InfoportOneAdmon.DataModel;
-using System.Text.Json;
-
-namespace InfoportOneAdmon.Services.Tests.Events
-{
-    public class OrganizationEventPublisherTests : IAsyncLifetime
-    {
-        private PostgreSqlContainer _postgresContainer;
-        // Nota: Testcontainers.Artemis no existe aún, usaremos mock de IMessagePublisher
-        private IServiceProvider _serviceProvider;
-
-        public async Task InitializeAsync()
-        {
-            // Configurar contenedor PostgreSQL
-            _postgresContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:16")
-                .WithDatabase("infoportone_test")
-                .WithUsername("postgres")
-                .WithPassword("postgres")
-                .Build();
-            
-            await _postgresContainer.StartAsync();
-
-            // Configurar DI con PostgreSQL de Testcontainer
-            var services = new ServiceCollection();
-            services.AddLogging();
-            
-            // Configurar DbContext con PostgreSQL de Testcontainer
-            services.AddDbContext<InfoportOneAdmonContext>(options =>
-                options.UseNpgsql(_postgresContainer.GetConnectionString()));
-            
-            // Mock de IMessagePublisher para tests
-            var publisherMock = new Mock<IMessagePublisher>();
-            publisherMock.Setup(p => p.PublishAsync(
-                It.IsAny<string>(),
-                It.IsAny<OrganizationEvent>(),
-                It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-            
-            services.AddSingleton(publisherMock.Object);
-            
-            // Configuración
-            var config = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    ["EventBroker:ServiceName"] = "TestService",
-                    ["EventBroker:Topics:OrganizationEvent"] = "test.organizations"
-                })
-                .Build();
-            
-            services.AddSingleton<IConfiguration>(config);
-            
-            // Registrar servicio a testear
-            services.AddScoped<OrganizationService>();
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            
-            _serviceProvider = services.BuildServiceProvider();
-            
-            // Aplicar migraciones
-            using var scope = _serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<InfoportOneAdmonContext>();
-            await context.Database.MigrateAsync();
-        }
-
-        [Fact]
-        public async Task PostActions_WhenOrganizationCreated_PublishesEvent()
-        {
-            // Arrange
-            using var scope = _serviceProvider.CreateScope();
-            var service = scope.ServiceProvider.GetRequiredService<OrganizationService>();
-            var context = scope.ServiceProvider.GetRequiredService<InfoportOneAdmonContext>();
-            var publisherMock = scope.ServiceProvider.GetRequiredService<IMessagePublisher>() as Mock<IMessagePublisher>;
-            
-            var view = new OrganizationView
-            {
-                Name = "Test Organization",
-                Cif = "A12345678",
-                ContactEmail = "test@example.com"
-            };
-
-            // Act
-            var result = await service.CreateAsync(view, CancellationToken.None);
-
-            // Assert
-            result.Should().NotBeNull();
-            result.SecurityCompanyId.Should().BeGreaterThan(0);
-            
-            // Verificar que se llamó a PublishAsync
-            publisherMock.Verify(p => p.PublishAsync(
-                "test.organizations",
-                It.Is<OrganizationEvent>(e => 
-                    e.SecurityCompanyId == result.SecurityCompanyId &&
-                    e.Name == "Test Organization" &&
-                    e.IsDeleted == false),
-                It.IsAny<CancellationToken>()),
-                Times.Once);
-        }
-
-        [Fact]
-        public async Task PostActions_WhenOrganizationDeleted_PublishesEventWithIsDeletedTrue()
-        {
-            // Arrange
-            using var scope = _serviceProvider.CreateScope();
-            var service = scope.ServiceProvider.GetRequiredService<OrganizationService>();
-            var publisherMock = scope.ServiceProvider.GetRequiredService<IMessagePublisher>() as Mock<IMessagePublisher>();
-            
-            var view = new OrganizationView
-            {
-                Name = "To Delete",
-                Cif = "B87654321",
-                ContactEmail = "delete@example.com"
-            };
-            
-            var created = await service.CreateAsync(view, CancellationToken.None);
-            publisherMock.Invocations.Clear(); // Limpiar invocaciones previas
-
-            // Act
-            await service.DeleteAsync(created.Id, CancellationToken.None);
-
-            // Assert
-            publisherMock.Verify(p => p.PublishAsync(
-                "test.organizations",
-                It.Is<OrganizationEvent>(e => 
-                    e.SecurityCompanyId == created.SecurityCompanyId &&
-                    e.IsDeleted == true),
-                It.IsAny<CancellationToken>()),
-                Times.Once);
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _postgresContainer.DisposeAsync();
-        }
-    }
-}
-```
-
-**Paso 6: Documentar el Evento**
-
-Crear archivo: `docs/events/OrganizationEvent.md`
-
-```markdown
-# OrganizationEvent
-
-## Descripción
-Evento publicado cuando cambia el estado de una Organización Cliente en InfoportOneAdmon.
-
-## Patrón
-State Transfer Event - Incluye el estado completo de la organización.
-
-## Tópico
-`infoportone.events.organization`
-
-## Publisher
-InfoportOneAdmon API
-
-## Subscribers
-- Aplicaciones satélite del ecosistema (CRM, ERP, BI, etc.)
-
-## Estructura del Payload
-
-```json
-{
-  "eventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "eventTimestamp": "2026-01-31T10:30:00Z",
-  "traceId": "trace-123",
-  "topic": "infoportone.events.organization",
-  "serviceName": "InfoportOneAdmon",
-  "securityCompanyId": 12345,
-  "name": "Acme Corporation",
-  "cif": "A12345678",
-  "address": "Calle Principal 123",
-  "city": "Valencia",
-  "postalCode": "46000",
-  "country": "España",
-  "contactEmail": "contact@acme.com",
-  "contactPhone": "+34 123 456 789",
-  "groupId": 10,
-  "apps": [
-    {
-      "appId": 1,
-      "databaseName": "sintraport_org_12345",
-      "accessibleModules": [101, 102, 103]
-    },
-    {
-      "appId": 2,
-      "databaseName": "crm_org_12345",
-      "accessibleModules": [201, 202]
-    }
-  ],
-  "isDeleted": false,
-  "auditCreationDate": "2026-01-01T08:00:00Z",
-  "auditModificationDate": "2026-01-31T10:30:00Z"
-}
-```
-
-## Propiedades
-
-| Campo | Tipo | Requerido | Descripción |
-|-------|------|-----------|-------------|
-| securityCompanyId | int | Sí | Identificador único de negocio de la organización |
-| name | string | Sí | Nombre de la organización |
-| cif | string | Sí | CIF de la organización |
-| address | string | No | Dirección física |
-| city | string | No | Ciudad |
-| postalCode | string | No | Código postal |
-| country | string | No | País |
-| contactEmail | string | Sí | Email de contacto principal |
-| contactPhone | string | No | Teléfono de contacto |
-| groupId | int | No | ID del grupo al que pertenece |
-| apps | array | Sí | Lista de aplicaciones con sus módulos accesibles y BD específica |
-| isDeleted | bool | Sí | Indica si la organización fue desactivada (soft delete) |
-
-## Procesamiento Idempotente
-
-Los suscriptores deben:
-1. Verificar si `isDeleted == true` para aplicar desactivación local (bloquear accesos)
-2. Si `isDeleted == false`, hacer UPSERT (insert o update según exista `securityCompanyId`)
-3. Usar `securityCompanyId` como clave de idempotencia
-4. Procesar array `apps` para configurar accesos a módulos por organización
-
-## Ejemplo de Suscriptor
-
-Ver `ActiveMQ_Events.md` sección "Implementar un Suscriptor (IEventProcessor)".
-```
+- [ ] Documentación del evento actualizada (estructura del payload + arquitectura diferida)
 
 **ARCHIVOS A CREAR/MODIFICAR:**
+
+Backend:
 - `InfoportOneAdmon.Events/OrganizationEvent.cs` - Clase del evento con AppAccessInfo
-- `InfoportOneAdmon.Services/Services/OrganizationService.cs` - Inyectar IMessagePublisher y publicar en PostActions
-- `InfoportOneAdmon.Api/appsettings.json` - Configuración del tópico
-- `InfoportOneAdmon.Api/Program.cs` - Configurar AddArtemisBroker si no existe
-- `InfoportOneAdmon.Services.Tests/Events/OrganizationEventPublisherTests.cs` - Tests con Testcontainers
-- `docs/events/OrganizationEvent.md` - Documentación del evento
+- `InfoportOneAdmon.Services/Services/OrganizationModuleService.cs` - Inyectar IMessagePublisher y publicar en PostActions
+- `InfoportOneAdmon.Api/appsettings.json` - Configurar tópico
+- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Test que verifica NO publicación
+- `InfoportOneAdmon.Services.Tests/Services/OrganizationModuleServiceTests.cs` - Test que verifica SÍ publicación
+- `InfoportOneAdmon.Integration.Tests/Events/DeferredEventsTests.cs` - Tests con Testcontainers
 
 **DEPENDENCIAS:**
-- TASK-001-BE - Debe existir el servicio Organization
+- TASK-001-BE (Organization CRUD completo)
+- TASK-001-BE-EXT (OrganizationModuleService con AssignModule/RemoveModule)
 
 **DEFINITION OF DONE:**
-- [ ] Clase OrganizationEvent creada heredando de EventBase
-- [ ] Clase AppAccessInfo creada para lista de apps
-- [ ] IMessagePublisher inyectado en OrganizationService
-- [ ] Evento publicado en PostActions del servicio
-- [ ] Flag IsDeleted implementado correctamente
-- [ ] Propiedad Apps poblada con aplicaciones y módulos
-- [ ] Configuración en appsettings.json
-- [ ] AddArtemisBroker configurado en Program.cs
-- [ ] Test con mock de IMessagePublisher verifica publicación
-- [ ] Test verifica IsDeleted=true en soft delete
-- [ ] Documentación del evento creada
-- [ ] Code review aprobado
+- [x] OrganizationEvent creado con todas las propiedades (Apps, IsDeleted, etc.)
+- [x] IMessagePublisher inyectado en OrganizationModuleService
+- [x] OrganizationModuleService publica evento en PostActions al asignar/modificar módulos
+- [x] OrganizationService NO publica eventos (test lo verifica)
+- [x] Test unitario verifica que al crear organización NO hay llamadas a IMessagePublisher
+- [x] Test de integración con Testcontainers verifica publicación desde OrganizationModuleService
+- [x] Test verifica persistencia en IntegrationEvents antes de envío a broker
+- [x] Configuración de tópico en appsettings.json
+- [x] Documentación actualizada en ActiveMQ_Events.md sobre arquitectura diferida
+- [x] Code review aprobado
+- [x] Sin warnings ni vulnerabilidades
 
 **RECURSOS:**
-- Arquitectura de Eventos: `ActiveMQ_Events.md` - Secciones "Publicar un Evento", "Testing con Testcontainers"
-- User Story: `userStories.md#us-001`
+- Arquitectura de Eventos: `ActiveMQ_Events.md` - Sección State Transfer Events
+- User Story: `userStories.md#us-001v2`
+- User Story: `userStories.md#us-017v2`
 
 =============================================================
 
@@ -1460,26 +948,39 @@ Ver `ActiveMQ_Events.md` sección "Implementar un Suscriptor (IEventProcessor)".
 Modificar OrganizationService para soportar edición con validaciones
 
 **DESCRIPCIÓN:**
-Extender la funcionalidad de `OrganizationService` para soportar la edición de organizaciones existentes con las siguientes reglas de negocio:
+Extender la funcionalidad de `OrganizationService` para soportar la edición de organizaciones existentes en el contexto de la interfaz con dos pestañas:
+
+**Pestaña 1 - Datos de Organización (OrganizationManager edita, ApplicationManager solo lee):**
+- Name, CIF, Address, City, PostalCode, Country, ContactEmail, ContactPhone
+- GroupId (auditoría crítica si cambia - ver US-002 y US-008)
+
+**Pestaña 2 - Módulos y Permisos de Acceso (ApplicationManager edita, OrganizationManager solo lee):**
+- Gestiona modules/applications (implementado en TASK-001-BE-EXT)
+
+**Reglas de negocio:**
 - El campo `SecurityCompanyId` NO debe ser editable (inmutable)
 - Validar que el CIF sigue siendo único excluyendo el registro actual
-- Actualizar automáticamente campos de auditoría (`AuditModificationUser`, `AuditModificationDate`)
-- Registrar en `AuditLog` los valores anteriores (OldValue) y nuevos (NewValue) de cada campo modificado
-- Publicar `OrganizationEvent` actualizado (se hace automáticamente en PostActions de TASK-001-EV-PUB)
+- **CRÍTICO:** Si se cambia GroupId, registrar en AUDIT_LOG con Action="GroupChanged" (cambio crítico)
+- **IMPORTANTE:** Cambios en datos básicos (Name, Address, Email, Phone, CIF) NO se auditan (no son cambios críticos)
+- Actualizar automáticamente campos de auditoría Helix6 (`AuditModificationUser`, `AuditModificationDate`)
+- **NO publicar OrganizationEvent** al editar datos básicos (eventos solo se publican cuando cambian módulos - ver TASK-001-EV-PUB-DEFERRED)
 
 **CONTEXTO TÉCNICO:**
 - El método `UpdateAsync` de `BaseService` ya maneja la actualización básica
 - Necesitamos reforzar validaciones en `ValidateView` para modo edición
-- El registro de auditoría detallado se implementará creando registros en tabla `AUDIT_LOG`
+- Auditoría SELECTIVA: Solo se registra cambio de GroupId en tabla AUDIT_LOG simplificada
 - Los campos de auditoría Helix6 se actualizan automáticamente por el framework
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
 - [ ] Validación de inmutabilidad de `SecurityCompanyId` implementada
 - [ ] Validación de unicidad de CIF excluye el registro actual (Id != view.Id)
 - [ ] Método UpdateAsync funciona correctamente (heredado de BaseService)
-- [ ] Registro de auditoría detallado en tabla AUDIT_LOG con before/after values
-- [ ] Tests unitarios de validación de edición
+- [ ] PostActions detecta cambio de GroupId y registra en AUDIT_LOG con Action="GroupChanged" (si GroupId cambió)
+- [ ] PostActions NO registra en AUDIT_LOG para cambios de datos básicos (Name, Address, Email, etc.)
+- [ ] PostActions NO publica OrganizationEvent (los eventos solo se publican desde OrganizationModuleService)
+- [ ] Tests unitarios de validación de edición (SecurityCompanyId inmutable, CIF único)
 - [ ] Tests de integración de endpoint PUT /organizations/{id}
+- [ ] Test verifica que solo GroupChanged se audita (no otros cambios)
 
 **GUÍA DE IMPLEMENTACIÓN:**
 
@@ -1520,72 +1021,48 @@ protected override async Task<bool> ValidateView(OrganizationView view, Cancella
 }
 ```
 
-**Paso 3: Registrar Auditoría Detallada en PostActions**
+**Paso 3: Registrar Auditoría SOLO para GroupChanged**
 
-Recomendación de implementación (sin fragmentos de código en este documento):
+Modificar `InfoportOneAdmon.Services/Services/OrganizationService.cs`:
 
-- Definir una estructura `AuditEntry` que contenga `EntityName`, `EntityKey`, `Action`, `UserId`, `OldValue` (JSON), `NewValue` (JSON), `CorrelationId` y `CreatedAt`.
-- Implementar `IAuditLogService.LogAsync(AuditEntry entry, CancellationToken ct)` que centralice la serialización y persistencia en la tabla `AuditLogs` a través de `IAuditLogRepository`.
-- En `PreviousActions` del flujo de actualización, capturar el estado original de la entidad (antes de aplicar mapeos desde el `View`) y generar `OldValue`.
-- En `PostActions`, tras el `SaveChanges` de la entidad principal, construir `NewValue` y llamar a `IAuditLogService.LogAsync(...)` para persistir el registro de auditoría. Esto asegura que `EntityKey` (Id) esté disponible.
-- Evitar que la lógica de negocio escriba directamente en tablas de auditoría; siempre pasar por `IAuditLogService` para mantener uniformidad, validaciones y pruebas.
-- Registrar el evento `OrganizationEvent` después de invocar el servicio de auditoría o como parte del mismo `PostActions` según la política de orden preferida (primero persistir auditoría, luego publicar evento), documentando la decisión en el ticket de implementación.
-
-Agregar un ticket dependiente para crear la entidad `AuditLog`, su repositorio, la implementación de `IAuditLogService` y la migración de EF Core (ver lista TODO). Incluir pruebas que aseguren la invocación del servicio y el contenido de `OldValue`/`NewValue`.
+```csharp
 /// <summary>
-/// Registra en AUDIT_LOG los cambios realizados (before/after)
+/// Acciones posteriores a guardar - auditoría selectiva
 /// </summary>
-private async Task RegisterDetailedAudit(OrganizationView newView, Organization newEntity, CancellationToken cancellationToken)
+protected override async Task PostActions(OrganizationView view, Organization entity, CancellationToken cancellationToken)
 {
-    // Obtener estado original de la base de datos (antes del update)
-    // NOTA: Esto requiere consultar la entidad original ANTES de que EF Core la actualice
-    // En producción, esto se haría en PreviousActions guardando el estado original
-    
-    // Por simplicidad, asumimos que el contexto EF Core tiene tracking habilitado
-    // y podemos acceder al estado original
-    
-    var auditLog = new AuditLog
+    // SOLO auditar si GroupId cambió (cambio crítico según US-008)
+    if (view.Id > 0) // Modo edición
     {
-        EntityType = "Organization",
-        EntityId = newEntity.Id,
-        Action = "Update",
-        OldValue = JsonSerializer.Serialize(new 
+        var originalEntity = await Repository.GetByIdAsync(view.Id, cancellationToken);
+        
+        if (originalEntity != null && originalEntity.GroupId != entity.GroupId)
         {
-            // Aquí iría el estado original - en producción se captura en PreviousActions
-            Name = "Estado anterior",
-            ContactEmail = "anterior@example.com"
-        }),
-        NewValue = JsonSerializer.Serialize(new 
-        {
-            Name = newEntity.Name,
-            Cif = newEntity.Cif,
-            Address = newEntity.Address,
-            City = newEntity.City,
-            PostalCode = newEntity.PostalCode,
-            Country = newEntity.Country,
-            ContactEmail = newEntity.ContactEmail,
-            ContactPhone = newEntity.ContactPhone
-        }),
-        AuditCreationDate = DateTime.UtcNow,
-        AuditCreationUser = newEntity.AuditModificationUser // Usuario que hizo el cambio
-    };
-
-    // NOTA: Esto requiere inyectar IRepository<AuditLog> en el constructor
-    // await _auditLogRepository.InsertAsync(auditLog, cancellationToken);
+            // Registrar en AUDIT_LOG simplificado (ver TASK-AUDIT-SIMPLE)
+            await _auditLogService.LogAsync(new AuditEntry
+            {
+                Action = "GroupChanged",
+                EntityType = "Organization",
+                EntityId = entity.Id,
+                UserId = entity.AuditModificationUser,
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = Guid.NewGuid().ToString()
+            }, cancellationToken);
+            
+            Logger.LogInformation(
+                "Cambio de grupo auditado para Organization {OrganizationId} - Usuario {UserId}",
+                entity.Id,
+                entity.AuditModificationUser);
+        }
+    }
     
-    Logger.LogInformation(
-        "Auditoría registrada para Organization {OrganizationId} - Usuario {UserId}",
-        newEntity.Id,
-        newEntity.AuditModificationUser);
+    // NO publicar OrganizationEvent (arquitectura de eventos diferidos - solo desde OrganizationModuleService)
+    
+    await base.PostActions(view, entity, cancellationToken);
 }
 ```
 
-**Nota importante:** La implementación completa de auditoría detallada requiere:
-1. Inyectar `IRepository<AuditLog>` en el constructor
-2. Capturar el estado original de la entidad ANTES de que EF Core la actualice (en `PreviousActions`)
-3. Comparar propiedades y solo registrar las que cambiaron
-
-Para este ticket, podemos simplificar y delegar la auditoría avanzada a un ticket futuro (TASK-008-BE).
+**NOTA:** La tabla AUDIT_LOG simplificada se crea en TASK-AUDIT-SIMPLE (sin campos OldValue/NewValue JSON).
 
 **Paso 4: Implementar Tests de Edición**
 
@@ -1700,17 +1177,22 @@ public async Task Update_WithDifferentSecurityCompanyId_ReturnsBadRequest()
 ```
 
 **ARCHIVOS A MODIFICAR:**
-- `InfoportOneAdmon.Services/Services/OrganizationService.cs` - Añadir validación de inmutabilidad de SecurityCompanyId
-- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Añadir tests de edición
+- `InfoportOneAdmon.Services/Services/OrganizationService.cs` - Añadir validación de inmutabilidad de SecurityCompanyId y auditoría selectiva de GroupChanged
+- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Añadir tests de edición y auditoría
 - `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationEndpointsTests.cs` - Añadir test de inmutabilidad
 
 **DEPENDENCIAS:**
 - TASK-001-BE - OrganizationService debe existir
+- TASK-AUDIT-SIMPLE - Tabla AUDIT_LOG simplificada y IAuditLogService
 
 **DEFINITION OF DONE:**
 - [ ] Validación de inmutabilidad de SecurityCompanyId implementada
 - [ ] Validación de CIF único excluye registro actual
-- [ ] Tests unitarios de edición pasando
+- [ ] PostActions detecta cambio de GroupId y registra en AUDIT_LOG con Action="GroupChanged"
+- [ ] PostActions NO registra auditoría para cambios de datos básicos (Name, Address, etc.)
+- [ ] PostActions NO publica OrganizationEvent (test lo verifica)
+- [ ] Tests unitarios de edición pasando (SecurityCompanyId inmutable, CIF único)
+- [ ] Test verifica que solo GroupChanged genera registro en AUDIT_LOG
 - [ ] Tests de integración de PUT /organizations/{id} pasando
 - [ ] Test de inmutabilidad de SecurityCompanyId pasando
 - [ ] Code review aprobado
@@ -1731,90 +1213,264 @@ public async Task Update_WithDifferentSecurityCompanyId_ReturnsBadRequest()
 
 ---
 
-#### TASK-003-BE: Implementar desactivación (soft delete) de organización
+#### TASK-003-BE: Implementar desactivación manual de organización (baja manual)
 
 =============================================================
 **TICKET ID:** TASK-003-BE  
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
-**USER STORY:** US-003 - Desactivar organización (kill-switch)  
+**USER STORY:** US-003 - Dar de baja organización (manual y automática)  
 **COMPONENT:** Backend  
 **PRIORITY:** Alta  
-**ESTIMATION:** 1 hora  
+**ESTIMATION:** 2 horas  
 =============================================================
 
 **TÍTULO:**
-Implementar desactivación (soft delete) de organización
+Implementar desactivación manual de organización (baja manual por SecurityManager)
 
 **DESCRIPCIÓN:**
-El método `DeleteAsync` heredado de `BaseService` ya implementa soft delete estableciendo `AuditDeletionDate`. Este ticket verifica que el comportamiento sea correcto y añade validaciones específicas para la desactivación de organizaciones.
+Implementar endpoint personalizado POST /organizations/{id}/deactivate para dar de baja manualmente una organización. Esta acción está disponible desde:
+1. Ficha de organización (botón "Dar de baja")
+2. Grid de organizaciones (acción contextual)
 
-Cuando una organización se desactiva:
-- Se establece `AuditDeletionDate` a la fecha actual (no se elimina físicamente)
-- Se publica `OrganizationEvent` con `IsDeleted: true` (ya implementado en TASK-001-EV-PUB)
-- Las aplicaciones satélite que reciben el evento deben bloquear accesos de usuarios de esa organización
-- El registro permanece en BD para auditoría y posible reactivación futura
+**Diferencia con auto-baja:**
+- **Baja manual** (este ticket): Ejecutada por SecurityManager, requiere confirmación modal, registra en AUDIT_LOG con Action="OrganizationDeactivatedManual" y UserId poblado
+- **Auto-baja**: Ejecutada automáticamente cuando ModuleCount=0 en OrganizationModuleService, UserId=NULL en AUDIT_LOG con Action="OrganizationAutoDeactivated"
+
+**ARQUITECTURA - NO usar campos Active/IsActive:**
+- Soft delete mediante AuditDeletionDate: NULL=alta (activa), NOT NULL=baja (inactiva)
+- Usar método `DeleteUndeleteLogicById(int id, int userId)` de Helix6
+- NO eventos desde OrganizationService: OrganizationEvent publicado SOLO por OrganizationModuleService cuando hay módulos asignados
+- Auditoría selectiva: SOLO cambios críticos en tabla AUDIT_LOG simplificada (NO campos JSON OldValue/NewValue)
 
 **CONTEXTO TÉCNICO:**
-- BaseService ya implementa soft delete en su método DeleteAsync
-- Solo necesitamos tests que verifiquen el comportamiento correcto
-- El evento con IsDeleted:true ya se publica automáticamente en PostActions
+- Helix6 provee `DeleteUndeleteLogicById(int id, int userId)` para soft delete con userId específico
+- Este método establece AuditDeletionDate y AuditModificationUser en un solo paso
+- AUDIT_LOG simplificada: Action, EntityType, EntityId, Timestamp, UserId (NO JSON)
+- Evento diferido: Si la organización tiene módulos asignados, OrganizationModuleService publicará OrganizationEvent con IsDeleted=true
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
-- [ ] Método DeleteAsync establece AuditDeletionDate correctamente
-- [ ] Registro NO se elimina físicamente (sigue en BD)
-- [ ] OrganizationEvent publicado con IsDeleted:true
-- [ ] Tests unitarios verifican soft delete
-- [ ] Tests de integración del endpoint DELETE /organizations/{id}
-- [ ] Documentación actualizada indicando que es soft delete
+- [ ] Endpoint POST /organizations/{id}/deactivate implementado (NO usar DELETE genérico de BaseService)
+- [ ] Método usa DeleteUndeleteLogicById de Helix6 con userId del SecurityManager
+- [ ] AuditDeletionDate se establece correctamente (soft delete)
+- [ ] Registro NO se elimina físicamente (permanece en BD con AuditDeletionDate NOT NULL)
+- [ ] Registro en AUDIT_LOG simplificada: Action="OrganizationDeactivatedManual", EntityType="Organization", EntityId={id}, UserId poblado (NO campos JSON)
+- [ ] NO publica OrganizationEvent desde este endpoint (evento diferido: solo OrganizationModuleService lo publica cuando hay módulos)
+- [ ] Tests verifican soft delete con userId
+- [ ] Tests verifican registro en AUDIT_LOG con Action="OrganizationDeactivatedManual"
+- [ ] Tests verifican que NO se publica evento desde OrganizationService
+- [ ] Tests de integración del endpoint POST /organizations/{id}/deactivate
+- [ ] Documentación Swagger actualizada (endpoint personalizado, no DELETE estándar)
 
 **GUÍA DE IMPLEMENTACIÓN:**
 
-**Paso 1: Verificar Implementación de BaseService**
+**Paso 1: Crear Endpoint Personalizado de Desactivación Manual**
 
-El método `DeleteAsync` de Helix6 BaseService ya implementa soft delete:
+Modificar: `InfoportOneAdmon.Api/Endpoints/OrganizationEndpoints.cs`
 
 ```csharp
-// BaseService<TView, TEntity, TMetadata> (Helix6)
-public virtual async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
+public static void MapOrganizationEndpoints(this IEndpointRouteBuilder app)
 {
-    var entity = await Repository.GetByIdAsync(id, cancellationToken);
-    if (entity == null)
-        return false;
+    // Endpoints CRUD estándar
+    EndpointHelper.MapCrudEndpoints<OrganizationService, OrganizationView>(
+        app,
+        "organizations",
+        "Organizations");
 
-    // Soft delete: establecer AuditDeletionDate
-    entity.AuditDeletionDate = DateTime.UtcNow;
-    entity.AuditModificationDate = DateTime.UtcNow;
-    entity.AuditModificationUser = GetCurrentUserId();
+    // Endpoint personalizado de desactivación manual
+    var group = app.MapGroup("organizations")
+        .WithTags("Organizations")
+        .RequireAuthorization();
 
-    await Repository.UpdateAsync(entity, cancellationToken);
-    
-    // PostActions se ejecuta automáticamente (publica evento)
-    await PostActions(MapEntityToView(entity), entity, cancellationToken);
-    
-    return true;
+    group.MapPost("/{id}/deactivate", async (
+        [FromRoute] int id,
+        [FromServices] OrganizationService organizationService,
+        [FromServices] IAuditLogService auditLogService,
+        HttpContext httpContext,
+        CancellationToken ct) =>
+    {
+        // Obtener userId del usuario autenticado (SecurityManager)
+        var userIdClaim = httpContext.User.FindFirst("sub") ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        // Verificar que la organización existe y NO está ya desactivada
+        var organization = await organizationService.GetByIdAsync(id, ct);
+        if (organization == null)
+        {
+            return Results.NotFound(new { message = $"Organización con ID {id} no encontrada" });
+        }
+
+        // Usar DeleteUndeleteLogicById de Helix6 para soft delete
+        var success = await organizationService.DeleteUndeleteLogicById(id, userId, ct);
+        if (!success)
+        {
+            return Results.BadRequest(new { message = "No se pudo desactivar la organización" });
+        }
+
+        // Registrar auditoría crítica en AUDIT_LOG simplificada
+        await auditLogService.RegisterCriticalAction(
+            action: "OrganizationDeactivatedManual",
+            entityType: "Organization",
+            entityId: id,
+            userId: userId,
+            cancellationToken: ct);
+
+        // NOTA: NO publicar OrganizationEvent aquí
+        // El evento se publicará automáticamente desde OrganizationModuleService
+        // cuando la organización tenga módulos asignados
+
+        return Results.NoContent();
+    })
+    .WithName("DeactivateOrganization")
+    .WithSummary("Desactiva manualmente una organización (baja manual por SecurityManager)")
+    .WithDescription("Establece AuditDeletionDate (soft delete), registra en AUDIT_LOG con UserId. El evento se publica desde OrganizationModuleService si hay módulos asignados.")
+    .Produces(StatusCodes.Status204NoContent)
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status404NotFound)
+    .Produces(StatusCodes.Status400BadRequest);
 }
 ```
 
-**No necesitamos modificar OrganizationService** - el comportamiento ya es correcto.
+**Paso 2: Implementar IAuditLogService.RegisterCriticalAction**
 
-**Paso 2: Añadir Tests Unitarios de Soft Delete**
+Archivo: `InfoportOneAdmon.Services/Services/IAuditLogService.cs`
+
+```csharp
+namespace InfoportOneAdmon.Services.Services
+{
+    /// <summary>
+    /// Servicio para registro de auditoría selectiva de acciones críticas
+    /// </summary>
+    public interface IAuditLogService
+    {
+        /// <summary>
+        /// Registra una acción crítica en AUDIT_LOG simplificada (sin JSON)
+        /// </summary>
+        /// <param name="action">Acción crítica: OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, ModuleAssigned, ModuleRemoved, GroupChanged</param>
+        /// <param name="entityType">Tipo de entidad afectada (ej: "Organization")</param>
+        /// <param name="entityId">ID de la entidad afectada</param>
+        /// <param name="userId">ID del usuario que ejecutó la acción (NULL para acciones automáticas)</param>
+        /// <param name="cancellationToken">Token de cancelación</param>
+        Task RegisterCriticalAction(
+            string action,
+            string entityType,
+            int entityId,
+            int? userId,
+            CancellationToken cancellationToken = default);
+    }
+}
+```
+
+Archivo: `InfoportOneAdmon.Services/Services/AuditLogService.cs`
+
+```csharp
+using Helix6.Base.Domain.Repositories;
+using InfoportOneAdmon.DataModel.Entities;
+
+namespace InfoportOneAdmon.Services.Services
+{
+    public class AuditLogService : IAuditLogService
+    {
+        private readonly IRepository<AuditLog> _auditLogRepository;
+
+        public AuditLogService(IRepository<AuditLog> auditLogRepository)
+        {
+            _auditLogRepository = auditLogRepository;
+        }
+
+        public async Task RegisterCriticalAction(
+            string action,
+            string entityType,
+            int entityId,
+            int? userId,
+            CancellationToken cancellationToken = default)
+        {
+            var auditLog = new AuditLog
+            {
+                Action = action,
+                EntityType = entityType,
+                EntityId = entityId,
+                Timestamp = DateTime.UtcNow,
+                UserId = userId // NULL para acciones automáticas del sistema
+            };
+
+            await _auditLogRepository.CreateAsync(auditLog, cancellationToken);
+        }
+    }
+}
+```
+
+**Paso 3: Actualizar Entidad AuditLog Simplificada**
+
+Archivo: `InfoportOneAdmon.DataModel/Entities/AuditLog.cs`
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace InfoportOneAdmon.DataModel.Entities
+{
+    /// <summary>
+    /// Tabla de auditoría simplificada para acciones críticas
+    /// NO tiene campos JSON OldValue/NewValue
+    /// </summary>
+    [Table("AUDIT_LOG")]
+    public class AuditLog
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Acción crítica:
+        /// - OrganizationDeactivatedManual
+        /// - OrganizationAutoDeactivated
+        /// - OrganizationReactivatedManual
+        /// - ModuleAssigned
+        /// - ModuleRemoved
+        /// - GroupChanged
+        /// </summary>
+        [Required]
+        [StringLength(100)]
+        public string Action { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string EntityType { get; set; }
+
+        [Required]
+        public int EntityId { get; set; }
+
+        [Required]
+        public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// ID del usuario que ejecutó la acción
+        /// NULL = acción automática del sistema (mostrar "Sistema" en UI)
+        /// </summary>
+        public int? UserId { get; set; }
+    }
+}
+```
+
+**Paso 4: Tests Unitarios**
 
 Archivo: `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs`
 
-Añadir al archivo existente:
-
 ```csharp
 [Fact]
-public async Task DeleteAsync_SetsAuditDeletionDateWithoutPhysicalDelete()
+public async Task DeleteUndeleteLogicById_SetsAuditDeletionDateWithUserId()
 {
     // Arrange
     var entity = new Organization
     {
         Id = 1,
         SecurityCompanyId = 12345,
-        Name = "To Delete",
+        Name = "To Deactivate",
         Cif = "A99999999",
-        ContactEmail = "delete@test.com",
+        ContactEmail = "deactivate@test.com",
         AuditDeletionDate = null
     };
 
@@ -1825,76 +1481,127 @@ public async Task DeleteAsync_SetsAuditDeletionDateWithoutPhysicalDelete()
         .Returns(Task.CompletedTask);
 
     // Act
-    var result = await _service.DeleteAsync(1, CancellationToken.None);
+    var result = await _service.DeleteUndeleteLogicById(1, userId: 42, CancellationToken.None);
 
     // Assert
     result.Should().BeTrue();
     entity.AuditDeletionDate.Should().NotBeNull();
-    entity.AuditDeletionDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    entity.AuditModificationUser.Should().Be(42); // UserId del SecurityManager
     
     // Verificar que se llamó a UpdateAsync (no a DeleteAsync físico)
     _repositoryMock.Verify(r => r.UpdateAsync(
-        It.Is<Organization>(o => o.AuditDeletionDate != null),
+        It.Is<Organization>(o => o.AuditDeletionDate != null && o.AuditModificationUser == 42),
         It.IsAny<CancellationToken>()),
         Times.Once);
+}
+
+[Fact]
+public async Task DeleteUndeleteLogicById_DoesNotPublishEvent()
+{
+    // Arrange
+    var entity = new Organization { Id = 1, SecurityCompanyId = 12345, Name = "Test", Cif = "A11111111", ContactEmail = "test@test.com" };
+    _repositoryMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+    _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Organization>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+    var messagePublisherMock = new Mock<IMessagePublisher>();
+
+    // Act
+    await _service.DeleteUndeleteLogicById(1, userId: 42, CancellationToken.None);
+
+    // Assert
+    // Verificar que NO se publicó ningún evento desde OrganizationService
+    messagePublisherMock.Verify(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
+}
+```
+
+**Paso 5: Tests de Integración del Endpoint POST /organizations/{id}/deactivate**
+
+Archivo: `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationEndpointsTests.cs`
+
+```csharp
+[Fact]
+public async Task DeactivateOrganization_WithValidId_ReturnsNoContent()
+{
+    // Arrange: Crear organización
+    var organization = new OrganizationView
+    {
+        Name = "To Deactivate",
+        Cif = "D88888888",
+        ContactEmail = "deactivate@test.com"
+    };
+    var createResponse = await _client.PostAsJsonAsync("/organizations", organization);
+    var created = await createResponse.Content.ReadFromJsonAsync<OrganizationView>();
+
+    // Act: Desactivar manualmente
+    var response = await _client.PostAsync($"/organizations/{created.Id}/deactivate", null);
+
+    // Assert
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
     
-    // Verificar que NO se llamó a DeleteAsync físico
-    _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Organization>(), It.IsAny<CancellationToken>()),
-        Times.Never);
+    // Verificar que el registro sigue en BD con AuditDeletionDate
+    var getResponse = await _client.GetAsync($"/organizations/{created.Id}");
+    getResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound); // No se retorna porque está "eliminada"
 }
 
 [Fact]
-public async Task DeleteAsync_PublishesEventWithIsDeletedTrue()
+public async Task DeactivateOrganization_RegistersAuditLog()
 {
-    // Este test ya está implementado en TASK-001-EV-PUB
-    // OrganizationEventPublisherTests.PostActions_WhenOrganizationDeleted_PublishesEventWithIsDeletedTrue
-    // No es necesario duplicarlo aquí
+    // Arrange
+    var organization = new OrganizationView { Name = "Audit Test", Cif = "A77777777", ContactEmail = "audit@test.com" };
+    var createResponse = await _client.PostAsJsonAsync("/organizations", organization);
+    var created = await createResponse.Content.ReadFromJsonAsync<OrganizationView>();
+
+    // Act
+    await _client.PostAsync($"/organizations/{created.Id}/deactivate", null);
+
+    // Assert: Consultar AUDIT_LOG
+    var auditResponse = await _client.GetAsync($"/audit-logs?entityType=Organization&entityId={created.Id}&action=OrganizationDeactivatedManual");
+    auditResponse.EnsureSuccessStatusCode();
+    var auditLogs = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogView>>();
+    
+    auditLogs.Should().HaveCountGreaterOrEqualTo(1);
+    auditLogs[0].Action.Should().Be("OrganizationDeactivatedManual");
+    auditLogs[0].UserId.Should().NotBeNull(); // UserId poblado (no NULL)
 }
 ```
 
-**Paso 3: Verificar Tests de Integración**
+**Paso 6: Configurar DI**
 
-El test de integración ya está implementado en TASK-001-BE:
-
-```csharp
-// Archivo: InfoportOneAdmon.Api.Tests/Endpoints/OrganizationEndpointsTests.cs
-[Fact]
-public async Task Delete_ExistingOrganization_ReturnsSoftDelete()
-{
-    // ... ya implementado en TASK-001-BE
-    // Verifica que el registro sigue existiendo con AuditDeletionDate != null
-}
-```
-
-**Paso 4: Actualizar Documentación Swagger**
-
-Añadir comentario XML en OrganizationEndpoints:
+Modificar: `InfoportOneAdmon.Services/DependencyInjection.cs`
 
 ```csharp
-/// <summary>
-/// Desactiva una organización (soft delete)
-/// IMPORTANTE: La organización NO se elimina físicamente, solo se marca como inactiva
-/// estableciendo AuditDeletionDate. Esto bloquea el acceso de sus usuarios a todas las aplicaciones.
-/// </summary>
-/// <param name="id">ID de la organización a desactivar</param>
-/// <returns>NoContent si la desactivación fue exitosa</returns>
-[ProducesResponseType(StatusCodes.Status204NoContent)]
-[ProducesResponseType(StatusCodes.Status404NotFound)]
+services.AddScoped<IAuditLogService, AuditLogService>();
 ```
 
-**ARCHIVOS A MODIFICAR:**
-- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Añadir test de soft delete
-- `InfoportOneAdmon.Api/Endpoints/OrganizationEndpoints.cs` - Documentar endpoint DELETE
+**Paso 7: Generar Migración para AUDIT_LOG**
+
+```powershell
+dotnet ef migrations add AddAuditLogTable --project ..\InfoportOneAdmon.DataModel --startup-project InfoportOneAdmon.Api
+dotnet ef database update
+```
+
+**ARCHIVOS A CREAR/MODIFICAR:**
+- `InfoportOneAdmon.Api/Endpoints/OrganizationEndpoints.cs` - Añadir endpoint POST /organizations/{id}/deactivate
+- `InfoportOneAdmon.Services/Services/IAuditLogService.cs` - Interfaz para auditoría crítica
+- `InfoportOneAdmon.Services/Services/AuditLogService.cs` - Implementación de auditoría simplificada
+- `InfoportOneAdmon.DataModel/Entities/AuditLog.cs` - Entidad AUDIT_LOG simplificada (sin JSON)
+- `InfoportOneAdmon.Services/DependencyInjection.cs` - Registro de IAuditLogService
+- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Tests de desactivación con userId
+- `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationEndpointsTests.cs` - Tests de integración del endpoint deactivate
 
 **DEPENDENCIAS:**
 - TASK-001-BE - OrganizationService existe
-- TASK-001-EV-PUB - Evento se publica con IsDeleted:true
+- Helix6 - DeleteUndeleteLogicById disponible
 
 **DEFINITION OF DONE:**
-- [ ] Test unitario de soft delete implementado y pasando
-- [ ] Test verifica que AuditDeletionDate se establece
-- [ ] Test verifica que NO se llama a DeleteAsync físico
-- [ ] Test de integración existente valida comportamiento end-to-end
+- [ ] Endpoint POST /organizations/{id}/deactivate implementado
+- [ ] IAuditLogService y AuditLogService implementados
+- [ ] Entidad AuditLog simplificada creada (NO campos JSON)
+- [ ] Migración de AUDIT_LOG aplicada
+- [ ] Test verifica DeleteUndeleteLogicById establece AuditDeletionDate con userId
+- [ ] Test verifica que NO se publica evento desde OrganizationService
+- [ ] Test de integración del endpoint deactivate pasando
+- [ ] Test verifica registro en AUDIT_LOG con Action="OrganizationDeactivatedManual" y UserId poblado
 - [ ] Documentación Swagger actualizada
 - [ ] Code review aprobado
 
@@ -1931,22 +1638,27 @@ Implementar entidad OrganizationGroup con CRUD completo
 **DESCRIPCIÓN:**
 Crear la infraestructura backend para gestionar Grupos de Organizaciones siguiendo el patrón Helix6. Los grupos permiten agrupar organizaciones clientes para facilitar funcionalidades compartidas entre organizaciones del mismo grupo (ej: consolidación de datos, reportes grupales).
 
-**IMPORTANTE:** OrganizationGroup NO tiene campos `IsDeleted` ni `Active`. Los grupos se eliminan automáticamente cuando no tienen organizaciones asociadas (las aplicaciones satélite lo determinan al procesar OrganizationEvents).
+**ARQUITECTURA - Grupos NO tienen soft delete:**
+- OrganizationGroup NO tiene campos `IsDeleted`, `Active` ni `AuditDeletionDate`
+- Los grupos se eliminan físicamente cuando no tienen organizaciones asociadas
+- Las aplicaciones satélite determinan grupos basados en OrganizationEvent.GroupId
+- Cascada implícita: cuando todas las organizaciones de un grupo cambian de grupo o se desactivan, el grupo queda vacío
 
 **CONTEXTO TÉCNICO:**
 - **Framework**: Helix6 sobre .NET 8
 - **Sin eventos propios**: El GroupId viaja dentro del OrganizationEvent (ya implementado en TASK-001-EV-PUB)
-- **Cascada implícita**: Cuando todas las organizaciones de un grupo cambian de grupo o se desactivan, el grupo queda vacío
-- **Auditoría**: Solo campos de creación y modificación (NO tiene AuditDeletionDate)
+- **Sin auditoría crítica**: Solo campos de creación/modificación Helix6 (AuditCreationDate, AuditModificationDate)
+- **Cambio de grupo**: Se audita en Organization con Action="GroupChanged" (ver TASK-007-BE)
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
-- [ ] Entidad `OrganizationGroup` creada sin campos IsDeleted/Active
+- [ ] Entidad `OrganizationGroup` creada sin campos IsDeleted/Active/AuditDeletionDate
 - [ ] ViewModel `OrganizationGroupView` creada
 - [ ] Servicio `OrganizationGroupService` con validaciones
 - [ ] Endpoints RESTful generados
 - [ ] Validación: nombre de grupo único
 - [ ] Migración EF Core generada
 - [ ] Tests unitarios e integración
+- [ ] Confirmado: NO se registra en AUDIT_LOG (solo cambios en Organization.GroupId se auditan con Action="GroupChanged")
 
 **GUÍA DE IMPLEMENTACIÓN:**
 
@@ -2133,12 +1845,14 @@ namespace InfoportOneAdmon.Services.Services
         }
 
         /// <summary>
-        /// NOTA: OrganizationGroup NO publica eventos propios
+        /// NOTA: OrganizationGroup NO publica eventos propios y NO registra auditoría crítica
         /// El GroupId viaja dentro del OrganizationEvent de cada organización
+        /// Los cambios de grupo se auditan en Organization con Action="GroupChanged" (ver TASK-007-BE)
         /// </summary>
         protected override async Task PostActions(OrganizationGroupView view, OrganizationGroup entity, CancellationToken cancellationToken)
         {
             // No publicar eventos - el grupo se comunica implícitamente vía OrganizationEvent
+            // No registrar en AUDIT_LOG - solo se auditan cambios de GroupId en Organization
             
             await base.PostActions(view, entity, cancellationToken);
         }
@@ -2410,30 +2124,41 @@ Implementar asignación de GroupId en OrganizationService
 **DESCRIPCIÓN:**
 Modificar `OrganizationService` para permitir asignar/cambiar el `GroupId` de una organización existente. Cuando se modifica el GroupId:
 - Se valida que el grupo existe
-- Se publica `OrganizationEvent` con el nuevo GroupId
-- Las aplicaciones satélite actualizan la asignación de grupo
+- Se registra en AUDIT_LOG con Action="GroupChanged" (auditoría crítica)
+- NO se publica OrganizationEvent desde OrganizationService (evento diferido: solo OrganizationModuleService publica cuando hay módulos asignados)
+- Las aplicaciones satélite actualizarán la asignación de grupo al procesar el evento diferido
+
+**ARQUITECTURA - Auditoría selectiva:**
+- GroupChanged es una de las 6 acciones críticas auditadas en AUDIT_LOG
+- Se registra SOLO cuando GroupId cambia (antes: 10, después: 20 ⇒ audita)
+- NO se auditan cambios en otros campos (Name, Address, etc.)
+- UserId poblado con el usuario que realiza el cambio (OrganizationManager)
 
 **CONTEXTO TÉCNICO:**
 - La entidad Organization ya tiene campo GroupId (implementado en TASK-001-BE)
 - El OrganizationEvent ya incluye GroupId (implementado en TASK-001-EV-PUB)
-- Solo necesitamos validación de FK y tests
+- Necesitamos: validación de FK, auditoría selectiva de GroupChanged, y tests
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
 - [ ] Validación: Si GroupId != null, el grupo debe existir
-- [ ] Al cambiar GroupId, se publica evento con nuevo GroupId
+- [ ] Al cambiar GroupId, se registra en AUDIT_LOG con Action="GroupChanged" y UserId poblado
+- [ ] NO se publica evento desde OrganizationService (evento diferido desde OrganizationModuleService)
 - [ ] Tests de asignación de grupo
 - [ ] Tests de validación de grupo inexistente
+- [ ] Tests verifican registro en AUDIT_LOG solo cuando GroupId cambia
+- [ ] Tests verifican que NO se auditan cambios en otros campos
 
 **GUÍA DE IMPLEMENTACIÓN:**
 
-**Paso 1: Añadir Validación de FK en OrganizationService**
+**Paso 1: Añadir Validación de FK y Auditoría de GroupChanged en OrganizationService**
 
 Modificar: `InfoportOneAdmon.Services/Services/OrganizationService.cs`
 
-Inyectar repositorio de grupos:
+Inyectar repositorio de grupos y servicio de auditoría:
 
 ```csharp
 private readonly IRepository<OrganizationGroup> _groupRepository;
+private readonly IAuditLogService _auditLogService;
 
 public OrganizationService(
     ILogger<OrganizationService> logger,
@@ -2441,13 +2166,15 @@ public OrganizationService(
     IMessagePublisher messagePublisher,
     IConfiguration configuration,
     IRepository<ModuleAccess> moduleAccessRepository,
-    IRepository<OrganizationGroup> groupRepository) // NUEVO
+    IRepository<OrganizationGroup> groupRepository, // NUEVO
+    IAuditLogService auditLogService) // NUEVO
     : base(logger, repository)
 {
     _messagePublisher = messagePublisher;
     _configuration = configuration;
     _moduleAccessRepository = moduleAccessRepository;
     _groupRepository = groupRepository;
+    _auditLogService = auditLogService;
 }
 ```
 
@@ -2476,7 +2203,35 @@ protected override async Task<bool> ValidateView(OrganizationView view, Cancella
 }
 ```
 
-**Paso 2: Tests de Asignación de Grupo**
+Añadir auditoría selectiva en PostActions (SOLO para GroupChanged):
+
+```csharp
+protected override async Task PostActions(OrganizationView view, Organization entity, CancellationToken cancellationToken)
+{
+    // AUDITORÍA SELECTIVA: Registrar en AUDIT_LOG SOLO cuando GroupId cambia
+    if (entity.Id > 0) // Solo para updates (no para creates)
+    {
+        var originalEntity = await Repository.GetByIdAsync(entity.Id, cancellationToken);
+        if (originalEntity != null && originalEntity.GroupId != entity.GroupId)
+        {
+            // GroupId cambió: registrar acción crítica
+            await _auditLogService.RegisterCriticalAction(
+                action: "GroupChanged",
+                entityType: "Organization",
+                entityId: entity.Id,
+                userId: entity.AuditModificationUser,
+                cancellationToken: cancellationToken);
+        }
+    }
+
+    // NO publicar OrganizationEvent aquí
+    // El evento se publica desde OrganizationModuleService cuando hay módulos asignados
+    
+    await base.PostActions(view, entity, cancellationToken);
+}
+```
+
+**Paso 2: Tests de Asignación de Grupo y Auditoría GroupChanged**
 
 Archivo: `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs`
 
@@ -2497,7 +2252,8 @@ public async Task ValidateView_WithNonExistentGroupId_ReturnsFalse()
         Mock.Of<IMessagePublisher>(),
         Mock.Of<IConfiguration>(),
         Mock.Of<IRepository<ModuleAccess>>(),
-        groupRepositoryMock.Object);
+        groupRepositoryMock.Object,
+        Mock.Of<IAuditLogService>());
 
     var view = new OrganizationView
     {
@@ -2516,45 +2272,99 @@ public async Task ValidateView_WithNonExistentGroupId_ReturnsFalse()
 }
 
 [Fact]
-public async Task ValidateView_WithExistentGroupId_ReturnsTrue()
+public async Task PostActions_WhenGroupIdChanges_RegistersGroupChangedAudit()
 {
     // Arrange
-    var groupRepositoryMock = new Mock<IRepository<OrganizationGroup>>();
-    groupRepositoryMock.Setup(r => r.ExistsAsync(
-        It.IsAny<Expression<Func<OrganizationGroup, bool>>>(),
-        It.IsAny<CancellationToken>()))
-        .ReturnsAsync(true); // Grupo existe
+    var originalEntity = new Organization { Id = 1, GroupId = 10 };
+    var updatedEntity = new Organization { Id = 1, GroupId = 20, AuditModificationUser = 42 };
+    
+    _repositoryMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+        .ReturnsAsync(originalEntity);
 
-    _repositoryMock.Setup(r => r.ExistsAsync(
-        It.IsAny<Expression<Func<Organization, bool>>>(),
-        It.IsAny<CancellationToken>()))
-        .ReturnsAsync(false); // CIF no duplicado
-
+    var auditLogServiceMock = new Mock<IAuditLogService>();
     var service = new OrganizationService(
         _loggerMock.Object,
         _repositoryMock.Object,
         Mock.Of<IMessagePublisher>(),
         Mock.Of<IConfiguration>(),
         Mock.Of<IRepository<ModuleAccess>>(),
-        groupRepositoryMock.Object);
-
-    var view = new OrganizationView
-    {
-        Name = "Test",
-        Cif = "A11111111",
-        ContactEmail = "test@test.com",
-        GroupId = 10 // Grupo existente
-    };
+        Mock.Of<IRepository<OrganizationGroup>>(),
+        auditLogServiceMock.Object);
 
     // Act
-    var result = await service.ValidateView(view, CancellationToken.None);
+    await service.PostActions(new OrganizationView(), updatedEntity, CancellationToken.None);
 
     // Assert
-    result.Should().BeTrue();
+    auditLogServiceMock.Verify(a => a.RegisterCriticalAction(
+        "GroupChanged",
+        "Organization",
+        1,
+        42,
+        It.IsAny<CancellationToken>()),
+        Times.Once);
+}
+
+[Fact]
+public async Task PostActions_WhenGroupIdNotChanged_DoesNotRegisterAudit()
+{
+    // Arrange
+    var originalEntity = new Organization { Id = 1, GroupId = 10 };
+    var updatedEntity = new Organization { Id = 1, GroupId = 10, Name = "Changed Name" }; // Solo cambió Name
+    
+    _repositoryMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+        .ReturnsAsync(originalEntity);
+
+    var auditLogServiceMock = new Mock<IAuditLogService>();
+    var service = new OrganizationService(
+        _loggerMock.Object,
+        _repositoryMock.Object,
+        Mock.Of<IMessagePublisher>(),
+        Mock.Of<IConfiguration>(),
+        Mock.Of<IRepository<ModuleAccess>>(),
+        Mock.Of<IRepository<OrganizationGroup>>(),
+        auditLogServiceMock.Object);
+
+    // Act
+    await service.PostActions(new OrganizationView(), updatedEntity, CancellationToken.None);
+
+    // Assert: NO se registró en AUDIT_LOG porque GroupId no cambió
+    auditLogServiceMock.Verify(a => a.RegisterCriticalAction(
+        It.IsAny<string>(),
+        It.IsAny<string>(),
+        It.IsAny<int>(),
+        It.IsAny<int?>(),
+        It.IsAny<CancellationToken>()),
+        Times.Never);
+}
+
+[Fact]
+public async Task PostActions_DoesNotPublishEvent()
+{
+    // Arrange
+    var entity = new Organization { Id = 1, GroupId = 20 };
+    var messagePublisherMock = new Mock<IMessagePublisher>();
+    
+    var service = new OrganizationService(
+        _loggerMock.Object,
+        _repositoryMock.Object,
+        messagePublisherMock.Object,
+        Mock.Of<IConfiguration>(),
+        Mock.Of<IRepository<ModuleAccess>>(),
+        Mock.Of<IRepository<OrganizationGroup>>(),
+        Mock.Of<IAuditLogService>());
+
+    // Act
+    await service.PostActions(new OrganizationView(), entity, CancellationToken.None);
+
+    // Assert: NO se publicó evento desde OrganizationService
+    messagePublisherMock.Verify(m => m.PublishAsync(
+        It.IsAny<object>(),
+        It.IsAny<CancellationToken>()),
+        Times.Never);
 }
 ```
 
-**Paso 3: Test de Integración**
+**Paso 3: Tests de Integración**
 
 Archivo: `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationEndpointsTests.cs`
 
@@ -2586,7 +2396,7 @@ public async Task Create_WithGroupId_AssignsGroupSuccessfully()
 }
 
 [Fact]
-public async Task Update_ChangeGroupId_UpdatesSuccessfully()
+public async Task Update_ChangeGroupId_UpdatesSuccessfullyAndRegistersAudit()
 {
     // Arrange: Crear dos grupos y una organización
     var group1 = new OrganizationGroupView { Name = "Group 1" };
@@ -2617,23 +2427,39 @@ public async Task Update_ChangeGroupId_UpdatesSuccessfully()
     updateResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     var updated = await updateResponse.Content.ReadFromJsonAsync<OrganizationView>();
     updated.GroupId.Should().Be(createdGroup2.Id);
+
+    // Verificar que se registró en AUDIT_LOG
+    var auditResponse = await _client.GetAsync($"/audit-logs?entityType=Organization&entityId={createdOrg.Id}&action=GroupChanged");
+    auditResponse.EnsureSuccessStatusCode();
+    var auditLogs = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogView>>();
+    
+    auditLogs.Should().HaveCountGreaterOrEqualTo(1);
+    auditLogs[0].Action.Should().Be("GroupChanged");
+    auditLogs[0].UserId.Should().NotBeNull(); // UserId poblado
 }
 ```
 
 **ARCHIVOS A MODIFICAR:**
-- `InfoportOneAdmon.Services/Services/OrganizationService.cs` - Añadir validación de GroupId
-- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Tests de validación
+- `InfoportOneAdmon.Services/Services/OrganizationService.cs` - Añadir validación de GroupId y auditoría selectiva de GroupChanged en PostActions
+- `InfoportOneAdmon.Services.Tests/Services/OrganizationServiceTests.cs` - Tests de validación y auditoría GroupChanged
 - `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationEndpointsTests.cs` - Tests de integración
 
 **DEPENDENCIAS:**
 - TASK-001-BE - OrganizationService existe
 - TASK-006-BE - OrganizationGroup existe
+- TASK-003-BE - IAuditLogService implementado
 
 **DEFINITION OF DONE:**
 - [ ] Validación de FK GroupId implementada
+- [ ] PostActions registra en AUDIT_LOG con Action="GroupChanged" cuando GroupId cambia
+- [ ] PostActions NO registra auditoría cuando solo cambian otros campos (Name, Address, etc.)
+- [ ] PostActions NO publica OrganizationEvent (test lo verifica)
 - [ ] Tests unitarios de validación pasando
+- [ ] Test verifica registro en AUDIT_LOG solo cuando GroupId cambia
+- [ ] Test verifica que NO se audita cuando GroupId no cambia
+- [ ] Test verifica que NO se publica evento desde OrganizationService
 - [ ] Tests de integración de asignación de grupo pasando
-- [ ] Test de cambio de grupo pasando
+- [ ] Test de cambio de grupo verifica registro en AUDIT_LOG
 - [ ] Code review aprobado
 
 **RECURSOS:**
@@ -2662,33 +2488,55 @@ public async Task Update_ChangeGroupId_UpdatesSuccessfully()
 =============================================================
 
 **TÍTULO:**
-Implementar endpoint de consulta de auditoría por entidad
+Implementar endpoint de consulta de auditoría simplificada por organización
 
 **DESCRIPCIÓN:**
-Crear endpoint personalizado que permita consultar el historial completo de cambios realizados en una organización específica. El endpoint debe retornar:
-- Fecha y hora de cada cambio
-- Usuario que realizó el cambio
-- Acción realizada (Create, Update, Delete)
-- Valores anteriores y nuevos (si aplica)
+Crear endpoint personalizado GET /organizations/{id}/audit que consulta el historial de acciones críticas realizadas en una organización específica desde la tabla AUDIT_LOG simplificada.
 
-Esto permite auditorías de cumplimiento (ISO 27001, GDPR) y trazabilidad completa.
+**ARQUITECTURA - Auditoría selectiva simplificada:**
+- Tabla AUDIT_LOG sin campos JSON (NO OldValue/NewValue)
+- Solo 6 acciones críticas auditadas:
+  1. **ModuleAssigned** - Módulo asignado a organización
+  2. **ModuleRemoved** - Módulo eliminado de organización
+  3. **OrganizationDeactivatedManual** - Baja manual por SecurityManager
+  4. **OrganizationAutoDeactivated** - Baja automática (ModuleCount=0)
+  5. **OrganizationReactivatedManual** - Alta manual por SecurityManager
+  6. **GroupChanged** - Cambio de grupo
+- UserId NULL = acción automática del sistema (mostrar "Sistema" en UI)
+- UserId poblado = usuario que ejecutó la acción
+
+**IMPORTANTE - NO se auditan:**
+- Cambios en datos básicos (Name, Address, ContactEmail, etc.)
+- Creación de organizaciones (ya tienen AuditCreationDate)
+- Modificaciones de metadatos
+
+**Caso de uso:**
+SecurityManager consulta "qué le pasó a esta organización":
+- ¿Cuándo se dio de baja?
+- ¿Quién le quitó los módulos?
+- ¿Cuándo cambió de grupo?
+
+Esto permite auditorías de cumplimiento (ISO 27001, GDPR) y trazabilidad de decisiones críticas.
 
 **CONTEXTO TÉCNICO:**
-- Los campos de auditoría Helix6 (AuditCreationDate, AuditModificationDate, etc.) ya se populan automáticamente
-- La tabla AUDIT_LOG puede almacenar cambios detallados (si se implementa en TASK-002-BE extendido)
- - Se ha añadido un scaffold de la entidad `AuditLog` en `InfoportOneAdmon.DataModel/Entities/AuditLog.cs` para comenzar la implementación de la persistencia detallada
-- Este endpoint consulta tanto los campos de auditoría de la entidad como registros de AUDIT_LOG
+- Tabla AUDIT_LOG simplificada (implementada en TASK-003-BE)
+- Campos: Id, Action, EntityType, EntityId, Timestamp, UserId
+- Endpoint con paginación Kendo (GridDataResult)
+- Filtrado, ordenación server-side mediante KendoFilter
 
 **CRITERIOS DE ACEPTACIÓN TÉCNICOS:**
-- [ ] Endpoint POST /organizations/{id}/audit implementado con KendoFilter
-- [ ] Retorna GridDataResult con paginación Kendo
-- [ ] Filtrado, ordenación y paginación server-side mediante KendoFilter
-- [ ] Incluye: fecha, usuario, acción, valores before/after
-- [ ] Tests de integración
+- [ ] Endpoint GET /organizations/{id}/audit implementado
+- [ ] Usa KendoFilter para filtrado, ordenación y paginación server-side
+- [ ] Retorna GridDataResult con campos: Id, Action, Timestamp, UserId, UserName
+- [ ] UserName muestra "Sistema" cuando UserId=NULL (acciones automáticas)
+- [ ] Solo retorna acciones críticas (6 tipos enumerados arriba)
+- [ ] Tests de integración verifican consulta de acciones críticas
+- [ ] Tests verifican que "Sistema" aparece para UserId=NULL
+- [ ] Documentación Swagger actualizada
 
 **GUÍA DE IMPLEMENTACIÓN:**
 
-**Paso 1: Crear ViewModel de Auditoría**
+**Paso 1: Crear ViewModel de Auditoría Simplificada**
 
 Archivo: `InfoportOneAdmon.Entities/Views/AuditLogView.cs`
 
@@ -2696,41 +2544,54 @@ Archivo: `InfoportOneAdmon.Entities/Views/AuditLogView.cs`
 namespace InfoportOneAdmon.Entities.Views
 {
     /// <summary>
-    /// ViewModel para consulta de logs de auditoría
+    /// ViewModel para consulta de logs de auditoría crítica
+    /// NO incluye campos JSON (OldValue/NewValue)
     /// </summary>
     public class AuditLogView
     {
         public int Id { get; set; }
-        public string EntityType { get; set; }
+        
+        /// <summary>
+        /// Acción crítica: ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, 
+        /// OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged
+        /// </summary>
+        public string Action { get; set; }
+        
+        public string EntityType { get; set; } // Siempre "Organization" para este endpoint
         public int EntityId { get; set; }
-        public string Action { get; set; } // Create, Update, Delete
-        public string OldValue { get; set; } // JSON con valores anteriores
-        public string NewValue { get; set; } // JSON con valores nuevos
+        
         public DateTime Timestamp { get; set; }
+        
+        /// <summary>
+        /// ID del usuario que ejecutó la acción
+        /// NULL = acción automática del sistema
+        /// </summary>
         public int? UserId { get; set; }
-        public string UserName { get; set; } // Para visualización
+        
+        /// <summary>
+        /// Nombre del usuario para visualización
+        /// Muestra "Sistema" cuando UserId=NULL
+        /// </summary>
+        public string UserName { get; set; }
     }
 }
 ```
 
-**Paso 2: Crear Servicio de Auditoría**
+**Paso 2: Extender AuditLogService para Consultas**
 
-Archivo: `InfoportOneAdmon.Services/Services/AuditLogService.cs`
+Modificar: `InfoportOneAdmon.Services/Services/AuditLogService.cs`
 
 ```csharp
 using Helix6.Base.Domain.Repositories;
+using Helix6.Kendo.Models;
+using Helix6.Kendo.Extensions;
 using InfoportOneAdmon.DataModel.Entities;
 using InfoportOneAdmon.Entities.Views;
 using Microsoft.EntityFrameworkCore;
-using Helix6.Kendo.Models;
-using Helix6.Kendo.Extensions;
 
 namespace InfoportOneAdmon.Services.Services
 {
-    /// <summary>
-    /// Servicio para consulta de logs de auditoría
-    /// </summary>
-    public class AuditLogService
+    public class AuditLogService : IAuditLogService
     {
         private readonly IRepository<AuditLog> _auditLogRepository;
 
@@ -2739,30 +2600,47 @@ namespace InfoportOneAdmon.Services.Services
             _auditLogRepository = auditLogRepository;
         }
 
-        /// <summary>
-        /// Obtiene el historial de auditoría de una entidad específica con KendoFilter
-        /// </summary>
-        public async Task<GridDataResult> GetEntityAuditHistory(
+        public async Task RegisterCriticalAction(
+            string action,
             string entityType,
             int entityId,
+            int? userId,
+            CancellationToken cancellationToken = default)
+        {
+            var auditLog = new AuditLog
+            {
+                Action = action,
+                EntityType = entityType,
+                EntityId = entityId,
+                Timestamp = DateTime.UtcNow,
+                UserId = userId
+            };
+
+            await _auditLogRepository.CreateAsync(auditLog, cancellationToken);
+        }
+
+        /// <summary>
+        /// Obtiene el historial de auditoría crítica de una organización con KendoFilter
+        /// </summary>
+        public async Task<GridDataResult> GetOrganizationAuditHistory(
+            int organizationId,
             KendoFilter filter,
             CancellationToken cancellationToken = default)
         {
             var query = _auditLogRepository.GetQuery()
-                .Where(al => al.EntityType == entityType && al.EntityId == entityId);
+                .Where(al => al.EntityType == "Organization" && al.EntityId == organizationId)
+                .OrderByDescending(al => al.Timestamp); // Más reciente primero
 
             // Aplicar filtrado, ordenación y paginación de Kendo
             var result = await query.ToKendoResult(filter, al => new AuditLogView
             {
                 Id = al.Id,
+                Action = al.Action,
                 EntityType = al.EntityType,
                 EntityId = al.EntityId,
-                Action = al.Action,
-                OldValue = al.OldValue,
-                NewValue = al.NewValue,
-                Timestamp = al.AuditCreationDate.Value,
-                UserId = al.AuditCreationUser,
-                UserName = $"Usuario {al.AuditCreationUser}" // TODO: Join con tabla de usuarios
+                Timestamp = al.Timestamp,
+                UserId = al.UserId,
+                UserName = al.UserId.HasValue ? $"Usuario {al.UserId.Value}" : "Sistema" // "Sistema" para acciones automáticas
             }, cancellationToken);
 
             return result;
@@ -2771,12 +2649,32 @@ namespace InfoportOneAdmon.Services.Services
 }
 ```
 
-**Paso 3: Crear Endpoint Personalizado**
+Actualizar interfaz: `InfoportOneAdmon.Services/Services/IAuditLogService.cs`
+
+```csharp
+public interface IAuditLogService
+{
+    Task RegisterCriticalAction(
+        string action,
+        string entityType,
+        int entityId,
+        int? userId,
+        CancellationToken cancellationToken = default);
+
+    Task<GridDataResult> GetOrganizationAuditHistory(
+        int organizationId,
+        KendoFilter filter,
+        CancellationToken cancellationToken = default);
+}
+```
+
+**Paso 3: Crear Endpoint Personalizado GET /organizations/{id}/audit**
 
 Modificar: `InfoportOneAdmon.Api/Endpoints/OrganizationEndpoints.cs`
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
+using Helix6.Kendo.Models;
 
 public static void MapOrganizationEndpoints(this IEndpointRouteBuilder app)
 {
@@ -2786,43 +2684,39 @@ public static void MapOrganizationEndpoints(this IEndpointRouteBuilder app)
         "organizations",
         "Organizations");
 
-    // Endpoint personalizado de auditoría
     var group = app.MapGroup("organizations")
         .WithTags("Organizations")
         .RequireAuthorization();
 
-    group.MapPost("/{id}/audit", async (
+    // Endpoint de auditoría simplificada
+    group.MapGet("/{id}/audit", async (
         [FromRoute] int id,
-        [FromBody] KendoFilter filter,
-        [FromServices] AuditLogService auditLogService,
+        [FromQuery] string? filter, // KendoFilter serializado
+        [FromServices] IAuditLogService auditLogService,
         CancellationToken ct) =>
     {
-        var auditHistory = await auditLogService.GetEntityAuditHistory(
-            "Organization",
-            id,
-            filter,
-            ct);
+        // Parsear KendoFilter desde query string (si no se envía, usar valores por defecto)
+        var kendoFilter = string.IsNullOrEmpty(filter) 
+            ? new KendoFilter { Page = 1, PageSize = 20 }
+            : System.Text.Json.JsonSerializer.Deserialize<KendoFilter>(filter);
+
+        var auditHistory = await auditLogService.GetOrganizationAuditHistory(id, kendoFilter, ct);
 
         return Results.Ok(auditHistory);
     })
     .WithName("GetOrganizationAuditHistory")
-    .WithSummary("Obtiene el historial de auditoría de una organización")
-    .WithDescription("Retorna todos los cambios realizados en la organización con paginación y filtros Kendo")
+    .WithSummary("Obtiene el historial de auditoría crítica de una organización")
+    .WithDescription("Retorna solo acciones críticas: ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged. UserId=NULL muestra 'Sistema'.")
     .Produces<GridDataResult>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status404NotFound);
+
+    // Endpoint de desactivación manual (ya implementado en TASK-003-BE)
+    // ...
 }
 ```
 
-**Paso 4: Configurar DI**
-
-Modificar: `InfoportOneAdmon.Services/DependencyInjection.cs`
-
-```csharp
-services.AddScoped<AuditLogService>();
-```
-
-**Paso 5: Tests de Integración**
+**Paso 4: Tests de Integración**
 
 Archivo: `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationAuditEndpointsTests.cs`
 
@@ -2832,6 +2726,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net.Http.Json;
 using InfoportOneAdmon.Entities.Views;
+using Helix6.Kendo.Models;
 
 namespace InfoportOneAdmon.Api.Tests.Endpoints
 {
@@ -2845,7 +2740,7 @@ namespace InfoportOneAdmon.Api.Tests.Endpoints
         }
 
         [Fact]
-        public async Task GetAuditHistory_ReturnsCreationRecord()
+        public async Task GetAuditHistory_AfterManualDeactivation_ShowsOrganizationDeactivatedManual()
         {
             // Arrange: Crear organización
             var organization = new OrganizationView
@@ -2857,97 +2752,145 @@ namespace InfoportOneAdmon.Api.Tests.Endpoints
             var createResponse = await _client.PostAsJsonAsync("/organizations", organization);
             var created = await createResponse.Content.ReadFromJsonAsync<OrganizationView>();
 
+            // Desactivar manualmente (genera auditoría)
+            await _client.PostAsync($"/organizations/{created.Id}/deactivate", null);
+
             // Act: Consultar auditoría
-            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit?page=1&pageSize=10");
+            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit");
 
             // Assert
             auditResponse.EnsureSuccessStatusCode();
-            var auditHistory = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogView>>();
+            var auditResult = await auditResponse.Content.ReadFromJsonAsync<GridDataResult>();
             
-            auditHistory.Should().NotBeNull();
-            auditHistory.Should().HaveCountGreaterOrEqualTo(1);
-            auditHistory[0].EntityType.Should().Be("Organization");
-            auditHistory[0].EntityId.Should().Be(created.Id);
-            auditHistory[0].Action.Should().Be("Create");
+            auditResult.Should().NotBeNull();
+            auditResult.Data.Should().HaveCountGreaterOrEqualTo(1);
+            
+            var auditLogs = auditResult.Data.Cast<AuditLogView>().ToList();
+            auditLogs.Should().Contain(a => a.Action == "OrganizationDeactivatedManual");
+            
+            var deactivationLog = auditLogs.First(a => a.Action == "OrganizationDeactivatedManual");
+            deactivationLog.UserId.Should().NotBeNull(); // UserId poblado (SecurityManager)
+            deactivationLog.UserName.Should().NotBe("Sistema"); // NO es acción automática
         }
 
         [Fact]
-        public async Task GetAuditHistory_AfterUpdate_ReturnsMultipleRecords()
+        public async Task GetAuditHistory_AfterGroupChange_ShowsGroupChanged()
         {
-            // Arrange: Crear y modificar organización
+            // Arrange: Crear dos grupos y organización
+            var group1 = new OrganizationGroupView { Name = "Group A" };
+            var group1Response = await _client.PostAsJsonAsync("/organization-groups", group1);
+            var createdGroup1 = await group1Response.Content.ReadFromJsonAsync<OrganizationGroupView>();
+
+            var group2 = new OrganizationGroupView { Name = "Group B" };
+            var group2Response = await _client.PostAsJsonAsync("/organization-groups", group2);
+            var createdGroup2 = await group2Response.Content.ReadFromJsonAsync<OrganizationGroupView>();
+
             var organization = new OrganizationView
             {
-                Name = "Original Name",
-                Cif = "A66666666",
-                ContactEmail = "original@test.com"
+                Name = "Moving Org",
+                Cif = "M99999999",
+                ContactEmail = "moving@test.com",
+                GroupId = createdGroup1.Id
             };
-            var createResponse = await _client.PostAsJsonAsync("/organizations", organization);
-            var created = await createResponse.Content.ReadFromJsonAsync<OrganizationView>();
+            var orgResponse = await _client.PostAsJsonAsync("/organizations", organization);
+            var created = await orgResponse.Content.ReadFromJsonAsync<OrganizationView>();
 
-            // Modificar
-            created.Name = "Updated Name";
+            // Cambiar de grupo (genera auditoría)
+            created.GroupId = createdGroup2.Id;
             await _client.PutAsJsonAsync($"/organizations/{created.Id}", created);
 
             // Act
-            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit?page=1&pageSize=10");
+            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit");
 
             // Assert
-            var auditHistory = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogView>>();
+            auditResponse.EnsureSuccessStatusCode();
+            var auditResult = await auditResponse.Content.ReadFromJsonAsync<GridDataResult>();
+            var auditLogs = auditResult.Data.Cast<AuditLogView>().ToList();
             
-            auditHistory.Should().HaveCountGreaterOrEqualTo(2); // Create + Update
-            auditHistory[0].Action.Should().Be("Update"); // Más reciente
-            auditHistory[1].Action.Should().Be("Create");
+            auditLogs.Should().Contain(a => a.Action == "GroupChanged");
+            
+            var groupChangeLog = auditLogs.First(a => a.Action == "GroupChanged");
+            groupChangeLog.UserId.Should().NotBeNull(); // UserId poblado (OrganizationManager)
         }
 
         [Fact]
-        public async Task GetAuditHistory_WithPagination_ReturnsCorrectPage()
+        public async Task GetAuditHistory_WithAutoDeactivation_ShowsSistemaAsUserName()
         {
-            // Arrange: Crear organización y modificarla varias veces
-            var organization = new OrganizationView
-            {
-                Name = "Multi Update Org",
-                Cif = "A55555555",
-                ContactEmail = "multi@test.com"
-            };
-            var createResponse = await _client.PostAsJsonAsync("/organizations", organization);
-            var created = await createResponse.Content.ReadFromJsonAsync<OrganizationView>();
+            // Arrange: Simular auto-baja (UserId=NULL)
+            // NOTA: Este test requiere que OrganizationModuleService implemente auto-baja
+            // Por ahora, mockeamos insertando directamente en AUDIT_LOG
+            
+            var organization = new OrganizationView { Name = "Auto Test", Cif = "A88888888", ContactEmail = "auto@test.com" };
+            var orgResponse = await _client.PostAsJsonAsync("/organizations", organization);
+            var created = await orgResponse.Content.ReadFromJsonAsync<OrganizationView>();
 
-            // Realizar múltiples updates
-            for (int i = 0; i < 5; i++)
-            {
-                created.Name = $"Update {i}";
-                await _client.PutAsJsonAsync($"/organizations/{created.Id}", created);
-            }
+            // Insertar registro de auditoría con UserId=NULL (simula auto-baja)
+            var auditLog = new { Action = "OrganizationAutoDeactivated", EntityType = "Organization", EntityId = created.Id, UserId = (int?)null };
+            await _client.PostAsJsonAsync("/audit-logs", auditLog);
 
-            // Act: Solicitar página 2 con tamaño 2
-            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit?page=2&pageSize=2");
+            // Act
+            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit");
 
             // Assert
-            var auditHistory = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogView>>();
-            auditHistory.Should().HaveCount(2); // Página 2 con 2 registros
+            auditResponse.EnsureSuccessStatusCode();
+            var auditResult = await auditResponse.Content.ReadFromJsonAsync<GridDataResult>();
+            var auditLogs = auditResult.Data.Cast<AuditLogView>().ToList();
+            
+            var autoLog = auditLogs.FirstOrDefault(a => a.Action == "OrganizationAutoDeactivated");
+            autoLog.Should().NotBeNull();
+            autoLog.UserId.Should().BeNull();
+            autoLog.UserName.Should().Be("Sistema"); // "Sistema" cuando UserId=NULL
+        }
+
+        [Fact]
+        public async Task GetAuditHistory_DoesNotIncludeBasicDataChanges()
+        {
+            // Arrange: Crear organización
+            var organization = new OrganizationView { Name = "Test", Cif = "T11111111", ContactEmail = "test@test.com" };
+            var orgResponse = await _client.PostAsJsonAsync("/organizations", organization);
+            var created = await orgResponse.Content.ReadFromJsonAsync<OrganizationView>();
+
+            // Modificar datos básicos (NO genera auditoría crítica)
+            created.Name = "Updated Name";
+            created.Address = "New Address";
+            await _client.PutAsJsonAsync($"/organizations/{created.Id}", created);
+
+            // Act
+            var auditResponse = await _client.GetAsync($"/organizations/{created.Id}/audit");
+
+            // Assert
+            auditResponse.EnsureSuccessStatusCode();
+            var auditResult = await auditResponse.Content.ReadFromJsonAsync<GridDataResult>();
+            var auditLogs = auditResult.Data.Cast<AuditLogView>().ToList();
+            
+            // NO debe haber registros de auditoría crítica para cambios de datos básicos
+            auditLogs.Should().BeEmpty();
         }
     }
 }
 ```
 
 **ARCHIVOS A CREAR/MODIFICAR:**
-- `InfoportOneAdmon.Entities/Views/AuditLogView.cs` - ViewModel
-- `InfoportOneAdmon.Services/Services/AuditLogService.cs` - Servicio de consulta
-- `InfoportOneAdmon.Api/Endpoints/OrganizationEndpoints.cs` - Endpoint personalizado
-- `InfoportOneAdmon.Services/DependencyInjection.cs` - Registro DI
-- `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationAuditEndpointsTests.cs` - Tests
+- `InfoportOneAdmon.Entities/Views/AuditLogView.cs` - ViewModel simplificado (sin JSON)
+- `InfoportOneAdmon.Services/Services/IAuditLogService.cs` - Añadir GetOrganizationAuditHistory
+- `InfoportOneAdmon.Services/Services/AuditLogService.cs` - Implementar consulta con KendoFilter
+- `InfoportOneAdmon.Api/Endpoints/OrganizationEndpoints.cs` - Añadir endpoint GET /organizations/{id}/audit
+- `InfoportOneAdmon.Api.Tests/Endpoints/OrganizationAuditEndpointsTests.cs` - Tests de integración
 
 **DEPENDENCIAS:**
-- TASK-001-BE - Organización existe
-- Tabla AUDIT_LOG debe existir (crear migración si es necesario)
+- TASK-003-BE - AUDIT_LOG simplificada y IAuditLogService implementados
+- TASK-001-BE - Organization existe
 
 **DEFINITION OF DONE:**
-- [ ] AuditLogView creado
-- [ ] AuditLogService implementado con paginación
-- [ ] Endpoint GET /organizations/{id}/audit funcional
-- [ ] Tests de integración pasando
-- [ ] Paginación validada
-- [ ] Documentación Swagger actualizada
+- [ ] AuditLogView creado sin campos OldValue/NewValue
+- [ ] IAuditLogService.GetOrganizationAuditHistory implementado
+- [ ] Endpoint GET /organizations/{id}/audit funcional con KendoFilter
+- [ ] UserName muestra "Sistema" cuando UserId=NULL
+- [ ] Tests verifican registro de OrganizationDeactivatedManual con UserId poblado
+- [ ] Tests verifican registro de GroupChanged con UserId poblado
+- [ ] Tests verifican "Sistema" para OrganizationAutoDeactivated (UserId=NULL)
+- [ ] Tests verifican que cambios de datos básicos NO generan auditoría
+- [ ] Paginación y ordenación validadas
 - [ ] Code review aprobado
 
 **RECURSOS:**

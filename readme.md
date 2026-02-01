@@ -26,7 +26,7 @@ A diferencia de modelos SaaS de auto-servicio, en este ecosistema **las organiza
 **InfoportOneAdmon actúa como la Fuente de la Verdad para:**
 - **Gestión del Portfolio de Aplicaciones**: Registro y configuración de las aplicaciones satélite del ecosistema, incluyendo credenciales OAuth2 y definición de módulos funcionales
 - **Control de Acceso por Organización**: Determinación granular de qué organizaciones clientes tienen acceso a qué aplicaciones y a qué módulos específicos dentro de cada aplicación
-- **Gestión de Inquilinos (Tenants)**: Control del ciclo de vida completo de las organizaciones clientes, desde el alta hasta la desactivación
+- **Gestión de Inquilinos (Tenants)**: Control del ciclo de vida completo de las organizaciones clientes, desde el alta hasta la baja
 - **Gestión de Grupos de Organizaciones**: Creación y mantenimiento de agrupaciones lógicas (holdings, consorcios) para facilitar la gestión colectiva
 - **Catálogo Maestro de Roles**: Definición centralizada y consistente de los roles de seguridad disponibles en cada aplicación del portfolio
 - **Gobierno de Identidad y Usuarios**: Orquestación con Keycloak para la gestión de usuarios multi-organización, autenticación SSO y tokens JWT con claims personalizados que habilitan el acceso segmentado por organización
@@ -105,8 +105,9 @@ Módulo que permite gestionar el ciclo de vida completo de las empresas clientes
 **Capacidades principales:**
 - ✅ **Onboarding de Clientes**: Alta de nueva organización en un único paso, generando automáticamente su `SecurityCompanyId` (identificador único inmutable)
 - 🛠️ **Gestión de Configuración**: Modificación de datos corporativos (nombre, dirección, datos fiscales)
-- 🔌 **Kill-Switch (Desactivación)**: Bloqueo inmediato de acceso de una organización a todo el ecosistema mediante flag de activación/desactivación
-- 🧾 **Auditoría de Tenant**: Trazabilidad completa de todos los cambios realizados sobre cada organización
+- 🔌 **Baja de Organizaciones**: Bloqueo inmediato de acceso de una organización a todo el ecosistema mediante `AuditDeletionDate`. Al dar de baja una organización, se propaga automáticamente la baja de todos sus usuarios en Keycloak
+- 🔄 **Alta de Organizaciones**: Reversión de una baja estableciendo `AuditDeletionDate = null`, reactivando el acceso de la organización y sus usuarios
+- 🧾 **Auditoría Selectiva**: Trazabilidad de cambios críticos en seguridad y permisos (asignación/remoción de módulos, activación/desactivación, cambios de grupo). No se auditan cambios en datos básicos (nombre, dirección, contacto)
 - 📢 **Publicación de Eventos**: Cada cambio genera un `OrganizationEvent` que se publica en ActiveMQ Artemis para sincronización con aplicaciones satélite
 
 **Objetivo**: Centralizar el alta administrativa y técnica de clientes en un solo paso, garantizando coherencia en todo el ecosistema.
@@ -131,9 +132,8 @@ Permite registrar y configurar las aplicaciones satélite que forman parte del e
 - 🆕 **Registro de Aplicación Frontend (Angular SPA)**: Alta como public client con `client_id` únicamente, habilitando PKCE para autenticación segura sin secretos
 - 🔐 **Registro de Aplicación Backend (API)**: Alta como confidential client con generación de `client_id` y `client_secret`, con gestión segura de credenciales
 - 🏷️ **Prefijo de Aplicación**: Cada aplicación tiene un prefijo único (ej: "STP" para Sintraport, "CRM" para CRM) que se utiliza para nomenclatura de roles y módulos. Los módulos usan "M" + prefijo (ej: MSTP_Trafico), los roles usan solo el prefijo (ej: STP_AsignadorTransporte)
-- 🔄 **Gestión de Secretos**: Rotación y administración segura de credenciales solo para confidential clients (backends)
- - 🔄 **Gestión de Secretos**: Administración segura de credenciales solo para confidential clients (backends)
-- 🚦 **Control de Acceso**: Definir si una aplicación está activa, en mantenimiento o desactivada
+- 🔄 **Gestión de Credenciales**: Administración segura de credenciales para confidential clients (backends). Las aplicaciones pueden tener una credencial CODE PKCE para acceso web y múltiples credenciales ClientCredentials para accesos externos
+- 🔌 **Baja de Aplicaciones**: Dar de baja aplicaciones mediante `AuditDeletionDate`, revocando automáticamente sus credenciales en Keycloak
 - 🧩 **Definición de Módulos**: Cada aplicación debe tener al menos un módulo. Los módulos representan agrupaciones funcionales vendibles por separado
 - 📘 **Catálogo de Roles**: Definir qué roles existen dentro de cada aplicación (ej: "Tráfico", "Mensajería", "Administrador")
 - ✨ **Sincronización de Datos**: Funcionalidad para enviar catálogos completos publicando eventos cuyo `Payload` contiene listas de objetos
@@ -162,7 +162,7 @@ Define qué roles existen dentro de cada aplicación del ecosistema. Los roles s
 
 **Capacidades principales:**
 - 📘 **Definición de Roles**: Definir roles para una aplicación siguiendo la nomenclatura RolePrefix + nombre (ej: si RolePrefix="STP", roles como "STP_AsignadorTransporte", "STP_Supervisor", "STP_Operador")
-- 🧪 **Deprecación**: Marcar roles como obsoletos mediante el flag `Active`
+- 🔌 **Baja de Roles**: Dar de baja roles mediante `AuditDeletionDate`. Los roles dados de baja no se pueden asignar a nuevos usuarios, pero los usuarios existentes pueden mantenerlos
 - 🔄 **Sincronización**: Los roles se publican automáticamente con el `ApplicationEvent` (junto con módulos)
 - 📋 **Catálogo Único**: Asegura que todos los sistemas usen nombres consistentes para los mismos conceptos de rol
 - 🏷️ **Prefijos Únicos**: El uso de prefijos de aplicación evita conflictos cuando un usuario tiene roles en múltiples aplicaciones
@@ -306,7 +306,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
       "FirstName": "Juan",
       "LastName": "Pérez",
       "SecurityCompanyId": 12345,
-      "IsActive": true,
       "IsDeleted": false,
       "Roles": ["Sales", "Manager"],
       "Attributes": {
@@ -326,7 +325,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - `FirstName` (string, required): Nombre
 - `LastName` (string, required): Apellidos
 - `SecurityCompanyId` (int, required): ID de la organización a la que pertenece en esta app
-- `IsActive` (bool): Si el usuario está activo en esta organización
 - `IsDeleted` (bool): Flag de soft delete (true = eliminar de Keycloak)
 - `Roles` (string[]): Roles asignados en la aplicación origen
 - `Attributes` (object): Atributos personalizados adicionales
@@ -363,7 +361,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
       "Address": "Calle Mayor 123",
       "City": "Madrid",
       "Country": "España",
-      "IsActive": true,
       "IsDeleted": false,
       "GroupId": 100,
       "GroupName": "Holding Empresarial",
@@ -391,7 +388,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - `Name` (string, required): Nombre de la organización
 - `TaxId` (string): Identificador fiscal
 - `Address`, `City`, `Country` (string): Datos de ubicación
-- `IsActive` (bool): Si la organización está activa
 - `IsDeleted` (bool): Flag de soft delete
 - `GroupId` (int, optional): ID del grupo al que pertenece
 - `GroupName` (string, optional): Nombre del grupo
@@ -428,33 +424,28 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
       "Name": "CRM Application",
       "RolePrefix": "CRM",
       "ClientId": "crm-app-backend",
-      "IsActive": true,
       "Modules": [
         {
           "ModuleId": 10,
           "Name": "MCRM_Sales",
-          "Description": "Gestión de ventas",
-          "IsActive": true
+          "Description": "Gestión de ventas"
         },
         {
           "ModuleId": 11,
           "Name": "MCRM_Reporting",
-          "Description": "Reportes avanzados",
-          "IsActive": true
+          "Description": "Reportes avanzados"
         }
       ],
       "Roles": [
         {
           "RoleId": 20,
           "Name": "CRM_Sales",
-          "Description": "Vendedor",
-          "IsActive": true
+          "Description": "Vendedor"
         },
         {
           "RoleId": 21,
           "Name": "CRM_Manager",
-          "Description": "Gerente",
-          "IsActive": true
+          "Description": "Gerente"
         }
       ]
     }
@@ -467,7 +458,6 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - `Name` (string): Nombre de la aplicación
 - `RolePrefix` (string): Prefijo para nomenclatura de roles y módulos
 - `ClientId` (string): OAuth2 client_id
-- `IsActive` (bool): Si la aplicación está activa
 - `Modules` (array): Catálogo de módulos disponibles (sin permisos)
 - `Roles` (array): Catálogo de roles disponibles
 
@@ -636,10 +626,12 @@ dotnet ef database update --project InfoportOneAdmon.Data --startup-project Info
 - `Modules`: Módulos funcionales por aplicación
 - `ModuleAccess`: Relación N:M entre módulos y organizaciones
 - `AppRoleDefinitions`: Catálogo de roles
-- `AuditLog`: Auditoría de cambios
+- `AuditLog`: Auditoría selectiva de cambios críticos (sin campos JSON)
 - `EventHashControl`: Control de eventos duplicados
 
-> **Nota Helix6**: Todas las entidades heredan de `IEntityBase` e incluyen automáticamente campos de auditoría (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`). Ver detalles en [Helix6_Backend_Architecture.md - Sección 2.5](Helix6_Backend_Architecture.md#25-proyectodatamodel-capa-de-modelo-de-datos).
+> **Nota Helix6 - Auditoría Dual**: 
+> - **Auditoría Base (Helix6)**: Todas las entidades heredan de `IEntityBase` e incluyen automáticamente campos de auditoría (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`) que registran TODOS los cambios. Ver detalles en [Helix6_Backend_Architecture.md - Sección 2.5](Helix6_Backend_Architecture.md#25-proyectodatamodel-capa-de-modelo-de-datos).
+> - **Auditoría Selectiva (AUDIT_LOG)**: Tabla adicional que registra SOLO cambios críticos en seguridad y permisos con contexto de acción específico. No duplica la funcionalidad de Helix6, sino que complementa con trazabilidad de acciones de negocio críticas.
 
 **Paso 5: Poblar datos semilla (seed data)**
 
@@ -652,12 +644,12 @@ dotnet run --project InfoportOneAdmon.Api --seed
 O ejecutar scripts SQL manualmente:
 ```sql
 -- Insertar organización propietaria
-INSERT INTO Organizations (Name, TaxId, Active, SecurityCompanyId)
-VALUES ('Organización Propietaria', 'A12345678', 1, 1);
+INSERT INTO Organizations (Name, TaxId, SecurityCompanyId)
+VALUES ('Organización Propietaria', 'A12345678', 1);
 
 -- Insertar aplicación de ejemplo
-INSERT INTO Applications (Name, ClientId, ClientType, Active)
-VALUES ('CRM App', 'crm-app-frontend', 'Public', 1);
+INSERT INTO Applications (Name, ClientId, ClientType)
+VALUES ('CRM App', 'crm-app-frontend', 'Public');
 ```
 
 **Paso 6: Ejecutar el backend**
@@ -1022,7 +1014,7 @@ sequenceDiagram
     DB-->>BGWorker: c_ids: [12345, 67890, 11111]<br/>roles: ["CRM_Vendedor", "CRM_Manager",<br/>"ERP_Contable", "BI_Analista"]
     
     BGWorker->>DB: SELECT * FROM Organizations<br/>WHERE SecurityCompanyId IN (12345, 67890, 11111)
-    DB-->>BGWorker: Valida que todas existen y están activas
+    DB-->>BGWorker: Valida que todas existen y están dadas de alta<br/>(AuditDeletionDate IS NULL)
     
     BGWorker->>BGWorker: Construye c_ids completo<br/>y roles consolidados con prefijos
     
@@ -1291,7 +1283,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 
 #### **2.2.1. Módulo de Organizaciones**
 
-**Responsabilidad**: Gestionar el ciclo de vida completo de los clientes (alta, activación, desactivación).
+**Responsabilidad**: Gestionar el ciclo de vida completo de los clientes (alta, modificación, baja).
 
 **Tecnología**: 
 - ASP.NET Core 8 (Web API) sobre **Framework Helix6**
@@ -1308,8 +1300,8 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 **Funcionalidades principales**:
 - CRUD de organizaciones con generación automática de `SecurityCompanyId`
 - Gestión de grupos de organizaciones (asignación de `GroupId`)
-- Flag de activación/desactivación (kill-switch)
-- Auditoría de cambios en tabla `AuditLog`
+- Baja lógica de organizaciones mediante `AuditDeletionDate` (bloquea acceso inmediato, propaga baja a usuarios en Keycloak)
+- Auditoría selectiva de cambios críticos en tabla `AUDIT_LOG` (sin almacenar JSON de valores anteriores/nuevos)
 
 **Interacciones**:
 - Escribe en la **Base de Datos Core**
@@ -1347,7 +1339,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 
 **Funcionalidades principales**:
 - CRUD de definiciones de roles (`AppRoleDefinition`)
-- Flag `Active` para deprecar roles obsoletos
+- Baja lógica de roles mediante `AuditDeletionDate`
 - Validación de unicidad de nombres de rol por aplicación
 
 **Interacciones**:
@@ -1391,7 +1383,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 - **Detección de usuarios duplicados**: Búsqueda por email en eventos previos y en base de datos
 - **Consolidación de organizaciones**: Agregación de todos los `SecurityCompanyId` asociados al email
 - **Consolidación de roles multi-aplicación**: Agregación de todos los roles asignados al usuario desde las distintas aplicaciones, utilizando el prefijo de aplicación para evitar conflictos (ej: CRM_Vendedor, ERP_Contable)
-- **Validación de organizaciones**: Verificación de que las organizaciones existen y están activas
+- **Validación de organizaciones**: Verificación de que las organizaciones existen y están dadas de alta (AuditDeletionDate IS NULL)
 - **Sincronización directa con Keycloak**: CREATE/UPDATE de usuarios mediante Admin API
 - **Gestión del claim c_ids**: Configuración automática del claim multi-organización
 - **Gestión de roles consolidados**: Asignación de todos los roles del usuario desde todas las aplicaciones en Keycloak
@@ -1495,7 +1487,7 @@ CREATE TABLE UserConsolidationCache (
 - `Module`: Módulos funcionales por aplicación
 - `ModuleAccess`: Relación N:M entre módulos y organizaciones
 - `AppRoleDefinition`: Catálogo de roles por aplicación
-- `AuditLog`: Registro inmutable de cambios
+- `AuditLog`: Registro inmutable de cambios CRÍTICOS (6 acciones en Epic1: ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged). Campos: Id, Action, EntityType, EntityId, UserId (nullable), Timestamp, CorrelationId. Sin almacenar JSON de valores anteriores/nuevos
 - `EventHashControl`: Control de duplicados con hash SHA-256
 
 **Restricciones clave**:
@@ -1949,37 +1941,48 @@ KeyVaultSecret secret = await client.GetSecretAsync("CrmApp-ClientSecret");
 string clientSecret = secret.Value;
 ```
 
-#### **2.5.6. Auditoría Completa de Cambios Administrativos**
+#### **2.5.6. Auditoría Selectiva de Cambios Críticos**
 
-**Descripción**: Todos los cambios en organizaciones, aplicaciones, módulos y roles se registran en una tabla de auditoría inmutable.
+**Descripción**: Los cambios CRÍTICOS en organizaciones relacionados con seguridad y permisos se registran en una tabla de auditoría inmutable simplificada.
+
+**Filosofía de Auditoría Dual**:
+- **Auditoría Base (Helix6)**: El framework gestiona automáticamente campos de auditoría en TODAS las entidades (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`) registrando todos los cambios
+- **Auditoría Selectiva (AUDIT_LOG)**: Tabla adicional que registra SOLO 6 acciones críticas con contexto de acción específico (Epic1, expandible en otras épicas)
+
+**Acciones Críticas Auditadas (Epic1)**:
+1. `ModuleAssigned` - Asignación de módulo/aplicación a organización
+2. `ModuleRemoved` - Remoción de módulo/aplicación de organización
+3. `OrganizationDeactivatedManual` - Baja manual por SecurityManager
+4. `OrganizationAutoDeactivated` - Baja automática por sistema
+5. `OrganizationReactivatedManual` - Alta manual por SecurityManager
+6. `GroupChanged` - Cambio de grupo de la organización
+
+**NO se auditan selectivamente**: Cambios en datos básicos (nombre, dirección, email, teléfono, CIF) - estos solo tienen auditoría base de Helix6.
 
 **Implementación**:
-- **Tabla `AuditLog`**: Registra qué cambió, quién lo cambió, cuándo y el estado anterior/posterior
-- **Auditoría Automática de Helix6**: El framework gestiona automáticamente los campos de auditoría en todas las entidades (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`)
-- **Triggers de Base de Datos**: Capturan automáticamente INSERT, UPDATE, DELETE para registros detallados
-- **Campos clave**: `EntityType`, `EntityId`, `Action`, `UserId`, `Timestamp`, `OldValue`, `NewValue`
+- **Tabla `AUDIT_LOG`**: Estructura simplificada sin JSON de valores anteriores/nuevos
+- **Campos**: `Id`, `Action`, `EntityType`, `EntityId`, `UserId` (nullable para acciones del sistema), `Timestamp`, `CorrelationId`
+- **IAuditLogService**: Servicio dedicado para registro de acciones críticas
 
-> **Implementación en Helix6**: El framework automáticamente inyecta el `UserId` desde `IUserContext` en las operaciones de escritura. El `DbContext` sobreescribe `SaveChanges` para poblar los campos de auditoría antes de persistir. Ver [Helix6_Backend_Architecture.md - Sección 2.6](Helix6_Backend_Architecture.md#26-proyectodata-capa-de-acceso-a-datos) para detalles de la implementación del DbContext.
+> **Implementación en Helix6**: El framework automáticamente inyecta el `UserId` desde `IUserContext` en las operaciones de escritura. El `DbContext` sobreescribe `SaveChanges` para poblar los campos de auditoría base antes de persistir. Ver [Helix6_Backend_Architecture.md - Sección 2.6](Helix6_Backend_Architecture.md#26-proyectodata-capa-de-acceso-a-datos) para detalles de la implementación del DbContext.
 
-**Ejemplo de registro de auditoría**:
+**Ejemplo de registro de auditoría selectiva**:
 ```json
 {
-  "auditLogId": 98765,
+  "id": 98765,
+  "action": "ModuleAssigned",
   "entityType": "Organization",
-  "entityId": "12345",
-  "action": "UPDATE",
-  "userId": "admin@infoportone.com",
+  "entityId": 12345,
+  "userId": 42,
   "timestamp": "2026-01-08T14:35:22Z",
-  "oldValue": "{\"Active\": true}",
-  "newValue": "{\"Active\": false}",
-  "ipAddress": "192.168.1.100"
+  "correlationId": "batch-2026-01-08-001"
 }
 ```
 
 **Uso en compliance**:
 - Responder a auditorías regulatorias (GDPR, ISO 27001)
-- Investigar incidentes de seguridad
-- Demostrar trazabilidad de cambios críticos
+- Investigar incidentes de seguridad relacionados con permisos
+- Demostrar trazabilidad de cambios críticos en seguridad y accesos
 
 #### **2.5.7. Protección contra Inyección SQL y XSS**
 
@@ -2142,7 +2145,6 @@ erDiagram
         string Country "País"
         string ContactEmail "Email de contacto"
         string ContactPhone "Teléfono de contacto"
-        bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
         string AuditCreationUser "Usuario que creó el registro"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
         string AuditModificationUser "Usuario que modificó"
@@ -2155,7 +2157,6 @@ erDiagram
         string AppName UK "NOT NULL, Nombre de la aplicación (ej: CRM, ERP)"
         string Description "Descripción de la aplicación"
         string RolePrefix UK "NOT NULL, Prefijo para roles y módulos (ej: STP)"
-        bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
         string AuditCreationUser "Usuario que creó el registro"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
         string AuditModificationUser "Usuario que modificó"
@@ -2171,7 +2172,6 @@ erDiagram
         string ClientSecretHash "NULL para CODE, Hash bcrypt para ClientCredentials"
         string RedirectUris "JSON array de URIs (solo CODE)"
         string Scope "Scopes OAuth2 permitidos"
-        bool IsActive "NOT NULL, DEFAULT TRUE, Si la credencial está activa"
         string AuditCreationUser "Usuario que creó la credencial"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
         string AuditModificationUser "Usuario que modificó"
@@ -2184,7 +2184,6 @@ erDiagram
         int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string ModuleName "NOT NULL, Nombre del módulo (ej: Módulo Facturación)"
         string Description "Descripción del módulo"
-        bool Active "NOT NULL, DEFAULT TRUE, Estado activo/inactivo"
         int DisplayOrder "Orden de visualización"
         string AuditCreationUser "Usuario que creó el módulo"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
@@ -2209,7 +2208,6 @@ erDiagram
         int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string RoleName "NOT NULL, Nombre del rol (ej: Vendedor, Gerente)"
         string Description "Descripción del rol"
-        bool Active "NOT NULL, DEFAULT TRUE, Estado activo/deprecated"
         string AuditCreationUser "Usuario que creó el rol"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
         string AuditModificationUser "Usuario que modificó"
@@ -2284,7 +2282,6 @@ CREATE UNIQUE INDEX UX_ModuleAccess_ModuleId_OrganizationId ON MODULE_ACCESS(Mod
 
 -- Índices de búsqueda frecuente
 CREATE INDEX IX_Organization_GroupId ON ORGANIZATION(GroupId);
-CREATE INDEX IX_Organization_Active ON ORGANIZATION(Active);
 CREATE INDEX IX_Module_ApplicationId ON MODULE(ApplicationId);
 CREATE INDEX IX_ModuleAccess_OrganizationId ON MODULE_ACCESS(OrganizationId);
 CREATE INDEX IX_ApplicationSecurity_ApplicationId ON APPLICATION_SECURITY(ApplicationId);
@@ -2302,8 +2299,7 @@ CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(Entit
 5. **AuditLog es append-only**: No permite UPDATE ni DELETE (tabla inmutable)
 6. **EventHashControl tiene clave compuesta**: (EntityType, EntityId) para prevención de duplicados
 7. **ApplicationSecurity.ClientSecretHash nunca almacena texto plano**: Siempre se hashea con bcrypt antes de insertar
-8. **Active por defecto es TRUE**: Nuevas organizaciones y aplicaciones nacen activas
-9. **Soft Delete con AuditDeletionDate**: Todas las entidades Helix6 soportan eliminación lógica mediante el campo AuditDeletionDate
+8. **Soft Delete con AuditDeletionDate**: Todas las entidades Helix6 soportan eliminación lógica mediante el campo AuditDeletionDate. Dar de baja una entidad establece este campo, dar de alta lo pone a NULL
 
 #### **Notas sobre el Diseño**
 
@@ -2313,10 +2309,10 @@ CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(Entit
 - Esto facilita la generación automática de repositorios y endpoints en Helix6
 
 **¿Por qué tabla separada ApplicationSecurity?**
-- Una aplicación puede tener múltiples credenciales activas simultáneamente (frontend + backend)
-- Permite rotación de secretos sin afectar credenciales activas
+- Una aplicación puede tener una credencial CODE PKCE para acceso web y múltiples credenciales ClientCredentials para accesos externos
 - Soporta diferentes tipos de flujo OAuth2: CODE (Angular SPAs) vs ClientCredentials (APIs backend)
 - Cada credencial puede tener su propio ciclo de vida independiente
+- Dar de baja una credencial mediante AuditDeletionDate la revoca automáticamente en Keycloak
 
 **¿Por qué campos de auditoría Helix6?**
 - **AuditCreationUser / AuditCreationDate**: Trazabilidad de quién y cuándo creó el registro
@@ -2330,9 +2326,10 @@ CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(Entit
 - Almacena el hash del último evento procesado para detección de duplicados
 - Contiene los datos consolidados (organizaciones y roles) listos para sincronizar con Keycloak
 
-**¿Por qué OrganizationGroup no tiene campo Active?**
+**¿Por qué OrganizationGroup no tiene campo de baja lógica?**
 - Los grupos se mantienen implícitamente por las aplicaciones satélite basándose en el `GroupId` de las organizaciones
 - Si un grupo queda sin organizaciones, las apps lo eliminan automáticamente de su caché local
+- Simplifica la gestión al no requerir operaciones explícitas de alta/baja de grupos
 - InfoportOneAdmon puede eliminar grupos huérfanos mediante un job periódico
 
 **¿Por qué EventHashControl tiene clave compuesta?**
@@ -2377,7 +2374,7 @@ A continuación se describen en detalle las 9 entidades principales del modelo d
 
 **Restricciones de Negocio**:
 - El nombre del grupo debe ser único (índice `UX_OrganizationGroup_GroupName`)
-- No tiene campo `Active` porque los grupos se mantienen implícitamente basándose en las organizaciones que contienen
+- No requiere baja lógica explícita porque los grupos se mantienen implícitamente basándose en las organizaciones que contienen
 - Un grupo sin organizaciones puede ser eliminado automáticamente por jobs de limpieza
 - Soft delete mediante `AuditDeletionDate` permite recuperar grupos eliminados
 
@@ -2410,7 +2407,6 @@ UK: GroupName
 | **Country** | VARCHAR(100) | NULL | País. |
 | **ContactEmail** | VARCHAR(255) | NULL | Email de contacto administrativo. |
 | **ContactPhone** | VARCHAR(50) | NULL | Teléfono de contacto. |
-| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/inactivo (kill-switch). Si es FALSE, la organización no puede acceder al ecosistema. |
 | **AuditCreationUser** | VARCHAR(255) | NULL | Email del administrador que creó la organización. |
 | **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación (onboarding). |
 | **AuditModificationUser** | VARCHAR(255) | NULL | Email del administrador que realizó la última modificación. |
@@ -2427,7 +2423,7 @@ UK: GroupName
 - `Name` debe ser único (índice `UX_Organization_Name`)
 - `TaxId` debe ser único (índice `UX_Organization_TaxId`)
 - `SecurityCompanyId` es inmutable; una vez creado, nunca cambia
-- Cuando `Active = FALSE`, las aplicaciones satélite deben denegar acceso a todos los usuarios de esa organización
+- Cuando `AuditDeletionDate != NULL`, la organización está dada de baja y las aplicaciones satélite deben denegar acceso a todos sus usuarios. Al darla de alta (AuditDeletionDate = NULL), se reactiva automáticamente el acceso
 - `SecurityCompanyId` se autogenera mediante secuencia independiente de `Id`
 
 **Índices**:
@@ -2437,7 +2433,6 @@ UK: SecurityCompanyId
 UK: Name
 UK: TaxId
 IX: GroupId
-IX: Active
 ```
 
 **Ejemplo de Registro**:
@@ -2447,7 +2442,6 @@ SecurityCompanyId: 12345
 GroupId: 10
 Name: "Transportes Rápidos S.L."
 TaxId: "B12345678"
-Active: TRUE
 ContactEmail: "admin@transportesrapidos.com"
 AuditCreationUser: "admin@infoportone.com"
 AuditCreationDate: "2026-01-08 10:00:00"
@@ -2467,7 +2461,6 @@ AuditCreationDate: "2026-01-08 10:00:00"
 | **AppName** | VARCHAR(100) | UNIQUE, NOT NULL | Nombre de la aplicación (ej: "CRM", "ERP Financiero"). Debe ser único. |
 | **Description** | VARCHAR(500) | NULL | Descripción de la aplicación y su propósito. |
 | **RolePrefix** | VARCHAR(10) | UNIQUE, NOT NULL | Prefijo utilizado para roles y módulos (ej: "STP" para Sintraport, "CRM" para CRM). Los módulos usarán "M" + prefijo, los roles usarán solo el prefijo. Debe ser único. |
-| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/en mantenimiento. Si es FALSE, la aplicación no puede autenticar usuarios. |
 | **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó la aplicación. |
 | **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de registro de la aplicación. |
 | **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó la aplicación. |
@@ -2492,7 +2485,6 @@ AuditCreationDate: "2026-01-08 10:00:00"
 PK: Id
 UK: AppName
 UK: RolePrefix
-IX: Active
 ```
 
 **Ejemplo de Registro**:
@@ -2500,7 +2492,6 @@ IX: Active
 Id: 5
 AppName: "CRM Comercial"
 RolePrefix: "CRM"
-Active: TRUE
 AuditCreationUser: "admin@infoportone.com"
 ```
 
@@ -2523,7 +2514,6 @@ AuditCreationUser: "admin@infoportone.com"
 | **ClientSecretHash** | VARCHAR(255) | NULL | Hash bcrypt del client_secret. NULL para CODE (no requiere secret), obligatorio para ClientCredentials. NUNCA texto plano. |
 | **RedirectUris** | TEXT (JSON) | NULL | Array JSON de URIs de redirección (solo para CODE). Ej: `["https://crm.infoportone.com/*"]`. |
 | **Scope** | VARCHAR(500) | NULL | Scopes OAuth2 permitidos (ej: "openid profile email"). |
-| **IsActive** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Si la credencial está activa. Permite rotación sin eliminar credenciales antiguas. |
 | **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó la credencial. |
 | **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación de la credencial. |
 | **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó. |
@@ -2545,7 +2535,6 @@ AuditCreationUser: "admin@infoportone.com"
 PK: Id
 UK: ClientId
 IX: ApplicationId
-IX: IsActive
 ```
 
 **Ejemplos de Registros**:
@@ -2557,7 +2546,6 @@ CredentialType: "CODE"
 ClientId: "crm-app-frontend"
 ClientSecretHash: NULL
 RedirectUris: '["https://crm.infoportone.com/*"]'
-IsActive: TRUE
 
 -- Credencial ClientCredentials (Backend API)
 Id: 2
@@ -2567,13 +2555,12 @@ ClientId: "crm-api-backend"
 ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
 RedirectUris: NULL
 Scope: "read:data write:data"
-IsActive: TRUE
 ```
 
 **Ventajas de tabla separada**:
-- Permite múltiples credenciales activas simultáneamente
-- Rotación de secretos sin afectar otras credenciales
+- Permite múltiples credenciales simultáneas (1 CODE + N ClientCredentials)
 - Diferentes flujos OAuth2 para frontend y backend
+- Dar de baja credenciales mediante AuditDeletionDate las revoca automáticamente en Keycloak
 - Historial completo de credenciales con soft delete
 
 ---
@@ -2590,7 +2577,6 @@ IsActive: TRUE
 | **ApplicationId** | INT | FK → Application.Id, NOT NULL | Aplicación a la que pertenece el módulo. |
 | **ModuleName** | VARCHAR(100) | NOT NULL | Nombre del módulo siguiendo nomenclatura M+RolePrefix (ej: "MSTP_Trafico", "MCRM_Facturacion"). |
 | **Description** | VARCHAR(500) | NULL | Descripción de las funcionalidades que ofrece el módulo. |
-| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/deprecated. Si es FALSE, el módulo no se puede asignar a nuevas organizaciones. |
 | **DisplayOrder** | INT | NULL, DEFAULT 0 | Orden de visualización en interfaces (menor número = mayor prioridad). |
 | **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó el módulo. |
 | **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del módulo. |
@@ -2604,8 +2590,8 @@ IsActive: TRUE
 
 **Restricciones de Negocio**:
 - Combinación (`ApplicationId`, `ModuleName`) debe ser única (índice `UX_Module_ApplicationId_ModuleName`)
-- Toda aplicación debe tener al menos un módulo activo
-- Cuando `Active = FALSE`, el módulo está deprecated pero organizaciones existentes pueden seguir usándolo
+- Toda aplicación debe tener al menos un módulo disponible (AuditDeletionDate = NULL)
+- Cuando `AuditDeletionDate != NULL`, el módulo está dado de baja y no se puede asignar a nuevas organizaciones, pero las organizaciones existentes pueden seguir usándolo
 - El nombre debe seguir la nomenclatura "M" + RolePrefix de la aplicación
 
 **Índices**:
@@ -2613,7 +2599,6 @@ IsActive: TRUE
 PK: Id
 UK: (ApplicationId, ModuleName)
 IX: ApplicationId
-IX: Active
 ```
 
 **Ejemplo de Registro**:
@@ -2622,7 +2607,6 @@ Id: 101
 ApplicationId: 5
 ModuleName: "MCRM_FacturacionElectronica"
 Description: "Emisión y gestión de facturas electrónicas con firma digital"
-Active: TRUE
 DisplayOrder: 10
 ```
 
@@ -2687,7 +2671,6 @@ AuditDeletionDate: NULL
 | **ApplicationId** | INT | FK → Application.Id, NOT NULL | Aplicación a la que pertenece el rol. |
 | **RoleName** | VARCHAR(100) | NOT NULL | Nombre del rol siguiendo nomenclatura RolePrefix (ej: "CRM_Vendedor", "STP_AsignadorTransporte"). |
 | **Description** | VARCHAR(500) | NULL | Descripción de los permisos y responsabilidades del rol. |
-| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/deprecated. Si es FALSE, el rol no se puede asignar a nuevos usuarios. |
 | **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que creó el rol. |
 | **AuditCreationDate** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del rol. |
 | **AuditModificationUser** | VARCHAR(255) | NULL | Usuario que modificó. |
@@ -2699,7 +2682,7 @@ AuditDeletionDate: NULL
 
 **Restricciones de Negocio**:
 - Combinación (`ApplicationId`, `RoleName`) debe ser única (índice `UX_AppRole_ApplicationId_RoleName`)
-- Cuando `Active = FALSE`, el rol está deprecated pero usuarios existentes pueden mantenerlo
+- Cuando `AuditDeletionDate != NULL`, el rol está dado de baja y no se puede asignar a nuevos usuarios, pero los usuarios existentes pueden mantenerlo
 - **Principio de responsabilidad**: InfoportOneAdmon define roles, aplicaciones satélite los asignan a usuarios
 - El nombre debe seguir la nomenclatura RolePrefix de la aplicación
 
@@ -2708,7 +2691,6 @@ AuditDeletionDate: NULL
 PK: Id
 UK: (ApplicationId, RoleName)
 IX: ApplicationId
-IX: Active
 ```
 
 **Ejemplo de Registro**:
@@ -2717,7 +2699,6 @@ Id: 201
 ApplicationId: 5
 RoleName: "CRM_GerenteVentas"
 Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar descuentos hasta 15%"
-Active: TRUE
 ```
 
 ---
@@ -2823,7 +2804,6 @@ if (cached != null)
 - `ClientSecretHash` es NULL para public clients (Angular SPAs con PKCE)
 - `ClientSecretHash` es obligatorio para confidential clients (APIs backend)
 - `ClientSecretHash` nunca se devuelve en APIs; solo se muestra el secreto en texto plano en el momento de creación de confidential clients
-- Se recomienda rotar `ClientSecretHash` cada 90 días para confidential clients (campo `SecretRotatedAt` para tracking)
 - Public clients (Angular) usan PKCE y no almacenan secretos
 - **Nomenclatura de roles**: Los roles de la aplicación deben usar el prefijo definido en `RolePrefix` (ej: si RolePrefix="STP", entonces roles como "STP_AsignadorTransporte", "STP_Supervisor")
 - **Nomenclatura de módulos**: Los módulos de la aplicación deben usar "M" + `RolePrefix` (ej: si RolePrefix="STP", entonces módulos como "MSTP_Trafico", "MSTP_Almacen")
@@ -2834,7 +2814,6 @@ PK: AppId
 UK: AppName
 UK: RolePrefix
 UK: ClientId
-IX: Active
 ```
 
 **Ejemplo de Registro (Public Client - Angular SPA)**:
@@ -2846,7 +2825,6 @@ ClientId: "crm-app-frontend"
 IsPublicClient: TRUE
 ClientSecretHash: NULL
 RedirectUris: '["https://crm.infoportone.com/*"]'
-Active: TRUE
 ```
 
 **Ejemplo de Registro (Confidential Client - Backend API)**:
@@ -2858,7 +2836,6 @@ ClientId: "crm-api-backend"
 IsPublicClient: FALSE
 ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
 RedirectUris: NULL
-Active: TRUE
 ```
 
 **Ejemplo de Registro (Aplicación Sintraport)**:
@@ -2870,7 +2847,6 @@ ClientId: "sintraport-app"
 IsPublicClient: TRUE
 ClientSecretHash: NULL
 RedirectUris: '["https://sintraport.infoportone.com/*"]'
-Active: TRUE
 ```
 > Con este RolePrefix="STP", los roles serán como "STP_AsignadorTransporte", "STP_Supervisor" y los módulos como "MSTP_Trafico", "MSTP_Almacen"
 
@@ -2888,7 +2864,6 @@ Active: TRUE
 | **AppId** | INT | FK → Application.AppId, NOT NULL | Aplicación a la que pertenece el módulo. |
 | **ModuleName** | VARCHAR(100) | NOT NULL | Nombre del módulo (ej: "Módulo Facturación", "Módulo Reporting Avanzado"). |
 | **Description** | VARCHAR(500) | NULL | Descripción de las funcionalidades que ofrece el módulo. |
-| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/deprecated. Si es FALSE, el módulo no se puede asignar a nuevas organizaciones. |
 | **DisplayOrder** | INT | NULL, DEFAULT 0 | Orden de visualización en interfaces (menor número = mayor prioridad). |
 | **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del módulo. |
 | **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
@@ -2899,15 +2874,14 @@ Active: TRUE
 
 **Restricciones de Negocio**:
 - Combinación (`AppId`, `ModuleName`) debe ser única (índice `UX_Module_AppId_ModuleName`)
-- Toda aplicación debe tener al menos un módulo activo
-- Cuando `Active = FALSE`, el módulo está deprecated pero organizaciones existentes pueden seguir usándolo
+- Toda aplicación debe tener al menos un módulo disponible
+- Cuando un módulo está dado de baja (soft delete), no se puede asignar a nuevas organizaciones, pero las organizaciones existentes pueden seguir usándolo
 
 **Índices**:
 ```sql
 PK: ModuleId
 UK: (AppId, ModuleName)
 IX: AppId
-IX: Active
 ```
 
 **Ejemplo de Registro**:
@@ -2916,7 +2890,6 @@ ModuleId: 101
 AppId: 5
 ModuleName: "Módulo Facturación Electrónica"
 Description: "Emisión y gestión de facturas electrónicas con firma digital"
-Active: TRUE
 DisplayOrder: 10
 ```
 
@@ -2981,7 +2954,6 @@ Las aplicaciones satélite consultan esta relación (sincronizada vía `Organiza
 | **AppId** | INT | FK → Application.AppId, NOT NULL | Aplicación a la que pertenece el rol. |
 | **RoleName** | VARCHAR(100) | NOT NULL | Nombre del rol (ej: "Vendedor", "Gerente", "Administrador"). |
 | **Description** | VARCHAR(500) | NULL | Descripción de los permisos y responsabilidades del rol. |
-| **Active** | BIT/BOOLEAN | NOT NULL, DEFAULT TRUE | Estado activo/deprecated. Si es FALSE, el rol no se puede asignar a nuevos usuarios. |
 | **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del rol. |
 | **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
 
@@ -2990,7 +2962,7 @@ Las aplicaciones satélite consultan esta relación (sincronizada vía `Organiza
 
 **Restricciones de Negocio**:
 - Combinación (`AppId`, `RoleName`) debe ser única (índice `UX_AppRole_AppId_RoleName`)
-- Cuando `Active = FALSE`, el rol está deprecated pero usuarios existentes pueden mantenerlo
+- Cuando un rol está dado de baja (soft delete), no se puede asignar a nuevos usuarios, pero los usuarios existentes pueden mantenerlo
 - **Principio de responsabilidad**: InfoportOneAdmon define roles, aplicaciones satélite los asignan a usuarios
 
 **Índices**:
@@ -2998,7 +2970,6 @@ Las aplicaciones satélite consultan esta relación (sincronizada vía `Organiza
 PK: Id
 UK: (ApplicationId, RoleName)
 IX: ApplicationId
-IX: Active
 ```
 
 **Ejemplo de Registro**:
@@ -3007,7 +2978,6 @@ Id: 201
 ApplicationId: 5
 RoleName: "CRM_GerenteVentas"
 Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar descuentos hasta 15%"
-Active: TRUE
 ```
 
 **Sincronización**: Los roles se sincronizan como parte del `ApplicationEvent`, no tienen evento propio.
@@ -3060,8 +3030,8 @@ EntityType: "Organization"
 EntityId: "1"
 Action: "UPDATE"
 Timestamp: "2026-01-08 14:35:22"
-OldValue: '{"Active": true}'
-NewValue: '{"Active": false}'
+OldValue: '{"Name": "ACME Corp"}'
+NewValue: '{"Name": "ACME Corporation"}'
 AuditCreationUser: "system"
 AuditCreationDate: "2026-01-08 14:35:22"
 AuditModificationUser: NULL
@@ -3069,7 +3039,7 @@ AuditModificationDate: NULL
 AuditDeletionDate: NULL
 ```
 
-> **Nota**: Para saber QUIÉN desactivó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`. Los campos de auditoría de AUDIT_LOG son meta-auditoría del propio log.
+> **Nota**: Para saber QUIÉN modificó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`. Los campos de auditoría de AUDIT_LOG son meta-auditoría del propio log.
 
 **Uso en Compliance**:
 - Rastrear cambios en configuración de módulos y permisos (estados antes/después)
