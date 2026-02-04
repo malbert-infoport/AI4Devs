@@ -426,12 +426,12 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
       "ClientId": "crm-app-backend",
       "Modules": [
         {
-          "ModuleId": 10,
+          "ApplicationModuleId": 10,
           "Name": "MCRM_Sales",
           "Description": "Gestión de ventas"
         },
         {
-          "ModuleId": 11,
+          "ApplicationModuleId": 11,
           "Name": "MCRM_Reporting",
           "Description": "Reportes avanzados"
         }
@@ -620,18 +620,18 @@ dotnet ef database update --project InfoportOneAdmon.Data --startup-project Info
 ```
 
 **Estructura de tablas creadas** (principales):
-- `Organizations`: Entidades de organizaciones clientes
-- `OrganizationGroups`: Agrupaciones de organizaciones
-- `Applications`: Aplicaciones satélite registradas
-- `Modules`: Módulos funcionales por aplicación
-- `ModuleAccess`: Relación N:M entre módulos y organizaciones
-- `AppRoleDefinitions`: Catálogo de roles
+- `Organization`: Entidades de organizaciones clientes
+- `OrganizationGroup`: Agrupaciones de organizaciones
+- `Application`: Aplicaciones satélite registradas
+- `ApplicationModule`: Módulos funcionales por aplicación
+- `OrganizationApplicationModule`: Relación N:M entre módulos y organizaciones
+- `ApplicationRole`: Catálogo de roles
 - `AuditLog`: Auditoría selectiva de cambios críticos (sin campos JSON)
-- `EventHashControl`: Control de eventos duplicados
+- `EventHash`: Control de eventos duplicados
 
 > **Nota Helix6 - Auditoría Dual**: 
 > - **Auditoría Base (Helix6)**: Todas las entidades heredan de `IEntityBase` e incluyen automáticamente campos de auditoría (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`) que registran TODOS los cambios. Ver detalles en [Helix6_Backend_Architecture.md - Sección 2.5](Helix6_Backend_Architecture.md#25-proyectodatamodel-capa-de-modelo-de-datos).
-> - **Auditoría Selectiva (AUDIT_LOG)**: Tabla adicional que registra SOLO cambios críticos en seguridad y permisos con contexto de acción específico. No duplica la funcionalidad de Helix6, sino que complementa con trazabilidad de acciones de negocio críticas.
+> - **Auditoría Selectiva (AUDITLOG)**: Tabla adicional que registra SOLO cambios críticos en seguridad y permisos con contexto de acción específico. No duplica la funcionalidad de Helix6, sino que complementa con trazabilidad de acciones de negocio críticas.
 
 **Paso 5: Poblar datos semilla (seed data)**
 
@@ -644,11 +644,11 @@ dotnet run --project InfoportOneAdmon.Api --seed
 O ejecutar scripts SQL manualmente:
 ```sql
 -- Insertar organización propietaria
-INSERT INTO Organizations (Name, TaxId, SecurityCompanyId)
+INSERT INTO Organization (Name, TaxId, SecurityCompanyId)
 VALUES ('Organización Propietaria', 'A12345678', 1);
 
 -- Insertar aplicación de ejemplo
-INSERT INTO Applications (Name, ClientId, ClientType)
+INSERT INTO Application (Name, ClientId, ClientType)
 VALUES ('CRM App', 'crm-app-frontend', 'Public');
 ```
 
@@ -819,7 +819,7 @@ curl https://localhost:5001/api/health
 2. Crear una organización nueva
 3. Verificar en la base de datos que se creó el registro
 4. Verificar en Artemis que se publicó el evento `OrganizationEvent`
-5. Verificar en la tabla `EventHashControl` el hash del evento
+5. Verificar en la tabla `EventHash` el hash del evento
 
 #### **1.4.7. Troubleshooting Común**
 
@@ -1013,7 +1013,7 @@ sequenceDiagram
     BGWorker->>DB: SELECT SecurityCompanyId, Roles<br/>WHERE Email = 'juan@example.com'
     DB-->>BGWorker: c_ids: [12345, 67890, 11111]<br/>roles: ["CRM_Vendedor", "CRM_Manager",<br/>"ERP_Contable", "BI_Analista"]
     
-    BGWorker->>DB: SELECT * FROM Organizations<br/>WHERE SecurityCompanyId IN (12345, 67890, 11111)
+    BGWorker->>DB: SELECT * FROM Organization<br/>WHERE SecurityCompanyId IN (12345, 67890, 11111)
     DB-->>BGWorker: Valida que todas existen y están dadas de alta<br/>(AuditDeletionDate IS NULL)
     
     BGWorker->>BGWorker: Construye c_ids completo<br/>y roles consolidados con prefijos
@@ -1301,7 +1301,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 - CRUD de organizaciones con generación automática de `SecurityCompanyId`
 - Gestión de grupos de organizaciones (asignación de `GroupId`)
 - Baja lógica de organizaciones mediante `AuditDeletionDate` (bloquea acceso inmediato, propaga baja a usuarios en Keycloak)
-- Auditoría selectiva de cambios críticos en tabla `AUDIT_LOG` (sin almacenar JSON de valores anteriores/nuevos)
+- Auditoría selectiva de cambios críticos en tabla `AUDITLOG` (sin almacenar JSON de valores anteriores/nuevos)
 
 **Interacciones**:
 - Escribe en la **Base de Datos Core**
@@ -1338,7 +1338,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 - Entity Framework Core
 
 **Funcionalidades principales**:
-- CRUD de definiciones de roles (`AppRoleDefinition`)
+- CRUD de definiciones de roles (`ApplicationRole`)
 - Baja lógica de roles mediante `AuditDeletionDate`
 - Validación de unicidad de nombres de rol por aplicación
 
@@ -1358,7 +1358,7 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 
 **Funcionalidades principales**:
 - CRUD de módulos por aplicación
-- Configuración de acceso por organización (tabla `ModuleAccess`)
+- Configuración de acceso por organización (tabla `OrganizationApplicationModule`)
 - Validación de regla de negocio: toda aplicación debe tener al menos un módulo
 
 **Interacciones**:
@@ -1418,11 +1418,11 @@ El sistema InfoportOneAdmon se compone de módulos internos de aplicación y sis
 - Invoca **Keycloak Admin API** (REST) directamente para CREATE/UPDATE de usuarios:
   - Atributo `c_ids`: Definido como **atributo multivalor**, se envía como array de strings con todos los SecurityCompanyIds
   - Roles: Se asignan consolidados de todas las aplicaciones
-- Utiliza tabla auxiliar `UserConsolidationCache` para optimizar detección de duplicados
+- Utiliza tabla auxiliar `UserCache` para optimizar detección de duplicados
 
-**Tabla auxiliar: UserConsolidationCache**
+**Tabla auxiliar: UserCache**
 ```sql
-CREATE TABLE UserConsolidationCache (
+CREATE TABLE UserCache (
   Email NVARCHAR(255) PRIMARY KEY,
   ConsolidatedCompanyIds NVARCHAR(MAX), -- JSON array de c_ids
   ConsolidatedRoles NVARCHAR(MAX), -- JSON array de roles consolidados de todas las apps
@@ -1462,15 +1462,15 @@ CREATE TABLE UserConsolidationCache (
 **Funcionalidades principales**:
 - Serialización de eventos a JSON
 - Cálculo de hash SHA-256 del `Payload` para prevención de duplicados
-- Consulta/actualización de tabla `EventHashControl`
+- Consulta/actualización de tabla `EventHash`
 - Publicación a tópicos específicos en ActiveMQ Artemis
 - Gestión de `EventId` (UUID v4) y `TraceId`
 
 **Lógica de prevención de duplicados**:
 1. Calcula hash del `Payload` (excluye `EventId`, `EventTimestamp`, `TraceId`)
-2. Consulta `EventHashControl` por `EntityType` y `EntityId`
+2. Consulta `EventHash` por `EntityType` y `EntityId`
 3. Si el hash coincide con `LastEventHash`, **NO publica** el evento
-4. Si difiere, publica y actualiza `EventHashControl` con nuevo hash y timestamp
+4. Si difiere, publica y actualiza `EventHash` con nuevo hash y timestamp
 
 #### **2.2.6. Base de Datos Core**
 
@@ -1484,11 +1484,11 @@ CREATE TABLE UserConsolidationCache (
 - `Organization`: Clientes del ecosistema
 - `OrganizationGroup`: Agrupaciones lógicas de organizaciones
 - `Application`: Aplicaciones satélite registradas
-- `Module`: Módulos funcionales por aplicación
-- `ModuleAccess`: Relación N:M entre módulos y organizaciones
-- `AppRoleDefinition`: Catálogo de roles por aplicación
+- `ApplicationModule`: Módulos funcionales por aplicación
+- `OrganizationApplicationModule`: Relación N:M entre módulos y organizaciones
+- `ApplicationRole`: Catálogo de roles por aplicación
 - `AuditLog`: Registro inmutable de cambios CRÍTICOS (6 acciones en Epic1: ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged). Campos: Id, Action, EntityType, EntityId, UserId (nullable), Timestamp, CorrelationId. Sin almacenar JSON de valores anteriores/nuevos
-- `EventHashControl`: Control de duplicados con hash SHA-256
+- `EventHash`: Control de duplicados con hash SHA-256
 
 **Restricciones clave**:
 - `SecurityCompanyId`: Unique, Auto-increment
@@ -1629,8 +1629,8 @@ InfoportOneAdmon/
 ├── InfoportOneAdmon.Services/         # Capa de Lógica de Negocio
 │   ├── OrganizationService.cs         # Servicios de dominio
 │   ├── ApplicationService.cs
-│   ├── ModuleService.cs
-│   ├── RoleService.cs
+│   ├── ApplicationModuleService.cs
+│   ├── ApplicationRoleService.cs
 │   ├── KeycloakOrchestrationService.cs # Orquestación de Keycloak
 │   ├── EventPublisherService.cs       # Publicación de eventos
 │   ├── EventConsumerService.cs        # Consumo de eventos
@@ -1660,11 +1660,13 @@ InfoportOneAdmon/
 │   ├── Organization.cs                # Entidades que mapean a BD
 │   ├── OrganizationGroup.cs
 │   ├── Application.cs
-│   ├── Module.cs
-│   ├── ModuleAccess.cs
-│   ├── AppRoleDefinition.cs
+│   ├── ApplicationModule.cs
+│   ├── OrganizationApplicationModule.cs
+│   ├── ApplicationRole.cs
+│   ├── ApplicationSecurity.cs
 │   ├── AuditLog.cs
-│   └── EventHashControl.cs
+│   ├── EventHash.cs
+│   └── UserCache.cs
 │
 ├── Helix6.Base/                       # Framework Base (librería compartida)
 │   ├── Repository/                    # Repositorios base genéricos
@@ -1947,7 +1949,7 @@ string clientSecret = secret.Value;
 
 **Filosofía de Auditoría Dual**:
 - **Auditoría Base (Helix6)**: El framework gestiona automáticamente campos de auditoría en TODAS las entidades (`AuditCreationUser`, `AuditModificationUser`, `AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`) registrando todos los cambios
-- **Auditoría Selectiva (AUDIT_LOG)**: Tabla adicional que registra SOLO 6 acciones críticas con contexto de acción específico (Epic1, expandible en otras épicas)
+- **Auditoría Selectiva (AUDITLOG)**: Tabla adicional que registra SOLO 6 acciones críticas con contexto de acción específico (Epic1, expandible en otras épicas)
 
 **Acciones Críticas Auditadas (Epic1)**:
 1. `ModuleAssigned` - Asignación de módulo/aplicación a organización
@@ -1960,7 +1962,7 @@ string clientSecret = secret.Value;
 **NO se auditan selectivamente**: Cambios en datos básicos (nombre, dirección, email, teléfono, CIF) - estos solo tienen auditoría base de Helix6.
 
 **Implementación**:
-- **Tabla `AUDIT_LOG`**: Estructura simplificada sin JSON de valores anteriores/nuevos
+- **Tabla `AUDITLOG`**: Estructura simplificada sin JSON de valores anteriores/nuevos
 - **Campos**: `Id`, `Action`, `EntityType`, `EntityId`, `UserId` (nullable para acciones del sistema), `Timestamp`, `CorrelationId`
 - **IAuditLogService**: Servicio dedicado para registro de acciones críticas
 
@@ -2046,11 +2048,11 @@ public class CreateOrganizationValidator : AbstractValidator<CreateOrganizationD
 **Implementación**:
 ```csharp
 [Authorize(Roles = "SuperAdmin")]
-[HttpPost("api/organizations")]
+[HttpPost("api/organization")]
 public async Task<IActionResult> CreateOrganization(...)
 
 [Authorize(Roles = "SuperAdmin,Auditor")]
-[HttpGet("api/audit-logs")]
+[HttpGet("api/audit-log")]
 public async Task<IActionResult> GetAuditLogs(...)
 ```
 
@@ -2112,15 +2114,15 @@ El modelo de datos de InfoportOneAdmon representa la fuente de la verdad para or
 
 ```mermaid
 erDiagram
-    ORGANIZATION_GROUP ||--|{ ORGANIZATION : "agrupa a"
-    ORGANIZATION ||--|{ MODULE_ACCESS : "tiene acceso a"
-    APPLICATION ||--|{ MODULE : "contiene"
-    APPLICATION ||--|{ APP_ROLE_DEFINITION : "define roles"
-    APPLICATION ||--|{ APPLICATION_SECURITY : "tiene credenciales"
-    MODULE ||--|{ MODULE_ACCESS : "asigna acceso"
-    ORGANIZATION ||--o{ AUDIT_LOG : "genera auditoría"
-    APPLICATION ||--o{ AUDIT_LOG : "genera auditoría"
-    MODULE ||--o{ AUDIT_LOG : "genera auditoría"
+    ORGANIZATIONGROUP ||--|{ ORGANIZATION : "agrupa a"
+    ORGANIZATION ||--|{ ORGANIZATION_APPLICATIONMODULE : "tiene acceso a"
+    APPLICATION ||--|{ APPLICATIONMODULE : "contiene"
+    APPLICATION ||--|{ APPLICATIONROLE : "define roles"
+    APPLICATION ||--|{ APPLICATIONSECURITY : "tiene credenciales"
+    APPLICATIONMODULE ||--|{ ORGANIZATION_APPLICATIONMODULE : "asigna acceso"
+    ORGANIZATION ||--o{ AUDITLOG : "genera auditoría"
+    APPLICATION ||--o{ AUDITLOG : "genera auditoría"
+    APPLICATIONMODULE ||--o{ AUDITLOG : "genera auditoría"
     
     ORGANIZATION_GROUP {
         int Id PK "AUTO_INCREMENT, Identificador único del grupo"
@@ -2164,7 +2166,7 @@ erDiagram
         datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
-    APPLICATION_SECURITY {
+    APPLICATIONSECURITY {
         int Id PK "AUTO_INCREMENT, Identificador único de credencial"
         int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string CredentialType "NOT NULL, Tipo: CODE o ClientCredentials"
@@ -2179,7 +2181,7 @@ erDiagram
         datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
-    MODULE {
+    APPLICATIONMODULE {
         int Id PK "AUTO_INCREMENT, Identificador único del módulo"
         int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string ModuleName "NOT NULL, Nombre del módulo (ej: Módulo Facturación)"
@@ -2192,9 +2194,9 @@ erDiagram
         datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
-    MODULE_ACCESS {
+    ORGANIZATION_APPLICATIONMODULE {
         int Id PK "AUTO_INCREMENT, Identificador único"
-        int ModuleId FK "NOT NULL, Referencia a Module.Id"
+        int ApplicationModuleId FK "NOT NULL, Referencia a ApplicationModule.Id"
         int OrganizationId FK "NOT NULL, Referencia a Organization.Id"
         string AuditCreationUser "Usuario que concedió el acceso"
         datetime AuditCreationDate "NOT NULL, Fecha de creación"
@@ -2203,7 +2205,7 @@ erDiagram
         datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
-    APP_ROLE_DEFINITION {
+    APPLICATIONROLE {
         int Id PK "AUTO_INCREMENT, Identificador único del rol"
         int ApplicationId FK "NOT NULL, Referencia a Application.Id"
         string RoleName "NOT NULL, Nombre del rol (ej: Vendedor, Gerente)"
@@ -2215,7 +2217,7 @@ erDiagram
         datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
-    USER_CONSOLIDATION_CACHE {
+    USERCACHE {
         int Id PK "AUTO_INCREMENT, Identificador único"
         string Email UK "NOT NULL, Email del usuario (clave de búsqueda)"
         string ConsolidatedCompanyIds "NOT NULL, JSON array de SecurityCompanyIds"
@@ -2224,7 +2226,7 @@ erDiagram
         string LastEventHash "Hash SHA-256 del último evento procesado"
     }
     
-    AUDIT_LOG {
+    AUDITLOG {
         bigint Id PK "AUTO_INCREMENT, Identificador único del log"
         string EntityType "NOT NULL, Tipo de entidad"
         string EntityId "NOT NULL, ID de la entidad afectada"
@@ -2239,7 +2241,7 @@ erDiagram
         datetime AuditDeletionDate "Soft delete - fecha de eliminación lógica"
     }
     
-    EVENT_HASH_CONTROL {
+    EVENTHASH {
         string EntityType PK "NOT NULL, Tipo de entidad"
         string EntityId PK "NOT NULL, ID de la entidad"
         string LastEventHash "NOT NULL, Hash SHA-256 del último evento"
@@ -2252,11 +2254,11 @@ erDiagram
 | Relación | Cardinalidad | Descripción | Comportamiento Cascada |
 |----------|--------------|-------------|------------------------|
 | OrganizationGroup → Organization | 1:N | Un grupo agrupa múltiples organizaciones | ON DELETE SET NULL |
-| Application → Module | 1:N | Una aplicación contiene múltiples módulos | ON DELETE CASCADE |
-| Application → AppRoleDefinition | 1:N | Una aplicación define múltiples roles | ON DELETE CASCADE |
+| Application → ApplicationModule | 1:N | Una aplicación contiene múltiples módulos | ON DELETE CASCADE |
+| Application → ApplicationRole | 1:N | Una aplicación define múltiples roles | ON DELETE CASCADE |
 | Application → ApplicationSecurity | 1:N | Una aplicación tiene múltiples credenciales OAuth2 | ON DELETE CASCADE |
-| Module → ModuleAccess | 1:N | Un módulo puede asignarse a múltiples organizaciones | ON DELETE CASCADE |
-| Organization → ModuleAccess | 1:N | Una organización puede tener acceso a múltiples módulos | ON DELETE CASCADE |
+| ApplicationModule → OrganizationApplicationModule | 1:N | Un módulo puede asignarse a múltiples organizaciones | ON DELETE CASCADE |
+| Organization → OrganizationApplicationModule | 1:N | Una organización puede tener acceso a múltiples módulos | ON DELETE CASCADE |
 | Organization → AuditLog | 1:N | Una organización genera múltiples registros de auditoría | ON DELETE NO ACTION |
 | Application → AuditLog | 1:N | Una aplicación genera múltiples registros de auditoría | ON DELETE NO ACTION |
 
@@ -2266,28 +2268,28 @@ Para optimizar las consultas más frecuentes, se definen los siguientes índices
 
 ```sql
 -- Índices únicos (restricciones de negocio)
-CREATE UNIQUE INDEX UX_Organization_SecurityCompanyId ON ORGANIZATION(SecurityCompanyId);
-CREATE UNIQUE INDEX UX_Organization_Name ON ORGANIZATION(Name);
-CREATE UNIQUE INDEX UX_Organization_TaxId ON ORGANIZATION(TaxId);
-CREATE UNIQUE INDEX UX_Application_AppName ON APPLICATION(AppName);
-CREATE UNIQUE INDEX UX_Application_RolePrefix ON APPLICATION(RolePrefix);
-CREATE UNIQUE INDEX UX_ApplicationSecurity_ClientId ON APPLICATION_SECURITY(ClientId);
-CREATE UNIQUE INDEX UX_OrganizationGroup_GroupName ON ORGANIZATION_GROUP(GroupName);
-CREATE UNIQUE INDEX UX_UserConsolidationCache_Email ON USER_CONSOLIDATION_CACHE(Email);
+CREATE UNIQUE INDEX UX_Org_SecurityCompanyId ON ORGANIZATION(SecurityCompanyId);
+CREATE UNIQUE INDEX UX_Org_Name ON ORGANIZATION(Name);
+CREATE UNIQUE INDEX UX_Org_TaxId ON ORGANIZATION(TaxId);
+CREATE UNIQUE INDEX UX_App_AppName ON APPLICATION(AppName);
+CREATE UNIQUE INDEX UX_App_RolePrefix ON APPLICATION(RolePrefix);
+CREATE UNIQUE INDEX UX_AppSec_ClientId ON APPLICATIONSECURITY(ClientId);
+CREATE UNIQUE INDEX UX_OrgGroup_GroupName ON ORGANIZATIONGROUP(GroupName);
+CREATE UNIQUE INDEX UX_UserCache_Email ON USERCACHE(Email);
 
 -- Índices compuestos para módulos (evitar duplicados)
-CREATE UNIQUE INDEX UX_Module_ApplicationId_ModuleName ON MODULE(ApplicationId, ModuleName);
-CREATE UNIQUE INDEX UX_AppRole_ApplicationId_RoleName ON APP_ROLE_DEFINITION(ApplicationId, RoleName);
-CREATE UNIQUE INDEX UX_ModuleAccess_ModuleId_OrganizationId ON MODULE_ACCESS(ModuleId, OrganizationId);
+CREATE UNIQUE INDEX UX_AppMod_ApplicationId_ModuleName ON APPLICATIONMODULE(ApplicationId, ModuleName);
+CREATE UNIQUE INDEX UX_AppRole_ApplicationId_RoleName ON APPLICATIONROLE(ApplicationId, RoleName);
+CREATE UNIQUE INDEX UX_OrgAppMod_AppModuleId_OrgId ON ORGANIZATION_APPLICATIONMODULE(ApplicationModuleId, OrganizationId);
 
 -- Índices de búsqueda frecuente
-CREATE INDEX IX_Organization_GroupId ON ORGANIZATION(GroupId);
-CREATE INDEX IX_Module_ApplicationId ON MODULE(ApplicationId);
-CREATE INDEX IX_ModuleAccess_OrganizationId ON MODULE_ACCESS(OrganizationId);
-CREATE INDEX IX_ApplicationSecurity_ApplicationId ON APPLICATION_SECURITY(ApplicationId);
-CREATE INDEX IX_AuditLog_EntityType_EntityId ON AUDIT_LOG(EntityType, EntityId);
-CREATE INDEX IX_AuditLog_Timestamp ON AUDIT_LOG(Timestamp DESC);
-CREATE INDEX IX_EventHashControl_EntityType_EntityId ON EVENT_HASH_CONTROL(EntityType, EntityId);
+CREATE INDEX IX_Org_GroupId ON ORGANIZATION(GroupId);
+CREATE INDEX IX_AppMod_ApplicationId ON APPLICATIONMODULE(ApplicationId);
+CREATE INDEX IX_OrgAppMod_OrganizationId ON ORGANIZATION_APPLICATIONMODULE(OrganizationId);
+CREATE INDEX IX_AppSec_ApplicationId ON APPLICATIONSECURITY(ApplicationId);
+CREATE INDEX IX_AuditLog_EntityType_EntityId ON AUDITLOG(EntityType, EntityId);
+CREATE INDEX IX_AuditLog_Timestamp ON AUDITLOG(Timestamp DESC);
+CREATE INDEX IX_EventHash_EntityType_EntityId ON EVENTHASH(EntityType, EntityId);
 ```
 
 #### **Reglas de Integridad y Restricciones**
@@ -2352,7 +2354,7 @@ A continuación se describen en detalle las 9 entidades principales del modelo d
 
 ---
 
-#### **3.2.1. ORGANIZATION_GROUP**
+#### **3.2.1. ORGANIZATIONGROUP**
 
 **Propósito**: Representa agrupaciones lógicas de organizaciones como holdings, consorcios, franquicias o grupos empresariales.
 
@@ -2495,11 +2497,11 @@ RolePrefix: "CRM"
 AuditCreationUser: "admin@infoportone.com"
 ```
 
-**Nota importante**: Las credenciales OAuth2 están en `APPLICATION_SECURITY`, no en esta tabla.
+**Nota importante**: Las credenciales OAuth2 están en `APPLICATIONSECURITY`, no en esta tabla.
 
 ---
 
-#### **3.2.4. APPLICATION_SECURITY**
+#### **3.2.4. APPLICATIONSECURITY**
 
 **Propósito**: Almacena credenciales OAuth2 para aplicaciones. Una aplicación puede tener múltiples credenciales (frontend CODE + backend ClientCredentials).
 
@@ -2565,7 +2567,7 @@ Scope: "read:data write:data"
 
 ---
 
-#### **3.2.5. MODULE**
+#### **3.2.5. APPLICATIONMODULE**
 
 **Propósito**: Representa módulos funcionales dentro de una aplicación. Permite habilitar/deshabilitar funcionalidades por organización.
 
@@ -2586,10 +2588,10 @@ Scope: "read:data write:data"
 
 **Relaciones**:
 - **N:1 con Application**: Un módulo pertenece a una aplicación. FK: `ApplicationId`. ON DELETE CASCADE.
-- **1:N con ModuleAccess**: Un módulo puede asignarse a múltiples organizaciones.
+- **1:N con OrganizationApplicationModule**: Un módulo puede asignarse a múltiples organizaciones.
 
 **Restricciones de Negocio**:
-- Combinación (`ApplicationId`, `ModuleName`) debe ser única (índice `UX_Module_ApplicationId_ModuleName`)
+- Combinación (`ApplicationId`, `ModuleName`) debe ser única (índice `UX_AppMod_ApplicationId_ModuleName`)
 - Toda aplicación debe tener al menos un módulo disponible (AuditDeletionDate = NULL)
 - Cuando `AuditDeletionDate != NULL`, el módulo está dado de baja y no se puede asignar a nuevas organizaciones, pero las organizaciones existentes pueden seguir usándolo
 - El nombre debe seguir la nomenclatura "M" + RolePrefix de la aplicación
@@ -2612,7 +2614,7 @@ DisplayOrder: 10
 
 ---
 
-#### **3.2.6. MODULE_ACCESS**
+#### **3.2.6. ORGANIZATION_APPLICATIONMODULE**
 
 **Propósito**: Tabla de relación N:M entre módulos y organizaciones. Define qué organizaciones tienen acceso a qué módulos.
 
@@ -2630,11 +2632,11 @@ DisplayOrder: 10
 | **AuditDeletionDate** | DATETIME | NULL | Fecha de eliminación lógica (revocación de acceso). |
 
 **Relaciones**:
-- **N:1 con Module**: FK: `ModuleId`. ON DELETE CASCADE.
+- **N:1 con ApplicationModule**: FK: `ApplicationModuleId`. ON DELETE CASCADE.
 - **N:1 con Organization**: FK: `OrganizationId`. ON DELETE CASCADE.
 
 **Restricciones de Negocio**:
-- Combinación (`ModuleId`, `OrganizationId`) debe ser única (índice `UX_ModuleAccess_ModuleId_OrganizationId`)
+- Combinación (`ApplicationModuleId`, `OrganizationId`) debe ser única (índice `UX_OrgAppMod_AppModuleId_OrgId`)
 - Una organización no puede tener el mismo módulo asignado dos veces
 - Soft delete permite historial de accesos concedidos/revocados mediante `AuditDeletionDate`
 - `AuditCreationDate` representa la fecha de concesión del acceso
@@ -2643,7 +2645,7 @@ DisplayOrder: 10
 **Índices**:
 ```sql
 PK: Id
-UK: (ModuleId, OrganizationId)
+UK: (ApplicationModuleId, OrganizationId)
 IX: OrganizationId
 ```
 
@@ -2659,7 +2661,7 @@ AuditDeletionDate: NULL
 
 ---
 
-#### **3.2.7. APP_ROLE_DEFINITION**
+#### **3.2.7. APPLICATIONROLE**
 
 **Propósito**: Catálogo maestro de roles disponibles en cada aplicación. Define "qué roles existen" (no quién los tiene).
 
@@ -2703,7 +2705,7 @@ Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar 
 
 ---
 
-#### **3.2.8. USER_CONSOLIDATION_CACHE**
+#### **3.2.8. USERCACHE**
 
 **Propósito**: Caché de consolidación de usuarios multi-organización y multi-aplicación. Optimiza el proceso del Background Worker.
 
@@ -2760,19 +2762,19 @@ if (cached != null)
 
 ---
 
-#### **3.2.9. AUDIT_LOG**
+#### **3.2.9. AUDITLOG**
 
 **Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon.
 
-(La descripción de AUDIT_LOG se mantiene igual que antes, con `Id` como PK en lugar de `AuditLogId`)
+(La descripción de AUDITLOG se mantiene igual que antes, con `Id` como PK en lugar de `AuditLogId`)
 
 ---
 
-#### **3.2.10. EVENT_HASH_CONTROL**
+#### **3.2.10. EVENTHASH**
 
 **Propósito**: Tabla de control para prevención de duplicados en la publicación de eventos.
 
-(La descripción de EVENT_HASH_CONTROL se mantiene igual que antes)
+(La descripción de EVENTHASH se mantiene igual que antes)
 
 ---
 
@@ -2852,7 +2854,7 @@ RedirectUris: '["https://sintraport.infoportone.com/*"]'
 
 ---
 
-#### **3.2.4. MODULE**
+#### **3.2.4. APPLICATIONMODULE (duplicado)**
 
 **Propósito**: Representa módulos funcionales dentro de una aplicación. Permite habilitar/deshabilitar funcionalidades por organización.
 
@@ -2895,7 +2897,7 @@ DisplayOrder: 10
 
 ---
 
-#### **3.2.5. MODULE_ACCESS**
+#### **3.2.5. ORGANIZATION_APPLICATIONMODULE (duplicado)**
 
 **Propósito**: Tabla de relación N:M entre módulos y organizaciones. Define qué organizaciones tienen acceso a qué módulos.
 
@@ -2942,7 +2944,7 @@ Las aplicaciones satélite consultan esta relación (sincronizada vía `Organiza
 
 ---
 
-#### **3.2.6. APP_ROLE_DEFINITION**
+#### **3.2.6. APPLICATIONROLE (duplicado)**
 
 **Propósito**: Catálogo maestro de roles disponibles en cada aplicación. Define "qué roles existen" (no quién los tiene).
 
@@ -2984,7 +2986,7 @@ Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar 
 
 ---
 
-#### **3.2.7. AUDIT_LOG**
+#### **3.2.7. AUDITLOG (duplicado)**
 
 **Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon. Esencial para compliance y auditorías.
 
@@ -3039,18 +3041,18 @@ AuditModificationDate: NULL
 AuditDeletionDate: NULL
 ```
 
-> **Nota**: Para saber QUIÉN modificó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`. Los campos de auditoría de AUDIT_LOG son meta-auditoría del propio log.
+> **Nota**: Para saber QUIÉN modificó esta organización, se consulta `ORGANIZATION.AuditModificationUser` donde `Id = 1`. Los campos de auditoría de AUDITLOG son meta-auditoría del propio log.
 
 **Uso en Compliance**:
 - Rastrear cambios en configuración de módulos y permisos (estados antes/después)
 - Responder a auditorías regulatorias (GDPR Article 30, ISO 27001)
 - Análisis forense de cambios críticos en el sistema
 - El "quién hizo el cambio" se obtiene de los campos `AuditCreationUser`/`AuditModificationUser` de la entidad modificada
-- Los campos de auditoría de AUDIT_LOG permiten rastrear quién/cuándo se creó el registro de log (meta-auditoría)
+- Los campos de auditoría de AUDITLOG permiten rastrear quién/cuándo se creó el registro de log (meta-auditoría)
 
 ---
 
-#### **3.2.8. EVENT_HASH_CONTROL**
+#### **3.2.8. EVENTHASH (duplicado)**
 
 **Propósito**: Tabla de control para prevención de duplicados en la publicación de eventos. Almacena el hash SHA-256 del último evento publicado para cada entidad.
 
