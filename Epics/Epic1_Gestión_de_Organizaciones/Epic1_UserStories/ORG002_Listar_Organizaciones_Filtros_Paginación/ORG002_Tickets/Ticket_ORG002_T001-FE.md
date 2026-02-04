@@ -1,7 +1,7 @@
-# TASK-002-FE: Implementar grid de organizaciones con Kendo UI y columnas calculadas
+# ORG002-T001-FE: Implementar grid de organizaciones con Kendo UI y columnas calculadas
 
 =============================================================
-**TICKET ID:** TASK-002-FE  
+**TICKET ID:** ORG002-T001-FE  
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
 **USER STORY:** US-004 - Listar organizaciones con filtros  
 **COMPONENT:** Frontend - Angular  

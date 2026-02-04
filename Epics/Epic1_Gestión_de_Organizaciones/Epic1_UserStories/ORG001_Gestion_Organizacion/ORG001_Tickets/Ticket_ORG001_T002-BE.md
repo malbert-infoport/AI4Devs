@@ -1,12 +1,14 @@
-# TASK-002-BE: Implementar entidad Organization con CRUD completo en Helix6
+# ORG001-T002-BE: Implementar entidad Organization con CRUD completo en Helix6
 
 =============================================================
-**TICKET ID:** TASK-002-BE  
+
+**TICKET ID:** ORG001-T002-BE  
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
 **USER STORY:** ORG-001 - Crear y editar organización cliente  
 **COMPONENT:** Backend - Helix6 Framework  
 **PRIORITY:** Alta  
 **ESTIMATION:** 8 horas  
+
 =============================================================
 
 ## TÍTULO

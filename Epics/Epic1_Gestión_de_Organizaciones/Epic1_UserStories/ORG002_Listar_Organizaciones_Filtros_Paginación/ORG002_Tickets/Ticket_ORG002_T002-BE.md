@@ -1,8 +1,8 @@
 ```markdown
-# TASK-US003-BE: Implementar endpoint GetAllKendoFilter para Organizations (Helix6)
+# ORG002-T002-BE: Implementar endpoint GetAllKendoFilter para Organizations (Helix6)
 
 =============================================================
-**TICKET ID:** TASK-US003-BE 
+**TICKET ID:** ORG002-T002-BE 
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
 **USER STORY:** US-004 - Listar organizaciones con filtros  
 **COMPONENT:** Backend - Services / API (Helix6)  

@@ -1,7 +1,7 @@
-# TASK-001-DB: Crear vista VW_ORGANIZATION con campos calculados
+# ORG002-T003-DB: Crear vista VW_ORGANIZATION con campos calculados
 
 =============================================================
-**TICKET ID:** TASK-001-DB  
+**TICKET ID:** ORG002-T003-DB  
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
 **USER STORY:** US-004 Listar organizaciones con filtros y paginación
 **COMPONENT:** Database  
