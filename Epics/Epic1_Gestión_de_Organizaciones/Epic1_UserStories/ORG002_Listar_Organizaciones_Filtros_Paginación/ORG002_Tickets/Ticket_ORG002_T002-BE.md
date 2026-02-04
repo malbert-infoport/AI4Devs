@@ -1,40 +1,68 @@
-```markdown
-# ORG002-T002-BE: Implementar endpoint GetAllKendoFilter para Organizations (Helix6)
+# ORG002-T002-BE: Endpoint GetAllKendoFilter para Organizations (Helix6)
 
 =============================================================
-**TICKET ID:** ORG002-T002-BE 
-**EPIC:** Gestión del Portfolio de Organizaciones Clientes  
-**USER STORY:** US-004 - Listar organizaciones con filtros  
-**COMPONENT:** Backend - Services / API (Helix6)  
-**PRIORITY:** Alta  
-**ESTIMATION:** 6 horas  
+
+**TICKET ID:** ORG002-T002-BE
+**EPIC:** Gestión del Portfolio de Organizaciones Clientes
+**USER STORY:** ORG-002 - Listar organizaciones con filtros
+**COMPONENT:** Backend - Services / API (Helix6)
+**PRIORITY:** Alta
+**ESTIMATION:** 6 horas
+
 =============================================================
 
 ## TÍTULO
-Implementar en backend el endpoint que soporte la consulta de listing con `GetAllKendoFilter` siguiendo las convenciones de Helix6 y devolviendo el formato esperado por el frontend (`{ data, total }`).
+Implementar el endpoint `GetAllKendoFilter` para `Organization` compatible con Kendo/ClGrid (server-side paging/filter/sort).
 
-## DESCRIPCIÓN
-Crear/actualizar el `OrganizationService` y el endpoint correspondiente para exponer la consulta server-side usada por el grid Kendo. Debe aprovechar las utilidades de Helix6 (EndpointHelper / BaseService) y el método `GetAllKendoFilter` para soportar paginación, filtrado y ordenación eficientes.
+## OBJETIVO
+Exponer un endpoint seguro y eficiente que devuelva listados paginados de organizaciones con `AppCount` y `ModuleCount`, respetando los contratos Helix6 y las reglas de permisos.
 
-## CRITERIOS TÉCNICOS
-- El endpoint debe recibir parámetros de Kendo/OData (skip/top/filter/order) y devolver `{ data: OrganizationListItem[], total: number }`.
-- Reusar/implementar `GetAllKendoFilter` en `OrganizationService` o `BaseService` según patrón Helix6.
-- Consumir la vista `VW_ORGANIZATION` (o vista equivalente) para incluir `ModuleCount` y `AppCount` en la respuesta.
-- Filtrado soportado: estado (AuditDeletionDate null/not-null), búsqueda por nombre/CIF, filtro por `GroupId`.
-- Paginación server-side con `pageSize` por defecto 20 y configurable desde request.
-- Respetar seguridad/`EndpointAccess` (SecurityLevel.Read) y permisos mediante `IUserPermissions`.
-- Tests unitarios: mockear repositorio/servicio y validar que se traducen filtros y se lanza la consulta correcta.
-- Tests de integración: ejecutar consulta contra DB de pruebas que use la vista `VW_ORGANIZATION` y validar `total` y `data`.
+## DESCRIPCIÓN (resumida)
+- Añadir/ajustar en `OrganizationService` la operación `GetAllKendoFilter(IGenericFilter filter)` reutilizando la infraestructura de `BaseService`/`EndpointHelper`.
+- Registrar el endpoint en la API: `/api/Organization/GetAllKendoFilter` (método `PUT` o `POST` según convención del proyecto).
+- La fuente de datos debe ser la vista `VW_ORGANIZATION` (o equivalente) para incluir las columnas calculadas `AppCount` y `ModuleCount`.
 
-## IMPLEMENTACIÓN / NOTAS
-- Modificar/crear en `Services/OrganizationService` un método público `GetAllKendoFilter(IGenericFilter filter)` que reentregue `FilterResult<OrganizationView>` tal y como espera Helix6.
-- Registrar endpoint usando `EndpointHelper.GenerateGetAllKendoFilter` (o la convención de endpoints generados) en el proyecto `Api` para exponer `/api/Organization/GetAllKendoFilter`.
-- Mapear columnas `ModuleCount` y `AppCount` desde la vista `VW_ORGANIZATION` en la consulta (usar Dapper o EF Core projection según conveniencia y rendimiento).
-- Añadir tests en `Services.Tests` y `Data.Tests` (integration) que cubran: filtros combinados, ordenación y paginación.
-- Documentar el contrato en el ticket FE (`Ticket_US004_T001-FE.md`) para asegurar que la forma de los parámetros y la respuesta coinciden.
+## ALCANCE
+- Soportar filtros: estado (active/soft-deleted), búsqueda por `Name`/`TaxId`, filtro por `GroupId`.
+- Paginación server-side con `pageSize` por defecto 20 (configurable desde request).
+- Ordenación y agrupación según `KendoFilter`.
+- Responder `{ data: OrganizationView[], total: int }` o el `FilterResult<TView>` que usa Helix6.
+- Autorización: validar `Organization data query` (permiso 201) mediante `IUserPermissions`.
 
-## RIESGOS / CONSIDERACIONES
-- Si la vista `VW_ORGANIZATION` no existe o tiene distinto nombre, coordinar con DBA/TASK-001-VIEW para usar la vista correcta.
-- Asegurar índices sobre campos usados en filtros (AuditDeletionDate, EntityId, GroupId) para rendimiento.
+## CRITERIOS DE ACEPTACIÓN
+- [ ] Endpoint expuesto en `/api/Organization/GetAllKendoFilter` y protegido por permisos.
+- [ ] Respuesta contiene `AppCount` y `ModuleCount` para cada item.
+- [ ] Filtros combinados (estado + búsqueda + group) devuelven `data` y `total` correctos.
+- [ ] Paginación y ordenación compatibles con `KendoFilter`.
+- [ ] Unit tests cubren la traducción de `IGenericFilter` a la consulta y el manejo de permisos.
+- [ ] Integration test contra DB de pruebas valida `total` y resultados usando `VW_ORGANIZATION`.
 
-```
+## IMPLEMENTACIÓN (pasos sugeridos)
+1. Añadir/actualizar en `Helix6.Back.Services` el método público:
+	- `Task<FilterResult<OrganizationView>> GetAllKendoFilter(IGenericFilter filter, string? configurationName = null)`
+	- Internamente reusar `GetAllKendoFilter` de `BaseService` o delegar a `IBaseRepository.GetAllFilter` según conveniencia.
+2. En `Data` o `Repository` crear proyección que consulte `VW_ORGANIZATION` (Dapper o EF projection) para aportar `AppCount`/`ModuleCount` eficientemente.
+3. Registrar endpoint en `Api/Endpoints` usando `EndpointHelper` o generarlo en `HelixEntities.xml` y ejecutar `HelixGenerator` si procede.
+4. Implementar verificación de permisos con `IUserPermissions.HasPermission(entityName, SecurityLevel.Read)`.
+5. Crear unit tests en `Helix6.Back.Services.Tests` (moq repo/usercontext) para validar filtros y permisos.
+6. Crear un integration test en `Helix6.Back.Data.Tests` que consulte la vista `VW_ORGANIZATION` y verifique paginado y totals.
+
+## CONSIDERACIONES TÉCNICAS
+- Si la vista `VW_ORGANIZATION` no está disponible, coordinar con DBA para crearla o usar una consulta proyectada que calcule `AppCount`/`ModuleCount`.
+- Preferir Dapper para la proyección si la consulta es intensiva en lecturas y requiere optimización.
+- Añadir índices en columnas usadas por filtros (AuditDeletionDate, GroupId, TaxId/Name) para rendimiento.
+
+## RIESGOS
+- Cambios en el esquema de la vista `VW_ORGANIZATION` pueden romper la proyección: definir contrato claro con DBA.
+- Carga inesperada en la BD si no se aplican filtros/limit correctamente: asegurar límites/telemetría.
+
+## TESTS
+- Unit: traducción de `IGenericFilter` a consulta, respeto de permisos, comportamiento ante filtros vacíos.
+- Integration: dataset de prueba con organizaciones activas/inactivas y módulos/apps para validar `total` y `data`.
+
+## ENTREGABLES
+- Código: `OrganizationService.GetAllKendoFilter`, repository/projection Dapper/EF, endpoint registration.
+- Tests unitarios e integration.
+- Documentación breve del contrato de API para frontend (parámetros/ejemplo respuesta).
+
+=============================================================
