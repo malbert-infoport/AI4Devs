@@ -1,12 +1,12 @@
 #### US-007: Asignar organizaciones a un grupo
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
-**Rol:** ApplicationManager
+**Rol:** OrganizationManager
 **Prioridad:** Media | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como ApplicationManager,
+Como OrganizationManager,
 quiero asignar (o reasignar) una organización a un grupo específico,
 para reflejar la estructura empresarial real de holdings o consorcios en el sistema.
 ```
@@ -16,4 +16,4 @@ para reflejar la estructura empresarial real de holdings o consorcios en el sist
 - Opción "Sin grupo"
 - Publicar `OrganizationEvent` con nuevo `GroupId` al cambiar
 
-**Dependencias:** US-001, US-006
+**Dependencias:** US-001, US-002

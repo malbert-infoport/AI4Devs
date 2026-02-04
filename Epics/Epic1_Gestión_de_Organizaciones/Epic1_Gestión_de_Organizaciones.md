@@ -12,5 +12,5 @@ Permitir a la Organización Propietaria gestionar de forma centralizada y eficie
 ## Criterios de aceptación de la épica
 - Alta, edición y desactivación de organizaciones completamente funcionales
 - Agrupación de organizaciones en grupos lógicos operativa
-- Trazabilidad completa de cambios en organizaciones
+- Trazabilidad de cambios de riesgo en organizaciones
 - Sincronización automática con todas las aplicaciones satélite mediante eventos

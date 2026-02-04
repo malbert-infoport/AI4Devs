@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../Git/SintraportV4/SintraportV4.Front"
+		},
+		{
+			"path": "../../Git/CommonLibrary"
+		},
+		{
+			"path": "../../Git/IPVLibraries/IPVInterchangeShared"
+		},
+		{
+			"path": "../../Git/Helix6/Helix6Back"
+		}
+	],
+	"settings": {}
+}

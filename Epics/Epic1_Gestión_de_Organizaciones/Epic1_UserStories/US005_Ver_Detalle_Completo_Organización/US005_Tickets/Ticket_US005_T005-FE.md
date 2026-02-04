@@ -662,6 +662,6 @@ describe('OrganizationModulesComponent', () => {
 
 ## RECURSOS
 - User Story: `userStories.md#us-005`
-- User Story: `userStories.md#us-017v2`
+- User Story: `userStories.md#us-010`
 
 =============================================================

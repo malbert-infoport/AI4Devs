@@ -919,8 +919,8 @@ Backend:
 
 **RECURSOS:**
 - Arquitectura de Eventos: `ActiveMQ_Events.md` - Sección State Transfer Events
-- User Story: `userStories.md#us-001v2`
-- User Story: `userStories.md#us-017v2`
+- User Story: `userStories.md#us-009`
+- User Story: `userStories.md#us-010`
 
 =============================================================
 
