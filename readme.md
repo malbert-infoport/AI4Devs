@@ -2124,7 +2124,7 @@ erDiagram
     APPLICATION ||--o{ AUDITLOG : "genera auditoría"
     APPLICATIONMODULE ||--o{ AUDITLOG : "genera auditoría"
     
-    ORGANIZATION_GROUP {
+    ORGANIZATIONGROUP {
         int Id PK "AUTO_INCREMENT, Identificador único del grupo"
         string GroupName UK "NOT NULL, Nombre del grupo (ej: Holding Norte)"
         string Description "Descripción del grupo"
