@@ -3145,9 +3145,54 @@ await UpdateEventHashControl(entityType, entityId, currentHash, DateTime.UtcNow)
 
 ## 5. Historias de Usuario
 
-> Documenta 3 de las historias de usuario principales utilizadas durante el desarrollo, teniendo en cuenta las buenas prácticas de producto al respecto.
+#### ORG-001: Crear y editar organización cliente
 
-**Historia de Usuario 1**
+**Épica:** Gestión del Portfolio de Organizaciones Clientes
+**Rol:** OrganizationManager
+**Prioridad:** Alta | **Estimación:** 5 Story Points
+
+**Historia:**
+```
+Como OrganizationManager responsable del onboarding de clientes,
+quiero crear y editar una organización cliente completando un formulario simple con sus datos básicos (nombre, CIF, dirección, contacto),
+para gestionar su incorporación al ecosistema y mantener sus datos actualizados sin errores que afecten al acceso a las aplicaciones.
+```
+
+**Contexto adicional:**
+
+El onboarding rápido y sin errores reduce el tiempo de activación y la carga de soporte; es crítico validar datos al crear o editar una organización, asignar un `SecurityCompanyId` seguro y evitar la publicación de eventos hasta que se asignen permisos y módulos.
+
+**Criterios de aceptación:**
+
+- La organización se persiste en la base de datos y recibe un `SecurityCompanyId` generado por la secuencia PostgreSQL.
+- No se publica ningún `OrganizationEvent` al crear o editar la organización salvo cuando se asignan módulos.
+- Validaciones frontend y backend previenen datos inválidos y el backend devuelve HTTP 400 en caso de validación.
+- No se permite crear organizaciones con `CIF` duplicado.
+- La API devuelve HTTP 201/200 con la entidad organización actualizada con los identificadores nuevos asignados.
+- Se incluyen tests unitarios e integración que cubran creación, edición, validaciones y ausencia de publicación de eventos cuando no correspondan.
+
+**Requisitos no funcionales:**
+
+- Rendimiento: la operación de creación/edición debe responder en menos de 2 segundos en condiciones normales de carga.
+- Consistencia/Concurrencia: `SecurityCompanyId` se debe generar mediante secuencia PostgreSQL para evitar colisiones en entornos concurrentes.
+- Seguridad: sólo usuarios con rol `OrganizationManager` (o roles con permisos adecuados) pueden crear/editar organizaciones.
+- Fiabilidad: la operación debe ser atómica; ante fallo no debe quedar estado parcial en la base de datos.
+- Escalabilidad: el diseño debe soportar picos de altas creaciones/ediciones (batchs) sin degradar la generación de identificadores.
+- Accesibilidad: la UI del formulario debe cumplir WCAG 2.1 AA para los campos básicos.
+
+**Definición de hecho (DoD):**
+- Código implementado y revisado
+- Tests unitarios e integración
+- Validaciones de frontend y backend funcionando
+- Organización creada/actualizada sin publicar evento cuando no procede
+
+**Dependencias:** Ninguna
+
+**Notas técnicas:**
+- Usar EF Core, `SecurityCompanyId` por secuencia PostgreSQL
+- NO publicar `OrganizationEvent` al crear o editar salvo cuando se asignen módulos
+
+```
 
 **Historia de Usuario 2**
 
@@ -3157,13 +3202,3275 @@ await UpdateEventHashControl(entityType, entityId, currentHash, DateTime.UtcNow)
 
 ## 6. Tickets de Trabajo
 
-> Documenta 3 de los tickets de trabajo principales del desarrollo, uno de backend, uno de frontend, y uno de bases de datos. Da todo el detalle requerido para desarrollar la tarea de inicio a fin teniendo en cuenta las buenas prácticas al respecto. 
+# ORG001-T001-FE: Implementar formulario de creación y edición de organización con tres pestañas
 
-**Ticket 1**
+=============================================================
+**TICKET ID:** ORG001-T001-FE
+**EPIC:** Gestión del Portfolio de Organizaciones Clientes  
+**USER STORY:** ORG-001 - Crear y editar organización cliente  
+**COMPONENT:** Frontend - Angular  
+**PRIORITY:** Alta  
+**ESTIMATION:** 6 horas  
+=============================================================
 
-**Ticket 2**
+## TÍTULO
+Implementar formulario de creación y edición de organización con Angular Material Tabs y validación por pestaña
 
-**Ticket 3**
+## DESCRIPCIÓN
+Crear componente Angular para el formulario de creación/edición de organizaciones con estructura de tres pestañas según arquitectura Helix6.
+
+**Pestaña 1 - Datos de Organización:**
+- Editable por: Usuarios con permiso `Organization data modification`
+- Solo lectura para: Usuarios con permiso `Organization data query` (sin modification)
+- Campos: Name, TaxId (CIF), Address, City, PostalCode, Country, ContactEmail, ContactPhone, GroupId
+- Validaciones: Name, TaxId, ContactEmail obligatorios
+- Al guardar: **NO se publica evento OrganizationEvent**, solo se persiste en BD
+- Aparece Pestaña 2 después de guardar si el usuario tiene permiso `Organization modules query` o `Organization modules modification`
+ 
+Nota: El campo `GroupId` se mostrará como un combo desplegable. Las opciones se cargarán desde el endpoint Helix6 `OrganizationGroupClient.getAll()`.
+
+**Pestaña 2 - Módulos y Permisos de Acceso:**
+- Editable por: Usuarios con permiso `Organization modules modification`
+- Solo lectura para: Usuarios con permiso `Organization modules query` (sin modification)
+- Gestión de módulos/aplicaciones asignados mediante grid anidado con inline editing
+- **PRIMER evento OrganizationEvent se publica aquí** al asignar el primer módulo a través de la tabla `ORGANIZATION_APPLICATIONMODULE`
+- Grid master-detail: Columnas Application (ApplicationId, AppName), Módulos asignados (multiselect de ApplicationModule filtrados por ApplicationId)
+- Relación N:M gestionada mediante `ORGANIZATION_APPLICATIONMODULE` (ApplicationModuleId, OrganizationId)
+
+**Pestaña 3 - Auditoría:**
+- Solo lectura para: Usuarios con permiso `Organization data query`
+- Muestra histórico de cambios críticos desde tabla `AUDITLOG`
+- Grid readonly con columnas: Timestamp, Action, UserId (nombre usuario), CorrelationId
+- Filtrado server-side: `EntityType='Organization' AND EntityId={organizationId}`
+- Acciones auditadas (Epic1): `ModuleAssigned`, `ModuleRemoved`, `OrganizationDeactivatedManual`, `OrganizationAutoDeactivated`, `OrganizationReactivatedManual`, `GroupChanged`
+- Paginación server-side obligatoria (tabla puede contener miles de registros)
+
+**Nota sobre eventos**: Los cambios en datos básicos (pestaña 1) NO publican eventos. Solo se publican eventos `OrganizationEvent` cuando:
+- Se asigna/remueve un módulo (pestaña 2)
+- Se activa/desactiva la organización
+- Se cambia el grupo de la organización
+
+## ROLES Y PERMISOS
+
+Esta funcionalidad requiere un control granular de acceso basado en permisos. A continuación se detallan los roles típicos del sistema y los permisos necesarios para cada nivel de acceso.
+
+### Permisos Requeridos
+
+Añadir al enum `Access` en `src/app/theme/access/access.ts`:
+
+| Permiso | Valor Sugerido | Descripción | Funcionalidad |
+|---------|----------------|-------------|---------------|
+| `Organization data modification` | 200 | Modificar datos de organización | Crear/editar nombre, TaxId, dirección y datos de contacto de organizaciones en Pestaña 1 |
+| `Organization data query` | 201 | Consultar datos de organización | Ver en modo solo lectura los datos básicos de organizaciones (Pestaña 1) y acceso a Pestaña 3 (Auditoría) |
+| `Organization modules modification` | 202 | Modificar módulos de organización | Asignar/desasignar módulos y aplicaciones a organizaciones en Pestaña 2 |
+| `Organization modules query` | 203 | Consultar módulos de organización | Ver en modo solo lectura los módulos asignados a organizaciones en Pestaña 2 |
+
+### Roles y Combinaciones de Permisos
+
+| Rol | Permisos Asociados | Nivel de Acceso | Pestañas Disponibles |
+|-----|-------------------|-----------------|----------------------|
+| **Organization Administrator** | • `Organization data modification` (200)<br>• `Organization data query` (201)<br>• `Organization modules modification` (202)<br>• `Organization modules query` (203) | **Acceso completo**: Puede crear/editar organizaciones, gestionar todos los módulos asignados y consultar auditoría | Pestaña 1 (Editable)<br>Pestaña 2 (Editable)<br>Pestaña 3 (Solo lectura) |
+| **Organization Manager** | • `Organization data modification` (200)<br>• `Organization data query` (201) | **Gestión de datos**: Puede crear/editar datos básicos de organizaciones. Solo puede **visualizar** módulos asignados (no modificarlos) | Pestaña 1 (Editable)<br>Pestaña 2 (Solo lectura)<br>Pestaña 3 (Solo lectura) |
+| **Application Manager** | • `Organization modules modification` (202)<br>• `Organization modules query` (203)<br>• `Organization data query` (201) | **Gestión de módulos**: Puede asignar/modificar módulos. Solo puede **visualizar** datos básicos de organizaciones (no modificarlos) | Pestaña 1 (Solo lectura)<br>Pestaña 2 (Editable)<br>Pestaña 3 (Solo lectura) |
+| **Organization Viewer** | • `Organization data query` (201)<br>• `Organization modules query` (203) | **Solo lectura completa**: Puede ver toda la información pero no puede realizar modificaciones | Pestaña 1 (Solo lectura)<br>Pestaña 2 (Solo lectura)<br>Pestaña 3 (Solo lectura) |
+| **Data Viewer** | • `Organization data query` (201) | **Lectura limitada**: Solo puede ver datos básicos y auditoría, sin acceso a módulos | Pestaña 1 (Solo lectura)<br>Pestaña 2 (Oculta)<br>Pestaña 3 (Solo lectura) |
+
+### Matriz de Control de UI por Permiso
+
+| Elemento UI | Permiso Requerido | Estado sin Permiso | Estado con Permiso Query | Estado con Permiso Modification |
+|-------------|-------------------|--------------------|--------------------------|---------------------------------|
+| **Pestaña 1 - Formulario** | `Organization data query` | Oculto / Error | Solo lectura (campos disabled) | Editable (campos enabled) |
+| **Pestaña 1 - Botón Guardar** | `Organization data modification` | Oculto | Oculto | Visible y habilitado |
+| **Pestaña 1 - Combo Grupo** | `Organization data query` | Oculto | Solo lectura (disabled) | Editable (enabled) |
+| **Pestaña 2 - Tab** | `Organization modules query` | Oculta | Visible | Visible |
+| **Pestaña 2 - Grid Módulos** | `Organization modules query` | N/A | Solo lectura (sin inline edit) | Editable (inline edit habilitado) |
+| **Pestaña 2 - Botón Asignar Módulo** | `Organization modules modification` | Oculto | Oculto | Visible y habilitado |
+| **Pestaña 2 - Botón Remover Módulo** | `Organization modules modification` | Oculto | Oculto | Visible y habilitado |
+| **Pestaña 3 - Tab Auditoría** | `Organization data query` | Oculta | Visible (solo lectura) | Visible (solo lectura) |
+| **Pestaña 3 - Grid Auditoría** | `Organization data query` | N/A | Solo lectura (siempre) | Solo lectura (siempre) |
+
+### Flujo de Trabajo Recomendado
+
+**Caso 1: Creación completa por Organization Administrator**
+1. Usuario con permisos 200, 201, 202, 203 accede al formulario
+2. Completa Pestaña 1 (Datos de Organización) → Guarda (sin publicar evento)
+3. Automáticamente puede acceder a Pestaña 2 (Módulos)
+4. Asigna módulos mediante grid inline → Guarda → **Se publica el primer OrganizationEvent**
+5. Puede consultar Pestaña 3 (Auditoría) para ver acción `ModuleAssigned`
+
+**Caso 2: Creación colaborativa (Organization Manager + Application Manager)**
+1. Organization Manager (permisos 200, 201) crea organización en Pestaña 1 → Guarda
+2. Organization Manager puede ver Pestaña 2 pero en **solo lectura** y Pestaña 3
+3. Application Manager (permisos 201, 202, 203) accede a la organización creada
+4. Application Manager puede ver Pestaña 1 en **solo lectura**
+5. Application Manager edita Pestaña 2 y asigna módulos → Guarda → **Se publica el primer OrganizationEvent**
+6. Ambos roles pueden consultar Pestaña 3 para ver histórico de cambios
+
+**Caso 3: Consulta (Organization Viewer)**
+- Usuario con permisos 201, 203 puede navegar por las 3 pestañas
+- Todos los campos y grids están en modo **solo lectura**
+- No se muestran botones de guardar/editar/asignar/remover
+
+**Caso 4: Consulta limitada (Data Viewer)**
+- Usuario con permiso 201 solo ve Pestaña 1 y Pestaña 3 en **solo lectura**
+- Pestaña 2 está **oculta** (no tiene permiso 203)
+
+### Validación de Permisos en UI
+
+El componente debe implementar las siguientes validaciones usando `AccessService`:
+
+```typescript
+// Pseudocódigo de validación
+canViewBasicData = accessService.hasAccess(Access['Organization data query']);
+canEditBasicData = accessService.hasAccess(Access['Organization data modification']);
+canViewModules = accessService.hasAccess(Access['Organization modules query']);
+canEditModules = accessService.hasAccess(Access['Organization modules modification']);
+```
+
+**Mensajes de estado:**
+- **Sin permisos de query**: Mensaje de error "No tiene permisos para ver esta información"
+- **Solo permisos de query**: Mensaje informativo "Visualización en modo solo lectura"
+- **Con permisos de modification**: Sin mensaje (modo edición normal)
+
+**Nota importante:** Los permisos deben configurarse en backend y asociarse a usuarios/roles mediante la gestión de identidad (Keycloak). El frontend solo verifica los permisos recibidos desde la API `GetPermissions`.
+
+## BACKEND Y CONTRATO HELIX6
+
+El frontend utilizará los endpoints genéricos de Helix6 auto-generados para la entidad `Organization`. A continuación se detallan los endpoints específicos, sus configuraciones de carga y el comportamiento esperado.
+
+### Endpoints Utilizados
+
+#### 1. GetById - Cargar Organización Existente
+
+**Endpoint**: `GET /api/Organization/GetById`
+
+**Parámetros**:
+- `id` (int, required): ID de la organización
+- `configurationName` (string, required): `"OrganizationComplete"`
+- `Accept-Language` (header): Idioma del usuario (es, en, ca)
+
+**Configuración de Carga `OrganizationComplete`**:
+
+Esta configuración debe definirse en el `OrganizationRepository` del backend y carga:
+
+1. **Entidad base Organization**: Todos los campos de la tabla `ORGANIZATION`
+   - Id, SecurityCompanyId, Name, TaxId, Address, City, PostalCode, Country, ContactEmail, ContactPhone
+   - GroupId (FK), AuditCreationUser, AuditCreationDate, AuditModificationUser, AuditModificationDate, AuditDeletionDate
+
+2. **Navegación OrganizationGroup**: Carga el grupo asociado si `GroupId != null`
+   - Incluye: Id, GroupName, Description
+
+3. **Colección ApplicationModules**: Carga todos los módulos asignados mediante tabla `ORGANIZATION_APPLICATIONMODULE`
+   - Para cada registro activo (AuditDeletionDate IS NULL):
+     - ApplicationModuleId (FK)
+     - **Navegación ApplicationModule**: ModuleName, Description, DisplayOrder, ApplicationId (FK)
+       - **Navegación anidada Application**: AppName, Description, RolePrefix
+
+4. **Colección AuditLogs**: Carga histórico de auditoría filtrado
+   - Filtro: `EntityType='Organization' AND EntityId={id} AND AuditDeletionDate IS NULL`
+   - Ordenado por: Timestamp DESC
+   - Incluye: Id, Action, EntityType, EntityId, UserId, Timestamp, CorrelationId
+
+**Response esperado** (OrganizationView):
+```typescript
+{
+  id: number;
+  securityCompanyId: number;
+  name: string;
+  taxId: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  groupId?: number;
+  organizationGroup?: {
+    id: number;
+    groupName: string;
+    description?: string;
+  };
+  applicationModules?: [
+    {
+      id: number; // ORGANIZATION_APPLICATIONMODULE.Id
+      applicationModuleId: number;
+      applicationModule: {
+        id: number;
+        moduleName: string;
+        description?: string;
+        displayOrder: number;
+        applicationId: number;
+        application: {
+          id: number;
+          appName: string;
+          description?: string;
+          rolePrefix: string;
+        };
+      };
+    }
+  ];
+  auditLogs?: [
+    {
+      id: number;
+      action: string;
+      entityType: string;
+      entityId: string;
+      userId?: number;
+      timestamp: Date;
+      correlationId?: string;
+    }
+  ];
+  auditCreationDate: Date;
+  auditModificationDate?: Date;
+}
+```
+
+#### 2. GetNewEntity - Obtener Plantilla para Nueva Organización
+
+**Endpoint**: `GET /api/Organization/GetNewEntity`
+
+**Parámetros**:
+- `Accept-Language` (header): Idioma del usuario
+
+**Response esperado**: OrganizationView con valores por defecto (todos los campos null excepto colecciones vacías)
+
+**Uso**: Al abrir el formulario en modo creación para inicializar el FormGroup con valores vacíos.
+
+#### 3. Insert - Crear Nueva Organización
+
+**Endpoint**: `POST /api/Organization/Insert`
+
+**Parámetros**:
+- `configurationName` (string, required): `"OrganizationComplete"`
+- `reloadView` (bool, optional): `true` (para recibir entidad con Id generado)
+- `Accept-Language` (header): Idioma del usuario
+
+**Body**: OrganizationView completo (igual estructura que GetById response)
+
+**Comportamiento esperado según permisos del usuario**:
+
+1. **Si el usuario tiene permiso `Organization data modification` (200)**:
+   - El backend persiste los campos de la Pestaña 1 (Name, TaxId, Address, etc.)
+   - Genera automáticamente `SecurityCompanyId` (auto-increment)
+   - **NO persiste** la colección `ApplicationModules` (aunque se envíe en el payload)
+   - **NO publica** evento `OrganizationEvent`
+   - Retorna OrganizationView con Id y SecurityCompanyId generados
+
+2. **Si el usuario tiene permiso `Organization modules modification` (202)**:
+   - Si se envía la colección `ApplicationModules` en el payload:
+     - Persiste relaciones en tabla `ORGANIZATION_APPLICATIONMODULE`
+     - **Publica evento `OrganizationEvent`** con payload completo incluyendo Apps y AccessibleModules
+     - Registra acción `ModuleAssigned` en tabla `AUDITLOG` por cada módulo asignado
+
+**Validaciones backend**:
+- Name, TaxId, ContactEmail obligatorios (Helix6 FluentValidation)
+- TaxId único (excluir soft-deleted)
+- Name único (excluir soft-deleted)
+- GroupId debe existir y estar activo si se proporciona
+- ApplicationModuleId debe existir y estar activo
+
+**Response**: OrganizationView completo con configuración `OrganizationComplete`
+
+#### 4. Update - Actualizar Organización Existente
+
+**Endpoint**: `PUT /api/Organization/Update`
+
+**Parámetros**:
+- `configurationName` (string, required): `"OrganizationComplete"`
+- `reloadView` (bool, optional): `true`
+- `Accept-Language` (header): Idioma del usuario
+
+**Body**: OrganizationView completo con Id existente
+
+**Comportamiento esperado según permisos del usuario**:
+
+1. **Si el usuario tiene permiso `Organization data modification` (200)**:
+   - Actualiza campos de Pestaña 1
+   - **NO actualiza** la colección `ApplicationModules`
+   - **NO publica** evento si solo cambian datos básicos
+   - Si cambia `GroupId`: **Sí publica** evento `OrganizationEvent` y registra acción `GroupChanged` en `AUDITLOG`
+
+2. **Si el usuario tiene permiso `Organization modules modification` (202)**:
+   - Si la colección `ApplicationModules` cambia:
+     - Detecta módulos añadidos: Crea registros en `ORGANIZATION_APPLICATIONMODULE`, publica evento, registra `ModuleAssigned`
+     - Detecta módulos removidos: Marca `AuditDeletionDate` en `ORGANIZATION_APPLICATIONMODULE`, publica evento, registra `ModuleRemoved`
+     - **Publica evento `OrganizationEvent`** con estado final completo
+
+**Validaciones backend**:
+- Mismas validaciones que Insert
+- Id debe existir y no estar soft-deleted
+
+**Response**: OrganizationView actualizado con configuración `OrganizationComplete`
+
+### Endpoints Adicionales Necesarios
+
+#### 5. OrganizationGroupClient.getAll - Cargar Grupos para Combo
+
+**Endpoint**: `GET /api/OrganizationGroup/GetAll`
+
+**Parámetros**:
+- `Accept-Language` (header): Idioma del usuario
+
+**Response**: Array de OrganizationGroupView
+```typescript
+[
+  {
+    id: number;
+    groupName: string;
+    description?: string;
+  }
+]
+```
+
+**Uso**: Popular el combo desplegable de GroupId en Pestaña 1.
+
+#### 6. ApplicationClient.getAllKendoFilter - Cargar Aplicaciones para Grid Anidado
+
+**Endpoint**: `POST /api/Application/GetAllKendoFilter`
+
+**Parámetros**:
+- `configurationName` (string): `"ApplicationWithModules"`
+- `includeDeleted` (bool): `false`
+- `Accept-Language` (header): Idioma del usuario
+
+**Body**: KendoGridFilter (vacío para obtener todas)
+
+**Response**: PagingResponse con lista de ApplicationView incluyendo navegación a ApplicationModules
+
+**Uso**: Popular el grid de aplicaciones disponibles en Pestaña 2 con sus módulos asociados.
+
+#### 7. AuditLogClient.getAllKendoFilter - Cargar Auditoría
+
+**Endpoint**: `POST /api/AuditLog/GetAllKendoFilter`
+
+**Parámetros**:
+- `configurationName` (string): `""` (sin navegaciones, tabla plana)
+- `includeDeleted` (bool): `false`
+- `Accept-Language` (header): Idioma del usuario
+
+**Body**: KendoGridFilter con filtro server-side
+```typescript
+{
+  data: {
+    filter: {
+      logic: 'and',
+      filters: [
+        { field: 'entityType', operator: 'eq', value: 'Organization' },
+        { field: 'entityId', operator: 'eq', value: organizationId.toString() }
+      ]
+    },
+    sort: [{ field: 'timestamp', dir: 'desc' }],
+    skip: 0,
+    take: 20
+  }
+}
+```
+
+**Response**: PagingResponse con lista de AuditLogView y count total
+
+**Uso**: Popular el grid de auditoría en Pestaña 3 con paginación server-side.
+
+### Gestión de Permisos en Backend
+
+El backend **debe** validar permisos usando `IUserContext` y `IUserPermissions` (provistos por Helix6):
+
+1. **En OrganizationService.ValidateView()**: Verificar que el usuario tiene permiso para la operación solicitada
+2. **En OrganizationService.PreviousActions()**: Filtrar qué partes del payload se procesarán según permisos
+3. **En OrganizationService.PostActions()**: Decidir si publicar evento según cambios realizados
+
+**Ejemplo de lógica backend** (pseudocódigo):
+```csharp
+// En Insert/Update
+if (userHasPermission("Organization modules modification") && moduleCollectionChanged)
+{
+    // Persistir cambios en ORGANIZATION_APPLICATIONMODULE
+    // Publicar OrganizationEvent
+    // Registrar en AUDITLOG
+}
+else if (moduleCollectionChanged && !userHasPermission("Organization modules modification"))
+{
+    // Ignorar cambios en módulos (no error, solo ignorar)
+}
+```
+
+### Notas Importantes
+
+1. **Arquitectura Event-Driven**: El backend es responsable de publicar eventos `OrganizationEvent` a ActiveMQ Artemis. El frontend **no debe** preocuparse por esto.
+
+2. **Configuraciones de Carga**: El nombre `OrganizationComplete` debe estar documentado en el ticket backend (Ticket_ORG001_T002-BE) y definido en `OrganizationRepository.cs`.
+
+3. **Auditoría Dual**:
+   - **Helix6 Base Audit**: Todos los cambios se registran automáticamente en campos `Audit*` de la entidad
+   - **AUDITLOG selectivo**: Solo 6 acciones críticas se registran explícitamente (ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged)
+
+4. **Soft Delete**: Todas las entidades usan `AuditDeletionDate` para soft delete. El frontend debe filtrar registros con `AuditDeletionDate != null`.
+
+## GUÍA DE IMPLEMENTACIÓN CON HELIX6
+
+Esta sección describe los pasos ordenados para implementar el formulario de organización siguiendo los patrones de arquitectura Helix6 y CommonLibrary. **No incluye código**, solo la secuencia de acciones.
+
+### Paso 0: Definir Permisos en Access Enum
+
+1. Abrir archivo `src/app/theme/access/access.ts`
+2. Añadir 4 nuevos permisos al enum `Access` con valores numéricos sugeridos 200-203:
+   - `'Organization data modification' = 200`
+   - `'Organization data query' = 201`
+   - `'Organization modules modification' = 202`
+   - `'Organization modules query' = 203`
+3. Guardar archivo
+
+### Paso 1: Crear Estructura de Componentes
+
+1. Crear carpeta `src/app/modules/organizations/components/organization-form/`
+2. Crear componente standalone `organization-form.component.ts` con decorador `@Component`:
+   - Selector: `app-organization-form`
+   - Imports: CommonModule, ReactiveFormsModule, TranslateModule, MatTabsModule, ClInputComponent, ClComboBoxComponent, ClGridComponent, ClButtonComponent
+   - Providers: OrganizationClient, OrganizationGroupClient, ApplicationClient, AuditLogClient (NSwag clients)
+3. Crear archivos complementarios:
+   - `organization-form.component.html`
+   - `organization-form.component.scss`
+   - `organization-form.component.spec.ts`
+
+### Paso 2: Implementar Inyección de Dependencias y Propiedades
+
+1. Usar función `inject()` para inyectar servicios como propiedades readonly:
+   - `private readonly organizationClient = inject(OrganizationClient)`
+   - `private readonly organizationGroupClient = inject(OrganizationGroupClient)`
+   - `private readonly applicationClient = inject(ApplicationClient)`
+   - `private readonly auditLogClient = inject(AuditLogClient)`
+   - `private readonly fb = inject(FormBuilder)`
+   - `private readonly accessService = inject(AccessService)`
+   - `private readonly translate = inject(TranslateService)`
+   - `private readonly sharedMessageService = inject(SharedMessageService)`
+   - `private readonly kendoFiltersService = inject(KendoFiltersService)`
+2. Declarar propiedades del componente:
+   - `@Input() organizationId: number = 0` (0 = creación, >0 = edición)
+   - `organizationForm: FormGroup` (formulario reactivo para Pestaña 1)
+   - `canViewBasicData: boolean`, `canEditBasicData: boolean`
+   - `canViewModules: boolean`, `canEditModules: boolean`
+   - `organizationGroups: IOrganizationGroupView[]` (datos para combo)
+   - `modulesGridData: GridDataResult` (datos para grid de módulos en Pestaña 2)
+   - `auditGridData: GridDataResult` (datos para grid de auditoría en Pestaña 3)
+   - `selectedTabIndex: number = 0` (índice de pestaña activa)
+
+### Paso 3: Inicializar Permisos en ngOnInit
+
+1. En el método `ngOnInit()`:
+   - Llamar a `AccessService.hasAccess()` para cada uno de los 4 permisos
+   - Asignar resultados a propiedades booleanas del componente
+   - Si `!canViewBasicData`: Mostrar mensaje de error y retornar early
+2. Cargar datos iniciales:
+   - Si `organizationId > 0`: Llamar a `organizationClient.getById(organizationId, 'OrganizationComplete')`
+   - Si `organizationId === 0`: Llamar a `organizationClient.getNewEntity()`
+3. Llamar a `organizationGroupClient.getAll()` para popular combo de grupos
+4. Inicializar FormGroup con `FormBuilder.group()`:
+   - Definir FormControl para cada campo (name, taxId, address, city, postalCode, country, contactEmail, contactPhone, groupId)
+   - Añadir Validators: `Validators.required` para name, taxId, contactEmail
+   - Añadir validador custom para taxId (regex CIF español si aplica)
+5. Si `!canEditBasicData`: Llamar a `organizationForm.disable()` para modo solo lectura
+
+### Paso 4: Implementar Template HTML con Material Tabs
+
+1. Crear estructura de pestañas usando `<mat-tab-group>`:
+   - Binding: `[(selectedIndex)]="selectedTabIndex"`
+2. **Pestaña 1 - Datos de Organización**:
+   - Usar directiva `*ngIf="canViewBasicData"` para mostrar/ocultar
+   - Crear formulario con `[formGroup]="organizationForm"`
+   - Campos usando componentes CommonLibrary:
+     - `<cl-input>` para: name, taxId, address, city, postalCode, country, contactEmail, contactPhone
+     - `<cl-combo-box>` para: groupId (binding a `organizationGroups`, textField="groupName", valueField="id")
+   - Cada campo con:
+     - `[label]` usando pipe translate: `{{ 'ORGANIZATIONS.NAME' | translate }}`
+     - `[formControlName]` apuntando al control del FormGroup
+     - `[disabled]` binding a `!canEditBasicData`
+   - Botón "Guardar" al final:
+     - `*ngIf="canEditBasicData"`
+     - `[disabled]="organizationForm.invalid"`
+     - `(click)="onSaveBasicData()"`
+3. **Pestaña 2 - Módulos y Permisos**:
+   - Usar directiva `*ngIf="canViewModules"` para mostrar/ocultar
+   - Mensaje si organización no está guardada: `*ngIf="organizationId === 0"` → "Debe guardar la organización antes de asignar módulos"
+   - Si `organizationId > 0`: Renderizar `<cl-grid>` con:
+     - `[config]="modulesGridConfig"` (ClGridConfig con definición de columnas)
+     - `[data]="modulesGridData"`
+     - `[loading]="loadingModules"`
+     - `(changesSaved)="onModulesSaved($event)"` (para inline editing)
+   - Configurar ClGridConfig:
+     - Columnas: Application (texto), Módulos asignados (multiselect editable si `canEditModules`)
+     - `edition.mode = 'row'` si `canEditModules`, sino sin edición
+     - Endpoints para inline save apuntando a `Organization.Update` con payload completo
+4. **Pestaña 3 - Auditoría**:
+   - Usar directiva `*ngIf="canViewBasicData"` (cualquiera con acceso a datos puede ver auditoría)
+   - Mensaje si organización no está guardada: `*ngIf="organizationId === 0"` → "La auditoría estará disponible después de guardar"
+   - Si `organizationId > 0`: Renderizar `<cl-grid>` con:
+     - `[config]="auditGridConfig"` (ClGridConfig en modo solo lectura)
+     - `[data]="auditGridData"`
+     - `(dataStateChange)="onAuditStateChange($event)"` (paginación server-side)
+   - Configurar ClGridConfig:
+     - Columnas: Timestamp (fecha formateada), Action (traducida), UserId (nombre usuario), CorrelationId
+     - `sortable.mode = 'single'`, sort inicial por timestamp DESC
+     - `pageable` con pageSizes [10, 20, 50]
+     - Sin edición (grid readonly)
+
+### Paso 5: Implementar Métodos de Guardado
+
+1. **Método `onSaveBasicData()`**:
+   - Validar formulario: `if (!organizationForm.valid) return;`
+   - Obtener datos con `organizationForm.getRawValue()` (incluye campos disabled)
+   - Si `organizationId === 0`:
+     - Llamar a `organizationClient.insert(payload, 'OrganizationComplete', true)`
+     - En respuesta: Asignar `organizationId = response.id`
+     - Mostrar toast de éxito con `sharedMessageService.showSuccess()`
+     - Si `canViewModules`: Cambiar a Pestaña 2 con `selectedTabIndex = 1`
+   - Si `organizationId > 0`:
+     - Llamar a `organizationClient.update(payload, 'OrganizationComplete', true)`
+     - En respuesta: Actualizar FormGroup con datos frescos
+     - Mostrar toast de éxito
+2. **Método `onModulesSaved(event)`**:
+   - Recibir evento desde grid anidado con cambios en módulos
+   - Construir payload completo de OrganizationView incluyendo colección `applicationModules` modificada
+   - Llamar a `organizationClient.update(payload, 'OrganizationComplete', true)`
+   - En respuesta: Recargar grid de módulos con datos frescos
+   - Mostrar toast indicando que se publicó evento (si aplica)
+   - Recargar Pestaña 3 (auditoría) para mostrar nueva acción `ModuleAssigned` o `ModuleRemoved`
+
+### Paso 6: Implementar Carga de Grid de Auditoría con Paginación Server-Side
+
+1. **Método `loadAuditLog(state?: State)`**:
+   - Construir objeto KendoGridFilter con filtros:
+     - `entityType = 'Organization'`
+     - `entityId = organizationId.toString()`
+   - Si `state` contiene paginación/ordenación: Incluir en el filter
+   - Llamar a `auditLogClient.getAllKendoFilter(filter, '', false)`
+   - En respuesta: Asignar a `auditGridData = { data: response.list, total: response.count }`
+2. **Método `onAuditStateChange(state: State)`**:
+   - Llamar a `loadAuditLog(state)` para recargar con nueva página/ordenación
+
+### Paso 7: Implementar Carga de Grid de Módulos
+
+1. **Método `loadModulesGrid()`**:
+   - Si la respuesta de `getById` ya incluye `applicationModules` (configuración `OrganizationComplete`):
+     - Transformar datos para el grid:
+       - Agrupar por Application
+       - Para cada aplicación, mostrar array de módulos asignados
+     - Asignar a `modulesGridData`
+   - Configurar ClGridConfig para inline editing:
+     - Columna Application (readonly, texto)
+     - Columna Módulos (multiselect editable con lista de módulos disponibles filtrados por ApplicationId)
+     - Definir endpoints de edición inline apuntando a método `onModulesSaved`
+
+### Paso 8: Configurar ClGridConfig para Cada Grid
+
+1. **Para grid de módulos (Pestaña 2)**:
+   - Crear instancia de `ClGridConfig` con:
+     - `idGrid: 'organizationModulesGrid'`
+     - `columns`: Array de ClGridColumn
+       - Columna 1: field='application.appName', title traducido, editor=null (readonly)
+       - Columna 2: field='modules', title traducido, editor={ type: 'custom', customTemplate: multiselect de módulos }
+     - `edition`: ClGridEdition con mode='row' si `canEditModules`, allowAdding/allowDeleting según permisos
+     - `filterable`, `sortable`, `pageable` según necesidad
+2. **Para grid de auditoría (Pestaña 3)**:
+   - Crear instancia de `ClGridConfig` con:
+     - `idGrid: 'organizationAuditGrid'`
+     - `columns`: Array de ClGridColumn
+       - Timestamp (fecha formateada), Action (traducida), UserId, CorrelationId
+     - `sortable.mode = 'single'`, sort inicial timestamp DESC
+     - `pageable` con server-side paging
+     - Sin edición (readonly)
+
+### Paso 9: Añadir Traducciones
+
+1. Abrir archivos de traducción en `src/assets/i18n/`:
+   - `es.json`
+   - `en.json`
+   - `ca.json`
+2. Añadir claves para el módulo de organizaciones:
+   - Estructura sugerida: `ORGANIZATIONS.TITLE`, `ORGANIZATIONS.NAME`, `ORGANIZATIONS.TAXID`, etc.
+   - Traducciones para pestañas: `ORGANIZATIONS.TABS.BASIC_DATA`, `ORGANIZATIONS.TABS.MODULES`, `ORGANIZATIONS.TABS.AUDIT`
+   - Traducciones para acciones de auditoría: `AUDIT.ACTIONS.MODULE_ASSIGNED`, `AUDIT.ACTIONS.MODULE_REMOVED`, etc.
+   - Mensajes de validación y confirmación
+3. Usar pipe `translate` en todos los textos del template: `{{ 'ORGANIZATIONS.NAME' | translate }}`
+
+### Paso 10: Configurar Routing
+
+1. Abrir archivo de rutas del módulo organizations (ej: `organizations.routes.ts`)
+2. Añadir ruta para el formulario de organización:
+   - Path: `'organizations/:id/edit'` (id = 0 para creación)
+   - Component: OrganizationFormComponent
+   - Metadata: título traducido, permisos requeridos usando guard
+3. Si existe componente de listado (organization-list), añadir navegación al formulario al hacer clic en editar/crear
+
+### Paso 11: Implementar Validaciones Custom
+
+1. **Validador de TaxId** (CIF español):
+   - Crear función validadora que verifique formato con regex
+   - Añadir al FormControl de taxId: `Validators.pattern(/^[A-Z]\d{8}$/)`
+2. **Validación de unicidad** (opcional, backend ya valida):
+   - Implementar AsyncValidator que llame a endpoint de verificación
+   - Añadir al FormControl de name y taxId
+
+### Paso 12: Implementar Tests Unitarios
+
+1. Crear archivo `organization-form.component.spec.ts`
+2. Configurar TestBed con:
+   - MockProviders para todos los clients (OrganizationClient, etc.)
+   - MockProviders para AccessService (retornar permisos mockeados)
+   - Imports necesarios (ReactiveFormsModule, TranslateModule.forRoot(), etc.)
+3. Escribir tests para:
+   - **Inicialización**: Verificar que permisos se verifican correctamente
+   - **Carga de datos**: Mockear respuesta de `getById` y verificar que FormGroup se populate
+   - **Validaciones**: Verificar que campos requeridos muestran error
+   - **Guardado**: Mockear `insert`/`update` y verificar que se llama con payload correcto
+   - **Permisos**: Verificar que botones/campos se deshabilitan según permisos
+   - **Navegación entre pestañas**: Verificar que pestaña 2 solo aparece después de guardar
+4. Objetivo: Cobertura > 80%
+
+### Paso 13: Implementar Tests End-to-End
+
+1. Crear archivo `organization-form.e2e.spec.ts` (si el proyecto usa Cypress/Playwright)
+2. Escribir tests para flujos completos:
+   - **Flujo de creación completa** (Organization Administrator):
+     - Login como admin
+     - Navegar a formulario de creación
+     - Completar Pestaña 1, guardar
+     - Verificar que aparece Pestaña 2
+     - Asignar módulos, guardar
+     - Verificar que aparece acción en Pestaña 3
+   - **Flujo de edición colaborativa**:
+     - Login como Organization Manager
+     - Crear organización (solo Pestaña 1)
+     - Logout, login como Application Manager
+     - Editar organización, asignar módulos
+     - Verificar evento publicado
+   - **Flujo de solo lectura** (Organization Viewer):
+     - Login como viewer
+     - Verificar que todos los campos están disabled
+     - Verificar que no aparecen botones de guardar
+
+### Paso 14: Añadir Estilos SCSS
+
+1. Abrir archivo `organization-form.component.scss`
+2. Añadir estilos para:
+   - Layout responsive usando grid Bootstrap (row/col)
+   - Espaciado entre campos de formulario
+   - Estilos para pestañas Material (personalización si necesaria)
+   - Estilos para grids (altura fija, scrollbar, etc.)
+   - Estilos para mensajes de estado (solo lectura, sin permisos)
+3. Usar variables de tema definidas en `src/styles.scss` para consistencia
+
+### Paso 15: Añadir Accesibilidad
+
+1. Añadir atributos ARIA a elementos interactivos:
+   - `aria-label` en botones sin texto
+   - `aria-required="true"` en campos obligatorios
+   - `role="tabpanel"` en contenido de pestañas
+2. Verificar navegación por teclado:
+   - Tab para moverse entre campos
+   - Enter para guardar formulario
+   - Flechas para cambiar pestañas
+3. Añadir mensajes de error accesibles usando `aria-describedby`
+
+### Paso 16: Code Review y Ajustes
+
+1. Ejecutar linter: `npm run lint` y corregir errores
+2. Ejecutar tests: `npm test` y verificar que todos pasan
+3. Verificar que no hay console.log olvidados
+4. Revisar que todos los textos usan traducciones (no hardcoded)
+5. Verificar que imports solo incluyen lo necesario (tree-shaking)
+6. Solicitar code review al equipo
+
+## CONTEXTO TÉCNICO
+
+- **Framework**: Angular 20.1.6 con Standalone Components
+- **UI Components**: 
+  - Angular Material Tabs para navegación entre pestañas
+  - CommonLibrary (@cl/common-library) para formularios y grids:
+    - `cl-input` para campos de texto
+    - `cl-combo-box` para selección de grupo
+    - `cl-grid` para grids de módulos y auditoría
+    - `cl-modal-service` si se usa en contexto de modal
+- **Validación**: Reactive Forms con validadores custom (TaxId pattern)
+- **Estado**: Signals de Angular (opcional) o propiedades tradicionales para gestionar estado de pestañas
+- **Permisos**: AccessService para verificar permisos del usuario (valores numéricos 200-203)
+- **Routing**: Navegación con parámetros de ruta `:id` (0 para creación, >0 para edición)
+- **Backend Integration**: NSwag clients auto-generados desde Swagger del backend Helix6
+- **Traducciones**: ngx-translate con archivos JSON (es, en, ca)
+
+## CRITERIOS DE ACEPTACIÓN TÉCNICOS
+
+- [ ] 4 permisos añadidos al enum Access con valores 200-203
+- [ ] Componente OrganizationFormComponent creado como standalone con 3 pestañas Material
+- [ ] Pestaña 1 implementada con todos los campos usando componentes cl-input y cl-combo-box
+- [ ] Validaciones reactivas implementadas (Name, TaxId, ContactEmail obligatorios)
+- [ ] TaxId validado con regex pattern español (formato CIF)
+- [ ] Combo de grupos carga datos desde OrganizationGroupClient.getAll()
+- [ ] Pestaña 2 implementada con grid cl-grid de módulos con inline editing
+- [ ] Grid de módulos agrupa por Application y muestra multiselect de módulos asignados
+- [ ] Pestaña 3 implementada con grid readonly de auditoría con paginación server-side
+- [ ] Grid de auditoría filtra por EntityType='Organization' y EntityId={id}
+- [ ] AccessService implementado para verificar 4 permisos por pestaña
+- [ ] Campos habilitados/deshabilitados según permisos del usuario
+- [ ] Pestaña 2 solo visible después de guardar organización y si usuario tiene permiso 203
+- [ ] Pestaña 3 visible solo si usuario tiene permiso 201
+- [ ] Integración con NSwag clients: OrganizationClient.getById/insert/update con configuración "OrganizationComplete"
+- [ ] Uso de getRawValue() para obtener datos del formulario (incluyendo disabled)
+- [ ] Navegación automática a Pestaña 2 después de crear (si tiene permiso 202 o 203)
+- [ ] Mensajes de permisos diferenciados (solo lectura vs sin acceso)
+- [ ] Todas las etiquetas y mensajes usando TranslateModule (pipe translate)
+- [ ] Traducciones añadidas en es.json, en.json, ca.json
+- [ ] Notificaciones toast usando SharedMessageService con mensajes traducidos
+- [ ] Estilos responsive usando clases Bootstrap grid
+- [ ] Providers declarados en el componente (OrganizationClient, OrganizationGroupClient, ApplicationClient, AuditLogClient)
+- [ ] Inyección de dependencias usando inject() con readonly
+- [ ] Tests unitarios con cobertura > 80%
+- [ ] Tests verifican navegación automática a módulos
+- [ ] Tests verifican permisos usando métodos de AccessService
+- [ ] Tests verifican carga de grupos de organizaciones
+- [ ] Tests verifican guardado sin publicar evento en Pestaña 1
+- [ ] Tests verifican publicación de evento al asignar módulos en Pestaña 2
+- [ ] Tests verifican que grid de auditoría se recarga después de asignar módulos
+- [ ] Tests E2E del flujo completo de creación (3 pestañas)
+- [ ] Code review aprobado
+- [ ] Accesibilidad verificada (aria labels, navegación por teclado)
+
+## DEPENDENCIAS
+
+Este ticket frontend tiene las siguientes dependencias técnicas y funcionales:
+
+### Tickets Backend/Base de Datos (Bloqueantes)
+
+- **Ticket_ORG001_T002-BE**: Implementación del servicio backend OrganizationService con:
+  - Endpoint `GetById` con configuración de carga `OrganizationComplete` que incluye:
+    - Navegación a OrganizationGroup
+    - Colección ApplicationModules con navegación a ApplicationModule y Application
+    - Colección AuditLogs filtrada por EntityType y EntityId
+  - Endpoints `Insert` y `Update` con lógica de permisos:
+    - Persistencia selectiva según permisos del usuario
+    - Publicación de evento OrganizationEvent solo cuando corresponde (asignación de módulos, cambio de grupo)
+    - Registro de acciones críticas en tabla AUDITLOG
+  - Validaciones de negocio (Name, TaxId únicos, GroupId válido)
+  
+- **Ticket_ORG001_T003-DB**: Creación de estructura de base de datos con:
+  - Tabla ORGANIZATION (15 campos incluyendo SecurityCompanyId, GroupId, audit fields)
+  - Tabla ORGANIZATIONGROUP (8 campos)
+  - Tabla APPLICATION (9 campos incluyendo RolePrefix)
+  - Tabla APPLICATIONMODULE (9 campos con FK a Application)
+  - Tabla ORGANIZATION_APPLICATIONMODULE (relación N:M con 8 campos)
+  - Tabla AUDITLOG (10 campos para registro de 6 acciones críticas)
+  - Índices, constraints y foreign keys según diseño
+  - Vista VW_ORGANIZATION (opcional para consultas optimizadas)
+
+### Bibliotecas y Dependencias de Frontend
+
+- **@cl/common-library** (versión 2.8.0+): Instalada y configurada con:
+  - ClGridComponent para grids de módulos y auditoría
+  - ClInputComponent, ClComboBoxComponent para formularios
+  - ClModalService (si se usa en contexto modal)
+  - ClButtonComponent para acciones
+  
+- **@angular/material** (versión 20.x): Instalado con:
+  - MatTabsModule para navegación entre pestañas
+  - MatButtonModule, MatIconModule para UI
+  
+- **NSwag TypeScript Clients**: Generados desde Swagger del backend con:
+  - OrganizationClient con métodos: getById, getNewEntity, insert, update
+  - OrganizationGroupClient con método: getAll
+  - ApplicationClient con método: getAllKendoFilter (configuración "ApplicationWithModules")
+  - AuditLogClient con método: getAllKendoFilter
+  - Ubicación: `src/webServicesReferences/api/apiClients.ts`
+
+### Servicios Core de Frontend
+
+- **AccessService** (`src/app/theme/access/access.service.ts`): Configurado con métodos para verificar permisos:
+  - `hasAccess(Access['Organization data modification'])` → boolean
+  - `hasAccess(Access['Organization data query'])` → boolean
+  - `hasAccess(Access['Organization modules modification'])` → boolean
+  - `hasAccess(Access['Organization modules query'])` → boolean
+
+- **TranslateModule** (ngx-translate): Configurado en app.config.ts con:
+  - HttpLoaderFactory apuntando a `./assets/i18n/`
+  - Idiomas soportados: es, en, ca
+  - Default language configurado
+
+- **SharedMessageService**: Disponible para mostrar notificaciones toast:
+  - `showSuccess(message: string)`
+  - `showError(message: string)`
+  - `showWarning(message: string)`
+
+### Configuración de Entorno
+
+- **Keycloak/Identity Management**: Configurado con:
+  - Permisos 200-203 definidos en el sistema
+  - Roles asociados a permisos (Organization Administrator, Organization Manager, etc.)
+  - Endpoint GetPermissions devolviendo permisos correctos para organizaciones
+  - Claims en JWT token incluyendo permisos del usuario
+
+- **Bootstrap Grid**: Disponible en estilos globales para layout responsive (row/col classes)
+
+### Datos de Prueba (Opcional pero Recomendado)
+
+- Grupos de organizaciones de ejemplo en tabla ORGANIZATIONGROUP
+- Aplicaciones de ejemplo en tabla APPLICATION con módulos asociados
+- Usuarios de prueba con diferentes combinaciones de permisos (roles del sistema)
+
+### Orden de Implementación Recomendado
+
+1. **Primero**: Ticket_ORG001_T003-DB (estructura de datos)
+2. **Segundo**: Ticket_ORG001_T002-BE (lógica de negocio y endpoints)
+3. **Tercero**: Generación de NSwag clients (comando `npm run generate-clients` o similar)
+4. **Cuarto**: Este ticket (Ticket_ORG001_T001-FE)
+
+### Verificación de Dependencias Antes de Empezar
+
+Ejecutar checklist de dependencias:
+- [ ] Tablas de BD creadas y migradas
+- [ ] Backend desplegado y endpoints /api/Organization/* disponibles en Swagger
+- [ ] NSwag clients regenerados con última versión de Swagger
+- [ ] CommonLibrary instalada (`npm list @cl/common-library`)
+- [ ] Angular Material instalada (`npm list @angular/material`)
+- [ ] Archivos de traducción base creados (es.json, en.json, ca.json)
+- [ ] AccessService implementado con método `hasAccess()`
+- [ ] Keycloak configurado con permisos 200-203
+- [ ] Usuario de prueba con rol Organization Administrator disponible para testing
+
+## RECURSOS
+
+- **Angular Material Tabs**: [Documentation](https://material.angular.io/components/tabs/overview)
+- **Angular Reactive Forms**: [Documentation](https://angular.io/guide/reactive-forms)
+- **CommonLibrary ClGrid**: Ver Helix6_Frontend_Architecture.md - Sección 6
+- **CommonLibrary ClFormFields**: Ver Helix6_Frontend_Architecture.md - Sección 8
+- **NSwag Integration**: Ver Helix6_Frontend_Architecture.md - Sección 9
+- **Testing Patterns**: Ver Helix6_Frontend_Architecture.md - Sección 13
+- **User Story**: Epic1_UserStories/ORG001_Gestion_Organizacion/ORG001_Gestion_Organizacion.md
+- **Backend Architecture**: Helix6_Backend_Architecture.md
+- **Product Documentation**: readme.md (secciones 3.2.1 ORGANIZATION, 3.2.2 ORGANIZATIONGROUP, 3.2.4 AUDITLOG)
+- **Event Schema**: readme.md - Sección 1.3.1 (OrganizationEvent structure)
+
+=============================================================
+
+# TASK-002-BE: Implementar entidad Organization con CRUD completo en Helix6
+
+=============================================================
+**TICKET ID:** TASK-002-BE  
+**EPIC:** Gestión del Portfolio de Organizaciones Clientes  
+**USER STORY:** ORG-001 - Crear y editar organización cliente  
+**COMPONENT:** Backend - Helix6 Framework  
+**PRIORITY:** Alta  
+**ESTIMATION:** 8 horas  
+=============================================================
+
+## TÍTULO
+Implementar entidad Organization con CRUD completo y control de permisos granular en Helix6
+
+## DESCRIPCIÓN
+
+Crear la infraestructura backend completa para gestionar Organizaciones Clientes siguiendo el patrón Helix6 Framework (.NET 8) con arquitectura en capas (Api → Services → Data → DataModel) y control de permisos granular.
+
+**Entidad Organization** (tabla `ORGANIZATION`):
+- **DataModel**: Clase POCO que mapea a tabla de BD con 15 campos (Id, SecurityCompanyId, Name, TaxId, Address, City, PostalCode, Country, ContactEmail, ContactPhone, GroupId + 5 campos audit)
+- **Repository**: Implementación de `OrganizationRepository` heredando de `BaseRepository<Organization>` con configuraciones de carga personalizadas
+- **Service**: Implementación de `OrganizationService` heredando de `BaseService<OrganizationView, Organization, OrganizationViewMetadata>` con validaciones y hooks personalizados
+- **View**: DTO auto-generado `OrganizationView` con metadata personalizado para validaciones
+
+**Configuraciones de Carga**:
+1. **OrganizationBasic**: Solo entidad base sin navegaciones (rápida)
+2. **OrganizationComplete**: Incluye navegación a OrganizationGroup, colección ApplicationModules (con navegación a ApplicationModule y Application), y colección AuditLogs
+
+**Comportamiento según Permisos**:
+- **Organization data modification (permiso 200)**: Puede crear/editar datos básicos (Name, TaxId, Address, etc.) en Pestaña 1
+- **Organization modules modification (permiso 202)**: Puede asignar/remover módulos en Pestaña 2, lo cual publica evento OrganizationEvent
+
+**Publicación de Eventos**:
+- **NO se publica evento** al guardar datos básicos (Insert/Update de campos Name, TaxId, Address, etc.)
+- **SÍ se publica evento `OrganizationEvent`** cuando:
+  - Se asigna el primer módulo a la organización (relación en `ORGANIZATION_APPLICATIONMODULE`)
+  - Se remueve un módulo
+  - Se cambia el `GroupId` de la organización
+  - Se activa/desactiva la organización (cambio en `AuditDeletionDate`)
+
+**Auditoría Selectiva**:
+- Helix6 proporciona auditoría automática en campos `Audit*` de la entidad (todos los cambios)
+- Adicionalmente, se registran 6 acciones críticas en tabla `AUDITLOG`:
+  - `ModuleAssigned`: Al asignar módulo en tabla `ORGANIZATION_APPLICATIONMODULE`
+  - `ModuleRemoved`: Al remover módulo (soft delete con `AuditDeletionDate`)
+  - `OrganizationDeactivatedManual`: Al desactivar organización manualmente
+  - `OrganizationAutoDeactivated`: Al desactivar organización por regla automática
+  - `OrganizationReactivatedManual`: Al reactivar organización (AuditDeletionDate = null)
+  - `GroupChanged`: Al cambiar `GroupId`
+
+**Relaciones**:
+- N:1 con `ORGANIZATIONGROUP` (navegación `OrganizationGroup`)
+- N:M con `APPLICATIONMODULE` a través de `ORGANIZATION_APPLICATIONMODULE` (colección `ApplicationModules`)
+- 1:N con `AUDITLOG` (colección `AuditLogs` filtrada por EntityType='Organization' y EntityId)
+
+**Validaciones de Negocio**:
+- Name: Requerido, único (excluyendo soft-deleted), máximo 200 caracteres
+- TaxId: Requerido, único (excluyendo soft-deleted), máximo 50 caracteres, formato CIF español
+- ContactEmail: Requerido si se proporciona, formato email válido
+- GroupId: Debe existir en tabla `ORGANIZATIONGROUP` y estar activo (AuditDeletionDate IS NULL) si se proporciona
+
+**Generación Automática de Identificadores**:
+- `Id`: Auto-increment, PK técnica gestionada por Helix6
+- `SecurityCompanyId`: Auto-increment, UK de negocio usado en claim `c_ids` del JWT, inmutable después de creación
+
+## ROLES Y PERMISOS
+
+El backend debe implementar control de permisos granular utilizando las interfaces `IUserContext` y `IUserPermissions` proporcionadas por Helix6.
+
+### Permisos del Sistema
+
+Los permisos se gestionan en Keycloak y se reciben en el JWT del usuario. El servicio debe verificarlos antes de ejecutar operaciones.
+
+| Permiso | Código/Valor | Descripción | Operaciones Permitidas |
+|---------|--------------|-------------|------------------------|
+| `Organization data modification` | 200 | Modificar datos básicos de organización | Insert/Update de campos: Name, TaxId, Address, City, PostalCode, Country, ContactEmail, ContactPhone, GroupId |
+| `Organization data query` | 201 | Consultar datos de organización | GetById, GetAll, GetAllKendoFilter con configuración completa |
+| `Organization modules modification` | 202 | Modificar módulos asignados | Insert/Update de colección ApplicationModules, crear/eliminar registros en ORGANIZATION_APPLICATIONMODULE |
+| `Organization modules query` | 203 | Consultar módulos asignados | GetById/GetAll con configuración que incluye ApplicationModules |
+
+### Matriz de Operaciones por Permiso
+
+| Operación | Permiso Mínimo Requerido | Comportamiento según Permisos |
+|-----------|--------------------------|-------------------------------|
+| **GetById** | `Organization data query` (201) | Con 201: Retorna datos básicos + grupo. Con 203 adicional: Incluye ApplicationModules. Configuración "OrganizationComplete" requiere 201+203. |
+| **GetNewEntity** | `Organization data modification` (200) | Retorna plantilla con valores por defecto para creación |
+| **Insert** | `Organization data modification` (200) | Con 200 solo: Persiste datos básicos, ignora ApplicationModules del payload.<br>Con 200+202: Persiste datos básicos Y ApplicationModules, publica evento si se asignan módulos. |
+| **Update** | `Organization data modification` (200) o `Organization modules modification` (202) | Con 200 solo: Actualiza datos básicos, ignora cambios en ApplicationModules.<br>Con 202 solo: Actualiza ApplicationModules, ignora datos básicos.<br>Con 200+202: Actualiza ambos. Publica evento solo si cambian módulos o GroupId. |
+| **DeleteById** | `Organization data modification` (200) | Soft delete: Establece AuditDeletionDate, publica evento, registra acción en AUDITLOG |
+| **GetAllKendoFilter** | `Organization data query` (201) | Retorna lista paginada según filtros. Configuración determina navegaciones cargadas. |
+
+### Lógica de Validación de Permisos en Servicio
+
+El `OrganizationService` debe implementar validación de permisos en los siguientes hooks de Helix6:
+
+#### En ValidateView()
+
+```csharp
+public override async Task ValidateView(
+    HelixValidationProblem validations,
+    OrganizationView? view,
+    EnumActionType actionType,
+    string? configurationName = null)
+{
+    if (view == null) return;
+    
+    // Verificar permiso para datos básicos
+    if (actionType == EnumActionType.Insert || actionType == EnumActionType.Update)
+    {
+        var hasDataModification = await _userPermissions.HasPermission("Organization", SecurityLevel.Modification);
+        if (!hasDataModification)
+        {
+            validations.AddError("No tiene permisos para modificar datos de organizaciones");
+        }
+    }
+    
+    // Verificar permiso para módulos
+    if (view.ApplicationModules?.Any() == true)
+    {
+        var hasModulesModification = await _userPermissions.HasPermission("OrganizationModules", SecurityLevel.Modification);
+        if (!hasModulesModification)
+        {
+            validations.AddError("No tiene permisos para modificar módulos de organizaciones");
+        }
+    }
+    
+    // Validaciones de negocio
+    if (string.IsNullOrWhiteSpace(view.Name))
+        validations.AddError("El nombre de la organización es obligatorio");
+        
+    if (string.IsNullOrWhiteSpace(view.TaxId))
+        validations.AddError("El identificador fiscal (TaxId) es obligatorio");
+    
+    // Validar unicidad de Name (excluyendo soft-deleted)
+    var existingByName = await _repository.ExecuteQuery(
+        "SELECT COUNT(*) FROM Organization WHERE Name = @Name AND AuditDeletionDate IS NULL AND Id != @Id",
+        new { Name = view.Name, Id = view.Id ?? 0 }
+    );
+    if (existingByName.Any() && existingByName.First() > 0)
+        validations.AddError($"Ya existe una organización con el nombre '{view.Name}'");
+    
+    // Validar unicidad de TaxId
+    var existingByTaxId = await _repository.ExecuteQuery(
+        "SELECT COUNT(*) FROM Organization WHERE TaxId = @TaxId AND AuditDeletionDate IS NULL AND Id != @Id",
+        new { TaxId = view.TaxId, Id = view.Id ?? 0 }
+    );
+    if (existingByTaxId.Any() && existingByTaxId.First() > 0)
+        validations.AddError($"Ya existe una organización con el TaxId '{view.TaxId}'");
+    
+    // Validar GroupId si se proporciona
+    if (view.GroupId.HasValue)
+    {
+        var groupExists = await _repository.ExecuteQuery(
+            "SELECT COUNT(*) FROM OrganizationGroup WHERE Id = @GroupId AND AuditDeletionDate IS NULL",
+            new { GroupId = view.GroupId.Value }
+        );
+        if (!groupExists.Any() || groupExists.First() == 0)
+            validations.AddError($"El grupo con Id {view.GroupId} no existe o está inactivo");
+    }
+    
+    await base.ValidateView(validations, view, actionType, configurationName);
+}
+```
+
+#### En PreviousActions()
+
+```csharp
+public override async Task PreviousActions(
+    OrganizationView? view,
+    EnumActionType actionType,
+    string? configurationName = null)
+{
+    if (view == null) return;
+    
+    var hasDataModification = await _userPermissions.HasPermission("Organization", SecurityLevel.Modification);
+    var hasModulesModification = await _userPermissions.HasPermission("OrganizationModules", SecurityLevel.Modification);
+    
+    // Filtrar qué partes del payload se procesarán
+    if (!hasDataModification)
+    {
+        // Usuario no puede modificar datos básicos: preservar valores originales
+        if (actionType == EnumActionType.Update && view.Id.HasValue)
+        {
+            var original = await GetById(view.Id.Value);
+            if (original != null)
+            {
+                view.Name = original.Name;
+                view.TaxId = original.TaxId;
+                view.Address = original.Address;
+                view.City = original.City;
+                view.PostalCode = original.PostalCode;
+                view.Country = original.Country;
+                view.ContactEmail = original.ContactEmail;
+                view.ContactPhone = original.ContactPhone;
+                view.GroupId = original.GroupId;
+            }
+        }
+    }
+    
+    if (!hasModulesModification)
+    {
+        // Usuario no puede modificar módulos: ignorar colección ApplicationModules
+        view.ApplicationModules = null;
+    }
+    
+    await base.PreviousActions(view, actionType, configurationName);
+}
+```
+
+#### En PostActions()
+
+```csharp
+public override async Task PostActions(
+    OrganizationView? view,
+    EnumActionType actionType,
+    string? configurationName = null)
+{
+    if (view == null) return;
+    
+    var shouldPublishEvent = false;
+    var auditActions = new List<string>();
+    
+    // Determinar si se debe publicar evento y qué acciones auditar
+    if (actionType == EnumActionType.Update)
+    {
+        var original = await GetById(view.Id!.Value);
+        
+        // Detectar cambio de grupo
+        if (original?.GroupId != view.GroupId)
+        {
+            shouldPublishEvent = true;
+            auditActions.Add("GroupChanged");
+        }
+        
+        // Detectar cambios en módulos (comparar colecciones)
+        var originalModuleIds = original?.ApplicationModules?.Select(m => m.ApplicationModuleId).ToList() ?? new List<int>();
+        var newModuleIds = view.ApplicationModules?.Select(m => m.ApplicationModuleId).ToList() ?? new List<int>();
+        
+        var addedModules = newModuleIds.Except(originalModuleIds).ToList();
+        var removedModules = originalModuleIds.Except(newModuleIds).ToList();
+        
+        if (addedModules.Any())
+        {
+            shouldPublishEvent = true;
+            foreach (var moduleId in addedModules)
+            {
+                await RegisterAuditAction(view.Id!.Value, "ModuleAssigned", $"ModuleId: {moduleId}");
+            }
+        }
+        
+        if (removedModules.Any())
+        {
+            shouldPublishEvent = true;
+            foreach (var moduleId in removedModules)
+            {
+                await RegisterAuditAction(view.Id!.Value, "ModuleRemoved", $"ModuleId: {moduleId}");
+            }
+        }
+    }
+    else if (actionType == EnumActionType.Insert)
+    {
+        // Primer insert con módulos: publicar evento
+        if (view.ApplicationModules?.Any() == true)
+        {
+            shouldPublishEvent = true;
+            foreach (var module in view.ApplicationModules)
+            {
+                await RegisterAuditAction(view.Id!.Value, "ModuleAssigned", $"ModuleId: {module.ApplicationModuleId}");
+            }
+        }
+    }
+    else if (actionType == EnumActionType.Delete)
+    {
+        shouldPublishEvent = true;
+        auditActions.Add("OrganizationDeactivatedManual");
+    }
+    
+    // Publicar evento si corresponde
+    if (shouldPublishEvent)
+    {
+        await PublishOrganizationEvent(view);
+    }
+    
+    // Registrar acciones en AUDITLOG
+    foreach (var action in auditActions)
+    {
+        await RegisterAuditAction(view.Id!.Value, action);
+    }
+    
+    await base.PostActions(view, actionType, configurationName);
+}
+```
+
+### Roles Típicos del Sistema
+
+Aunque los roles se gestionan en Keycloak, el backend debe ser agnóstico de roles y solo verificar permisos:
+
+| Rol (Informativo) | Permisos Esperados | Capacidades en Backend |
+|-------------------|--------------------|-----------------------|
+| **Organization Administrator** | 200, 201, 202, 203 | CRUD completo en datos básicos y módulos |
+| **Organization Manager** | 200, 201 | CRUD en datos básicos, solo lectura de módulos |
+| **Application Manager** | 201, 202, 203 | Solo lectura de datos básicos, CRUD en módulos |
+| **Organization Viewer** | 201, 203 | Solo lectura completa |
+| **Data Viewer** | 201 | Solo lectura de datos básicos |
+
+**Importante**: El backend NO debe hardcodear nombres de roles. Solo debe verificar permisos mediante `IUserPermissions.HasPermission()`.
+
+## CONFIGURACIONES DE CARGA Y ENDPOINTS HELIX6
+
+El framework Helix6 genera automáticamente endpoints CRUD para la entidad `Organization` basándose en el archivo `HelixEntities.xml`. A continuación se detallan las configuraciones de carga personalizadas y el comportamiento de cada endpoint.
+
+### Configuraciones de Carga (Load Configurations)
+
+Las configuraciones de carga determinan qué navegaciones y colecciones se incluyen al recuperar una entidad. Se definen en `OrganizationRepository.cs`.
+
+#### 1. Configuración "OrganizationBasic"
+
+**Propósito**: Carga rápida solo con datos de la tabla `ORGANIZATION`, sin navegaciones.
+
+**Incluye**:
+- Todos los campos de la entidad `Organization`
+- **NO incluye**: OrganizationGroup, ApplicationModules, AuditLogs
+
+**Uso**: Operaciones de listado rápido, validaciones, búsquedas simples.
+
+**Implementación en Repository**:
+```csharp
+protected override IQueryable<Organization> ApplyIncludes(
+    IQueryable<Organization> query,
+    string? configurationName)
+{
+    if (configurationName == "OrganizationBasic")
+    {
+        // Sin includes, solo la entidad base
+        return query;
+    }
+    
+    // ... otras configuraciones
+    
+    return base.ApplyIncludes(query, configurationName);
+}
+```
+
+#### 2. Configuración "OrganizationComplete"
+
+**Propósito**: Carga completa con todas las navegaciones y colecciones necesarias para el formulario de edición en frontend.
+
+**Incluye**:
+1. **Navegación OrganizationGroup** (si GroupId != null):
+   - Id, GroupName, Description
+
+2. **Colección ApplicationModules** (eager loading):
+   - Todos los registros activos de `ORGANIZATION_APPLICATIONMODULE` donde `OrganizationId = {id}` y `AuditDeletionDate IS NULL`
+   - Para cada registro, incluye navegación a **ApplicationModule**:
+     - Id, ModuleName, Description, DisplayOrder, ApplicationId
+     - Navegación anidada a **Application**:
+       - Id, AppName, Description, RolePrefix
+
+3. **Colección AuditLogs** (filtrada):
+   - Registros de `AUDITLOG` donde:
+     - `EntityType = 'Organization'`
+     - `EntityId = {organizationId}`
+     - `AuditDeletionDate IS NULL`
+   - Ordenado por `Timestamp DESC`
+   - Incluye: Id, Action, EntityType, EntityId, UserId, Timestamp, CorrelationId
+
+**Uso**: 
+- Frontend: Cargar formulario de edición completo con 3 pestañas
+- GetById para edición
+- Insert/Update con reloadView=true
+
+**Implementación en Repository**:
+```csharp
+protected override IQueryable<Organization> ApplyIncludes(
+    IQueryable<Organization> query,
+    string? configurationName)
+{
+    if (configurationName == "OrganizationComplete")
+    {
+        return query
+            .Include(o => o.OrganizationGroup) // Navegación a grupo
+            .Include(o => o.ApplicationModules) // Colección de módulos asignados
+                .ThenInclude(om => om.ApplicationModule) // Navegación a módulo
+                    .ThenInclude(m => m.Application) // Navegación a aplicación
+            .Include(o => o.AuditLogs.Where(a => 
+                a.EntityType == "Organization" && 
+                a.AuditDeletionDate == null)
+                .OrderByDescending(a => a.Timestamp)); // Colección de auditoría filtrada
+    }
+    
+    if (configurationName == "OrganizationBasic")
+    {
+        return query; // Sin includes
+    }
+    
+    // Default: incluir solo grupo
+    return query.Include(o => o.OrganizationGroup);
+}
+```
+
+#### 3. Configuración "OrganizationWithGroup"
+
+**Propósito**: Carga intermedia solo con navegación a grupo, sin módulos ni auditoría.
+
+**Incluye**:
+- Entidad `Organization` completa
+- Navegación `OrganizationGroup`
+
+**Uso**: Listados que necesitan mostrar nombre de grupo pero no módulos.
+
+### Endpoints Auto-Generados por Helix6
+
+Los siguientes endpoints se generan automáticamente en `Endpoints/Base/Generator/OrganizationEndpoints.cs` basándose en la configuración de `HelixEntities.xml`.
+
+#### 1. GET /api/Organization/GetById
+
+**Propósito**: Obtener una organización por ID con configuración de carga especificada.
+
+**Parámetros**:
+- `id` (int, query, required): ID de la organización
+- `configurationName` (string, query, optional): Nombre de configuración ("OrganizationBasic", "OrganizationComplete", "OrganizationWithGroup")
+- `Accept-Language` (header, optional): Idioma (es, en, ca)
+
+**Permisos Requeridos**: `Organization data query` (201)
+
+**Response**: 
+- 200 OK: `OrganizationView` con estructura según configuración
+- 404 Not Found: Si no existe o está soft-deleted
+- 403 Forbidden: Si no tiene permiso
+
+**Ejemplo Request**:
+```http
+GET /api/Organization/GetById?id=123&configurationName=OrganizationComplete
+Accept-Language: es
+Authorization: Bearer {jwt_token}
+```
+
+**Ejemplo Response**:
+```json
+{
+  "id": 123,
+  "securityCompanyId": 1001,
+  "name": "Acme Corp",
+  "taxId": "A12345678",
+  "address": "Calle Principal 123",
+  "city": "Barcelona",
+  "postalCode": "08001",
+  "country": "España",
+  "contactEmail": "admin@acme.com",
+  "contactPhone": "+34912345678",
+  "groupId": 5,
+  "organizationGroup": {
+    "id": 5,
+    "groupName": "Holding Norte",
+    "description": "Grupo de empresas del norte"
+  },
+  "applicationModules": [
+    {
+      "id": 501,
+      "applicationModuleId": 10,
+      "organizationId": 123,
+      "applicationModule": {
+        "id": 10,
+        "moduleName": "MSTP_Trafico",
+        "description": "Módulo de gestión de tráfico",
+        "displayOrder": 1,
+        "applicationId": 2,
+        "application": {
+          "id": 2,
+          "appName": "Sintraport",
+          "description": "Sistema de gestión logística",
+          "rolePrefix": "STP"
+        }
+      }
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": 1001,
+      "action": "ModuleAssigned",
+      "entityType": "Organization",
+      "entityId": "123",
+      "userId": 50,
+      "timestamp": "2026-02-04T10:30:00Z",
+      "correlationId": "abc123-def456"
+    }
+  ],
+  "auditCreationUser": "admin@system.com",
+  "auditCreationDate": "2026-01-15T09:00:00Z",
+  "auditModificationUser": "manager@system.com",
+  "auditModificationDate": "2026-02-04T10:30:00Z",
+  "auditDeletionDate": null
+}
+```
+
+#### 2. GET /api/Organization/GetNewEntity
+
+**Propósito**: Obtener plantilla de nueva organización con valores por defecto.
+
+**Parámetros**:
+- `Accept-Language` (header, optional): Idioma
+
+**Permisos Requeridos**: `Organization data modification` (200)
+
+**Response**:
+- 200 OK: `OrganizationView` con todos los campos null/empty y colecciones vacías
+- 403 Forbidden: Si no tiene permiso
+
+**Ejemplo Response**:
+```json
+{
+  "id": null,
+  "securityCompanyId": null,
+  "name": null,
+  "taxId": null,
+  "address": null,
+  "city": null,
+  "postalCode": null,
+  "country": null,
+  "contactEmail": null,
+  "contactPhone": null,
+  "groupId": null,
+  "organizationGroup": null,
+  "applicationModules": [],
+  "auditLogs": [],
+  "auditCreationUser": null,
+  "auditCreationDate": null,
+  "auditModificationUser": null,
+  "auditModificationDate": null,
+  "auditDeletionDate": null
+}
+```
+
+#### 3. POST /api/Organization/Insert
+
+**Propósito**: Crear nueva organización.
+
+**Parámetros**:
+- `configurationName` (string, query, optional): Configuración para recargar después del insert
+- `reloadView` (bool, query, optional, default=true): Si true, recarga entidad con Id generado
+- `Accept-Language` (header, optional): Idioma
+
+**Body**: `OrganizationView` completo
+
+**Permisos Requeridos**:
+- Mínimo: `Organization data modification` (200) para datos básicos
+- Adicional: `Organization modules modification` (202) para asignar módulos
+
+**Comportamiento**:
+1. Valida permisos del usuario
+2. Ejecuta `OrganizationService.ValidateView()` con validaciones de negocio
+3. Ejecuta `OrganizationService.PreviousActions()` para filtrar payload según permisos
+4. Genera `SecurityCompanyId` automáticamente (auto-increment)
+5. Persiste entidad en tabla `ORGANIZATION`
+6. Si el usuario tiene permiso 202 y se enviaron `ApplicationModules`:
+   - Persiste relaciones en tabla `ORGANIZATION_APPLICATIONMODULE`
+   - Registra acciones `ModuleAssigned` en `AUDITLOG`
+   - Publica evento `OrganizationEvent` a ActiveMQ Artemis
+7. Ejecuta `OrganizationService.PostActions()`
+8. Si `reloadView=true`: Recarga entidad con configuración especificada
+9. Retorna `OrganizationView` con Id y SecurityCompanyId generados
+
+**Response**:
+- 201 Created: `OrganizationView` con Id generado
+- 400 Bad Request: Si validaciones fallan (con `HelixValidationProblem`)
+- 403 Forbidden: Si no tiene permiso
+
+**Ejemplo Request**:
+```http
+POST /api/Organization/Insert?configurationName=OrganizationComplete&reloadView=true
+Content-Type: application/json
+Accept-Language: es
+Authorization: Bearer {jwt_token}
+
+{
+  "name": "Nueva Empresa SL",
+  "taxId": "B98765432",
+  "address": "Avenida Ejemplo 456",
+  "city": "Madrid",
+  "postalCode": "28001",
+  "country": "España",
+  "contactEmail": "contacto@nuevaempresa.com",
+  "contactPhone": "+34911223344",
+  "groupId": 3,
+  "applicationModules": [
+    {
+      "applicationModuleId": 10
+    },
+    {
+      "applicationModuleId": 12
+    }
+  ]
+}
+```
+
+**Ejemplo Response**:
+```json
+{
+  "id": 124,
+  "securityCompanyId": 1002,
+  "name": "Nueva Empresa SL",
+  "taxId": "B98765432",
+  "address": "Avenida Ejemplo 456",
+  "city": "Madrid",
+  "postalCode": "28001",
+  "country": "España",
+  "contactEmail": "contacto@nuevaempresa.com",
+  "contactPhone": "+34911223344",
+  "groupId": 3,
+  "organizationGroup": {
+    "id": 3,
+    "groupName": "Grupo Centro",
+    "description": null
+  },
+  "applicationModules": [
+    {
+      "id": 502,
+      "applicationModuleId": 10,
+      "organizationId": 124,
+      "applicationModule": { /* ... */ }
+    },
+    {
+      "id": 503,
+      "applicationModuleId": 12,
+      "organizationId": 124,
+      "applicationModule": { /* ... */ }
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": 1002,
+      "action": "ModuleAssigned",
+      "entityType": "Organization",
+      "entityId": "124",
+      "userId": 50,
+      "timestamp": "2026-02-04T11:00:00Z",
+      "correlationId": "xyz789"
+    },
+    {
+      "id": 1003,
+      "action": "ModuleAssigned",
+      "entityType": "Organization",
+      "entityId": "124",
+      "userId": 50,
+      "timestamp": "2026-02-04T11:00:01Z",
+      "correlationId": "xyz789"
+    }
+  ],
+  "auditCreationUser": "admin@system.com",
+  "auditCreationDate": "2026-02-04T11:00:00Z",
+  "auditModificationUser": null,
+  "auditModificationDate": null,
+  "auditDeletionDate": null
+}
+```
+
+#### 4. PUT /api/Organization/Update
+
+**Propósito**: Actualizar organización existente.
+
+**Parámetros**:
+- `configurationName` (string, query, optional): Configuración para recargar
+- `reloadView` (bool, query, optional, default=true): Recargar después de update
+- `Accept-Language` (header, optional): Idioma
+
+**Body**: `OrganizationView` completo con `id` obligatorio
+
+**Permisos Requeridos**:
+- Para datos básicos: `Organization data modification` (200)
+- Para módulos: `Organization modules modification` (202)
+
+**Comportamiento**:
+1. Valida que entidad existe y no está soft-deleted
+2. Ejecuta validaciones de permisos y negocio
+3. Filtra payload según permisos en `PreviousActions()`
+4. Actualiza campos modificados
+5. Detecta cambios en colección `ApplicationModules`:
+   - Módulos añadidos: Crea registros en `ORGANIZATION_APPLICATIONMODULE`, registra `ModuleAssigned`
+   - Módulos removidos: Soft delete (AuditDeletionDate), registra `ModuleRemoved`
+6. Detecta cambio en `GroupId`: Registra `GroupChanged`
+7. Si hubo cambios en módulos o grupo: Publica evento `OrganizationEvent`
+8. Ejecuta `PostActions()`
+9. Recarga y retorna entidad actualizada
+
+**Response**:
+- 200 OK: `OrganizationView` actualizado
+- 400 Bad Request: Validaciones fallidas
+- 404 Not Found: Entidad no existe
+- 403 Forbidden: Sin permiso
+
+#### 5. DELETE /api/Organization/DeleteById
+
+**Propósito**: Eliminar lógicamente (soft delete) una organización.
+
+**Parámetros**:
+- `id` (int, query, required): ID de la organización
+- `Accept-Language` (header, optional): Idioma
+
+**Permisos Requeridos**: `Organization data modification` (200)
+
+**Comportamiento**:
+1. Verifica que entidad existe
+2. Establece `AuditDeletionDate = DateTime.UtcNow`
+3. Registra acción `OrganizationDeactivatedManual` en `AUDITLOG`
+4. Publica evento `OrganizationEvent` con `IsDeleted = true`
+5. **Nota**: El soft delete de la organización NO elimina automáticamente sus registros en `ORGANIZATION_APPLICATIONMODULE`. Esos permanecen para histórico.
+
+**Response**:
+- 200 OK: `true`
+- 404 Not Found: Entidad no existe
+- 403 Forbidden: Sin permiso
+
+#### 6. POST /api/Organization/GetAllKendoFilter
+
+**Propósito**: Obtener lista paginada de organizaciones con filtros, ordenación y agrupación compatibles con Kendo Grid.
+
+**Parámetros**:
+- `configurationName` (string, query, optional): Configuración de carga
+- `includeDeleted` (bool, query, optional, default=false): Incluir soft-deleted
+- `Accept-Language` (header, optional): Idioma
+
+**Body**: `KendoGridFilter`
+```json
+{
+  "data": {
+    "skip": 0,
+    "take": 20,
+    "sort": [
+      { "field": "name", "dir": "asc" }
+    ],
+    "filter": {
+      "logic": "and",
+      "filters": [
+        { "field": "city", "operator": "eq", "value": "Barcelona" },
+        { "field": "groupId", "operator": "eq", "value": 5 }
+      ]
+    }
+  }
+}
+```
+
+**Permisos Requeridos**: `Organization data query` (201)
+
+**Response**:
+- 200 OK: `PagingResponse<OrganizationView>`
+```json
+{
+  "list": [ /* array de OrganizationView */ ],
+  "count": 150
+}
+```
+
+**Operadores de Filtro Soportados**:
+- `eq`, `neq`: Igualdad
+- `lt`, `lte`, `gt`, `gte`: Comparación numérica/fecha
+- `startswith`, `endswith`, `contains`: Texto
+- `isnull`, `isnotnull`: Valores nulos
+- `isempty`, `isnotempty`: Strings vacías
+
+#### 7. GET /api/Organization/GetAll
+
+**Propósito**: Obtener todas las organizaciones activas (sin paginación).
+
+**Parámetros**:
+- `configurationName` (string, query, optional): Configuración de carga
+- `Accept-Language` (header, optional): Idioma
+
+**Permisos Requeridos**: `Organization data query` (201)
+
+**Response**:
+- 200 OK: `List<OrganizationView>`
+
+**Nota**: Solo retorna organizaciones con `AuditDeletionDate IS NULL`. No recomendado para tablas grandes.
+
+### Configuración de HelixEntities.xml
+
+Para habilitar la generación automática de endpoints, añadir en `[Proyecto].Api/HelixEntities.xml`:
+
+```xml
+<HelixEntities>
+  <Entities>
+    <EntityName>Organization</EntityName>
+    <GetById>true</GetById>
+    <GetNewEntity>true</GetNewEntity>
+    <Insert>true</Insert>
+    <Update>true</Update>
+    <Delete>true</Delete>
+    <GetAll>true</GetAll>
+    <GetAllKendoFilter>true</GetAllKendoFilter>
+    <DeleteUndeleteLogic>true</DeleteUndeleteLogic>
+  </Entities>
+</HelixEntities>
+```
+
+Después de modificar, ejecutar Helix Generator:
+```bash
+cd [Proyecto].HelixGenerator
+dotnet run
+```
+
+Esto regenerará automáticamente:
+- `Endpoints/Base/Generator/OrganizationEndpoints.cs`
+- `Entities/Views/OrganizationView.cs` (si no existe)
+
+### Publicación de Eventos (OrganizationEvent)
+
+El servicio debe publicar eventos a ActiveMQ Artemis en tópico `infoportone.events.organization` siguiendo el patrón "State Transfer Event".
+
+**Estructura del Evento**:
+```json
+{
+  "EventId": "uuid-v4",
+  "EventType": "ORGANIZATION",
+  "EventTimestamp": "2026-02-04T11:00:00Z",
+  "TraceId": "correlation-id",
+  "OriginApplicationId": "InfoportOneAdmon",
+  "SchemaVersion": "1.0",
+  "Payload": [
+    {
+      "SecurityCompanyId": 1002,
+      "Name": "Nueva Empresa SL",
+      "TaxId": "B98765432",
+      "Address": "Avenida Ejemplo 456",
+      "City": "Madrid",
+      "Country": "España",
+      "IsDeleted": false,
+      "GroupId": 3,
+      "GroupName": "Grupo Centro",
+      "Apps": [
+        {
+          "AppId": 2,
+          "DatabaseName": "Sintraport_DB",
+          "AccessibleModules": [10, 12]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Cuándo Publicar**:
+- ✅ Cuando se asigna/remueve un módulo
+- ✅ Cuando se cambia `GroupId`
+- ✅ Cuando se activa/desactiva la organización (soft delete)
+- ❌ NO publicar al cambiar solo datos básicos (Name, TaxId, Address, etc.)
+
+## GUÍA DE IMPLEMENTACIÓN CON HELIX6
+
+Esta sección describe los pasos ordenados para implementar la entidad Organization siguiendo los patrones del Framework Helix6. **No incluye código completo**, solo la secuencia de acciones y decisiones de diseño.
+
+### Paso 0: Configurar HelixEntities.xml
+
+1. Abrir archivo `[Proyecto].Api/HelixEntities.xml`
+2. Añadir configuración para entidad Organization:
+   - Habilitar todos los endpoints: GetById, GetNewEntity, Insert, Update, Delete, GetAll, GetAllKendoFilter
+   - Habilitar DeleteUndeleteLogic para soft delete
+3. Guardar archivo (aún no ejecutar generator)
+
+### Paso 1: Crear Entidad en DataModel
+
+1. Crear archivo `[Proyecto].DataModel/Organization.cs`
+2. Implementar clase POCO que hereda de `IEntityBase`:
+   - Decorar con atributo `[Table("ORGANIZATION")]`
+   - Definir propiedad `Id` con `[Key]`
+   - Definir `SecurityCompanyId` con `[DatabaseGenerated(DatabaseGeneratedOption.Identity)]` y `[Column(Order = 2)]`
+   - Definir propiedades de negocio: Name, TaxId, Address, City, PostalCode, Country, ContactEmail, ContactPhone
+   - Definir `GroupId` como FK nullable con `[ForeignKey("OrganizationGroup")]`
+   - Definir propiedad de navegación `public virtual OrganizationGroup? OrganizationGroup { get; set; }`
+   - Definir colección de navegación `public virtual ICollection<Organization_ApplicationModule>? ApplicationModules { get; set; }`
+   - Definir colección de navegación `public virtual ICollection<AuditLog>? AuditLogs { get; set; }`
+   - Implementar propiedades de auditoría obligatorias de `IEntityBase`:
+     - AuditCreationUser, AuditCreationDate (auto-gestionadas por Helix6)
+     - AuditModificationUser, AuditModificationDate
+     - AuditDeletionDate (para soft delete)
+3. Añadir Data Annotations:
+   - `[Required]` en Name, TaxId
+   - `[StringLength(200)]` en Name
+   - `[StringLength(50)]` en TaxId
+   - `[StringLength(300)]` en Address
+   - `[StringLength(100)]` en City, Country
+   - `[StringLength(20)]` en PostalCode
+   - `[StringLength(255)]` en ContactEmail
+   - `[StringLength(50)]` en ContactPhone
+4. Marcar navegaciones con `virtual` para lazy loading
+
+### Paso 2: Añadir DbSet al DbContext
+
+1. Abrir archivo `[Proyecto].Data/EntityModel.cs` (DbContext)
+2. Añadir propiedad `DbSet<Organization>`:
+   ```csharp
+   public DbSet<Organization> Organizations { get; set; }
+   ```
+3. Si se requiere configuración Fluent API adicional, añadir en método `OnModelCreating()`:
+   - Configurar índice único para SecurityCompanyId
+   - Configurar índice único para Name
+   - Configurar índice único para TaxId
+   - Configurar FK a OrganizationGroup con DeleteBehavior.SetNull
+   - Configurar relación 1:N con Organization_ApplicationModule
+
+### Paso 3: Crear y Aplicar Migración de EF Core
+
+1. Abrir terminal en carpeta del proyecto Api
+2. Ejecutar comando para crear migración:
+   ```bash
+   dotnet ef migrations add AddOrganizationEntity --project [Proyecto].Data --startup-project [Proyecto].Api
+   ```
+3. Revisar archivo de migración generado en `[Proyecto].Data/Migrations/`:
+   - Verificar que crea tabla ORGANIZATION con todos los campos
+   - Verificar índices únicos (UK_Organization_SecurityCompanyId, UK_Organization_Name, UK_Organization_TaxId)
+   - Verificar FK a ORGANIZATIONGROUP
+   - Verificar campos de auditoría
+4. Aplicar migración a base de datos:
+   ```bash
+   dotnet ef database update --project [Proyecto].Data --startup-project [Proyecto].Api
+   ```
+5. Verificar en BD que tabla se creó correctamente con todas las constraints
+
+### Paso 4: Crear Interfaz de Repositorio
+
+1. Crear archivo `[Proyecto].Data/Repository/Interfaces/IOrganizationRepository.cs`
+2. Definir interfaz que hereda de `IBaseRepository<Organization>`:
+   ```csharp
+   public interface IOrganizationRepository : IBaseRepository<Organization>
+   {
+       // Métodos personalizados adicionales si se requieren
+       Task<Organization?> GetBySecurityCompanyId(int securityCompanyId);
+       Task<Organization?> GetByTaxId(string taxId);
+   }
+   ```
+3. Solo añadir métodos que NO estén en `IBaseRepository` (GetById, Insert, Update, etc. ya están)
+
+### Paso 5: Implementar Repositorio Concreto
+
+1. Crear archivo `[Proyecto].Data/Repository/OrganizationRepository.cs`
+2. Implementar clase que hereda de `BaseRepository<Organization>` e implementa `IOrganizationRepository`:
+   ```csharp
+   public class OrganizationRepository : BaseRepository<Organization>, IOrganizationRepository
+   ```
+3. Inyectar dependencias en constructor:
+   - IApplicationContext
+   - IUserContext
+   - IBaseEFRepository<Organization>
+   - IBaseDapperRepository<Organization>
+4. Llamar al constructor base pasando las 4 dependencias
+5. Implementar configuraciones de carga sobrescribiendo `ApplyIncludes()`:
+   - Switch por `configurationName`
+   - Caso "OrganizationBasic": retornar query sin includes
+   - Caso "OrganizationComplete": añadir includes para OrganizationGroup, ApplicationModules (con ThenInclude a ApplicationModule y Application), AuditLogs (filtrado)
+   - Caso "OrganizationWithGroup": solo incluir OrganizationGroup
+   - Default: incluir OrganizationGroup
+6. Implementar métodos personalizados si los definiste en la interfaz:
+   - Usar `_baseEFRepository` para queries con Entity Framework
+   - Usar `_baseDapperRepository` para queries SQL optimizadas con Dapper
+
+### Paso 6: Ejecutar Helix Generator para Crear View
+
+1. Abrir terminal en carpeta `[Proyecto].HelixGenerator`
+2. Ejecutar:
+   ```bash
+   dotnet run
+   ```
+3. El generator escaneará las entidades en DataModel y generará automáticamente:
+   - `[Proyecto].Entities/Views/OrganizationView.cs` (clase parcial con todas las propiedades mapeadas)
+   - `[Proyecto].Entities/Views/Metadata/OrganizationViewMetadata.cs` (placeholder para metadata)
+4. Verificar que OrganizationView tiene:
+   - Todas las propiedades de Organization
+   - Propiedad `OrganizationGroup` de tipo `OrganizationGroupView`
+   - Propiedad `ApplicationModules` de tipo `List<Organization_ApplicationModuleView>`
+   - Propiedad `AuditLogs` de tipo `List<AuditLogView>`
+   - Implementa `IViewBase`
+
+### Paso 7: Añadir Metadata y Validaciones a View
+
+1. Abrir `[Proyecto].Entities/Views/Metadata/OrganizationViewMetadata.cs`
+2. Añadir clase parcial con atributos de validación:
+   ```csharp
+   public partial class OrganizationViewMetadata
+   {
+       [Required(ErrorMessage = "El nombre es obligatorio")]
+       [StringLength(200, ErrorMessage = "Máximo 200 caracteres")]
+       public string? Name { get; set; }
+       
+       [Required(ErrorMessage = "El TaxId es obligatorio")]
+       [StringLength(50)]
+       [RegularExpression(@"^[A-Z]\d{8}$", ErrorMessage = "Formato de CIF inválido")]
+       public string? TaxId { get; set; }
+       
+       [EmailAddress(ErrorMessage = "Email inválido")]
+       public string? ContactEmail { get; set; }
+       
+       // ... resto de propiedades
+   }
+   ```
+3. Los atributos de metadata se aplicarán automáticamente a OrganizationView mediante `[MetadataType(typeof(OrganizationViewMetadata))]`
+
+### Paso 8: Crear Servicio de Negocio
+
+1. Crear archivo `[Proyecto].Services/OrganizationService.cs`
+2. Implementar clase que hereda de `BaseService<OrganizationView, Organization, OrganizationViewMetadata>`:
+   ```csharp
+   public class OrganizationService : BaseService<OrganizationView, Organization, OrganizationViewMetadata>
+   ```
+3. Inyectar dependencias en constructor:
+   - IApplicationContext
+   - IUserContext
+   - IOrganizationRepository (específico, no IBaseRepository)
+   - IUserPermissions
+   - IEventPublisher (para publicar eventos a ActiveMQ)
+4. Llamar al constructor base pasando applicationContext, userContext y repository
+5. Guardar referencias privadas para usar en hooks:
+   ```csharp
+   private readonly IOrganizationRepository _organizationRepository;
+   private readonly IUserPermissions _userPermissions;
+   private readonly IEventPublisher _eventPublisher;
+   ```
+
+### Paso 9: Implementar Hook ValidateView
+
+1. Sobrescribir método `ValidateView()`:
+   ```csharp
+   public override async Task ValidateView(
+       HelixValidationProblem validations,
+       OrganizationView? view,
+       EnumActionType actionType,
+       string? configurationName = null)
+   ```
+2. Implementar validaciones de negocio:
+   - Verificar permisos usando `_userPermissions.HasPermission()`
+   - Validar campos obligatorios (Name, TaxId, ContactEmail)
+   - Validar unicidad de Name con query Dapper excluyendo soft-deleted
+   - Validar unicidad de TaxId con query Dapper excluyendo soft-deleted
+   - Validar que GroupId existe y está activo si se proporciona
+   - Validar formato de TaxId (regex CIF español)
+   - Validar formato de ContactEmail
+3. SIEMPRE llamar al método base al final:
+   ```csharp
+   await base.ValidateView(validations, view, actionType, configurationName);
+   ```
+
+### Paso 10: Implementar Hook PreviousActions
+
+1. Sobrescribir método `PreviousActions()`:
+   ```csharp
+   public override async Task PreviousActions(
+       OrganizationView? view,
+       EnumActionType actionType,
+       string? configurationName = null)
+   ```
+2. Implementar lógica de filtrado de payload según permisos:
+   - Verificar si usuario tiene `Organization data modification` (200)
+   - Si NO tiene: preservar valores originales de datos básicos (cargar original y restaurar campos)
+   - Verificar si usuario tiene `Organization modules modification` (202)
+   - Si NO tiene: establecer `view.ApplicationModules = null` para ignorar cambios
+3. Llamar al método base:
+   ```csharp
+   await base.PreviousActions(view, actionType, configurationName);
+   ```
+
+### Paso 11: Implementar Hook PostActions
+
+1. Sobrescribir método `PostActions()`:
+   ```csharp
+   public override async Task PostActions(
+       OrganizationView? view,
+       EnumActionType actionType,
+       string? configurationName = null)
+   ```
+2. Implementar lógica de eventos y auditoría:
+   - Si actionType == Update:
+     - Cargar versión original con `GetById()`
+     - Comparar `GroupId` original vs nuevo: si cambió, marcar `shouldPublishEvent = true` y registrar `GroupChanged` en AUDITLOG
+     - Comparar colecciones `ApplicationModules`:
+       - Detectar módulos añadidos: registrar `ModuleAssigned` en AUDITLOG por cada uno
+       - Detectar módulos removidos: registrar `ModuleRemoved` en AUDITLOG por cada uno
+       - Si hay cambios: marcar `shouldPublishEvent = true`
+   - Si actionType == Insert:
+     - Si `view.ApplicationModules?.Any() == true`: marcar `shouldPublishEvent = true` y registrar `ModuleAssigned`
+   - Si actionType == Delete:
+     - Marcar `shouldPublishEvent = true`
+     - Registrar `OrganizationDeactivatedManual` en AUDITLOG
+   - Si `shouldPublishEvent == true`:
+     - Construir `OrganizationEvent` con estructura completa (Payload con Apps y AccessibleModules)
+     - Publicar a ActiveMQ Artemis usando `_eventPublisher.Publish()`
+3. Llamar al método base:
+   ```csharp
+   await base.PostActions(view, actionType, configurationName);
+   ```
+
+### Paso 12: Implementar Métodos Helper Privados
+
+1. Crear método privado `RegisterAuditAction()`:
+   - Parámetros: organizationId, action, details (opcional)
+   - Crear registro en tabla AUDITLOG:
+     - EntityType = "Organization"
+     - EntityId = organizationId.ToString()
+     - Action = action ("ModuleAssigned", "ModuleRemoved", etc.)
+     - UserId = _userContext.UserId
+     - Timestamp = DateTime.UtcNow
+     - CorrelationId = generar GUID
+   - Persistir usando repositorio de AuditLog
+
+2. Crear método privado `PublishOrganizationEvent()`:
+   - Parámetro: OrganizationView
+   - Construir objeto OrganizationEvent:
+     - EventId = GUID
+     - EventType = "ORGANIZATION"
+     - EventTimestamp = DateTime.UtcNow
+     - TraceId = obtener de contexto o generar
+     - OriginApplicationId = "InfoportOneAdmon"
+     - SchemaVersion = "1.0"
+     - Payload = array con objeto organization transformado:
+       - SecurityCompanyId, Name, TaxId, Address, City, Country
+       - IsDeleted = (AuditDeletionDate != null)
+       - GroupId, GroupName
+       - Apps = array transformado desde ApplicationModules agrupados por Application
+   - Publicar a tópico `infoportone.events.organization` usando `_eventPublisher`
+
+### Paso 13: Registrar Servicio y Repositorio en DI
+
+1. Abrir archivo `[Proyecto].Api/Extensions/DependencyInjection.cs`
+2. El método `AddServicesRepositories()` usa reflexión para autodescubrir servicios y repositorios
+3. Verificar que sigue la convención de nomenclatura:
+   - Clase termina en "Service" → Se registra como scoped
+   - Clase termina en "Repository" → Se registra como scoped
+4. Si la convención falla, añadir registro manual:
+   ```csharp
+   services.AddScoped<IOrganizationService, OrganizationService>();
+   services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+   ```
+
+### Paso 14: Ejecutar Helix Generator para Crear Endpoints
+
+1. Verificar que `HelixEntities.xml` tiene configuración de Organization (Paso 0)
+2. Ejecutar generator:
+   ```bash
+   cd [Proyecto].HelixGenerator
+   dotnet run
+   ```
+3. El generator creará automáticamente `[Proyecto].Api/Endpoints/Base/Generator/OrganizationEndpoints.cs` con:
+   - MapOrganizationEndpoints() método estático
+   - Endpoints: GetById, GetNewEntity, Insert, Update, DeleteById, GetAll, GetAllKendoFilter
+4. **NO modificar archivos en carpeta Generator/** (se sobrescriben en cada ejecución)
+
+### Paso 15: Registrar Endpoints en Program.cs
+
+1. Abrir archivo `[Proyecto].Api/Program.cs`
+2. Buscar sección donde se mapean endpoints generados (suele estar después de `app.UseAuthorization()`)
+3. Añadir llamada a método generado:
+   ```csharp
+   app.MapOrganizationEndpoints();
+   ```
+4. Esto expondrá todos los endpoints bajo ruta `/api/Organization/*`
+
+### Paso 16: Configurar Autenticación y Autorización
+
+1. Verificar en `appsettings.json` que está configurado JWT:
+   - Authority (URL de Keycloak)
+   - Audience
+   - ValidIssuers
+2. En `Program.cs`, verificar que está configurado:
+   ```csharp
+   builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+       .AddJwtBearer(options => { /* ... */ });
+   ```
+3. Configurar mapeo de claims según proveedor de identidad en `Security/`:
+   - Si es Keycloak: usar `KeyCloakUserClaimsMapping`
+   - Implementa `IUserClaimsMapping` para extraer UserId, Roles, Permisos del JWT
+4. Los endpoints auto-generados tienen decorador `[Authorize]` por defecto
+
+### Paso 17: Implementar IUserPermissions
+
+1. Crear servicio que implemente `IUserPermissions`:
+   - Método `HasPermission(string entityName, SecurityLevel level)`
+   - Lee claims del JWT del usuario actual
+   - Compara contra claim de permisos (ej: "permissions" en JWT)
+   - Retorna true si usuario tiene permiso para la entidad y nivel especificados
+2. Registrar en DI como scoped:
+   ```csharp
+   services.AddScoped<IUserPermissions, UserPermissionsService>();
+   ```
+3. El servicio `OrganizationService` lo inyectará y usará en `ValidateView()` y `PreviousActions()`
+
+### Paso 18: Implementar Event Publisher para ActiveMQ
+
+1. Crear servicio `EventPublisherService` que implemente `IEventPublisher`:
+   - Método `Publish(string topic, object eventData)`
+   - Usa cliente de ActiveMQ Artemis (Apache.NMS.ActiveMQ)
+   - Serializa evento a JSON
+   - Calcula hash SHA-256 del Payload
+   - Verifica en tabla EVENTHASH si el hash cambió (prevención de duplicados)
+   - Si cambió: Publica a tópico especificado, actualiza EVENTHASH
+   - Si no cambió: Omite publicación (log warning)
+2. Registrar en DI como scoped o singleton según diseño
+3. Configurar conexión a ActiveMQ en `appsettings.json`:
+   ```json
+   "ActiveMQ": {
+     "BrokerUri": "activemq:tcp://localhost:61616",
+     "Username": "artemis",
+     "Password": "artemis"
+   }
+   ```
+
+### Paso 19: Crear Tabla EVENTHASH para Control de Duplicados
+
+1. Crear migración de EF Core:
+   ```bash
+   dotnet ef migrations add AddEventHashTable --project [Proyecto].Data --startup-project [Proyecto].Api
+   ```
+2. Estructura de tabla:
+   - Id (PK, auto-increment)
+   - EntityType (varchar 50) - ej: "Organization"
+   - EntityId (varchar 50) - ej: "123"
+   - LastEventHash (varchar 64) - SHA-256 del Payload
+   - LastEventTimestamp (datetime)
+3. Aplicar migración:
+   ```bash
+   dotnet ef database update --project [Proyecto].Data --startup-project [Proyecto].Api
+   ```
+
+### Paso 20: Implementar Tests Unitarios del Servicio
+
+1. Crear archivo `[Proyecto].Services.Tests/OrganizationServiceTests.cs`
+2. Configurar framework de testing (xUnit, NUnit o MSTest)
+3. Mockear dependencias usando Moq:
+   - Mock de IOrganizationRepository
+   - Mock de IUserContext (simular UserId, UserName)
+   - Mock de IUserPermissions (simular permisos)
+   - Mock de IEventPublisher
+4. Escribir tests para:
+   - **Test_Insert_WithDataPermission_PersistsBasicData**: Verifica que usuario con permiso 200 solo persiste datos básicos
+   - **Test_Insert_WithModulesPermission_PersistsModulesAndPublishesEvent**: Verifica que usuario con permiso 202 persiste módulos y publica evento
+   - **Test_Update_ChangeGroup_PublishesEventAndRegistersAudit**: Verifica que cambio de grupo publica evento y registra en AUDITLOG
+   - **Test_ValidateView_DuplicateName_ReturnsValidationError**: Verifica que nombre duplicado genera error
+   - **Test_ValidateView_InvalidTaxId_ReturnsValidationError**: Verifica formato de TaxId
+   - **Test_PreviousActions_UserWithoutDataPermission_PreservesOriginalData**: Verifica que sin permiso 200 se preservan datos originales
+5. Objetivo: Cobertura > 80% del servicio
+
+### Paso 21: Implementar Tests de Integración de Endpoints
+
+1. Crear archivo `[Proyecto].Api.Tests/OrganizationEndpointsIntegrationTests.cs`
+2. Usar `WebApplicationFactory<Program>` para crear servidor de pruebas
+3. Configurar base de datos en memoria (SQLite o EF Core InMemory provider)
+4. Escribir tests de integración:
+   - **Test_GetById_ReturnsOrganization**: GET con ID válido retorna 200 y OrganizationView
+   - **Test_Insert_ValidPayload_Returns201**: POST con payload válido retorna 201 y entity con Id generado
+   - **Test_Insert_WithoutPermission_Returns403**: POST sin JWT o sin permiso retorna 403
+   - **Test_Update_ChangeModules_PublishesEvent**: PUT que cambia módulos verifica que se publicó evento (spy en EventPublisher)
+   - **Test_GetAllKendoFilter_WithFilters_ReturnsPaginatedResults**: POST con filtros retorna lista paginada correcta
+5. Mockear ActiveMQ (no publicar a broker real en tests)
+
+### Paso 22: Configurar Logging con Serilog
+
+1. Verificar configuración de Serilog en `Program.cs`:
+   ```csharp
+   Log.Logger = new LoggerConfiguration()
+       .ReadFrom.Configuration(builder.Configuration)
+       .CreateLogger();
+   ```
+2. Añadir sinks en `appsettings.json`:
+   ```json
+   "Serilog": {
+     "MinimumLevel": "Information",
+     "WriteTo": [
+       { "Name": "Console" },
+       { "Name": "File", "Args": { "path": "logs/log-.txt", "rollingInterval": "Day" } }
+     ]
+   }
+   ```
+3. En `OrganizationService`, inyectar `ILogger<OrganizationService>`:
+   ```csharp
+   private readonly ILogger<OrganizationService> _logger;
+   ```
+4. Añadir logs estructurados en puntos clave:
+   - Inicio/Fin de Insert/Update
+   - Publicación de eventos (con EventId)
+   - Errores de validación
+   - Cambios detectados (módulos añadidos/removidos)
+
+### Paso 23: Documentar Endpoints en Swagger
+
+1. Verificar que Swagger está configurado en `Program.cs`:
+   ```csharp
+   builder.Services.AddSwaggerGen();
+   app.UseSwagger();
+   app.UseSwaggerUI();
+   ```
+2. Los endpoints auto-generados incluyen automáticamente:
+   - Decorador `[ProducesResponseType]` para 200, 400, 404, 403
+   - Decorador `[SwaggerOperation]` con descripción
+3. Añadir comentarios XML al servicio para enriquecer documentación:
+   - Habilitar generación de XML en .csproj: `<GenerateDocumentationFile>true</GenerateDocumentationFile>`
+   - Configurar Swagger para incluir XML:
+     ```csharp
+     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "[Proyecto].Api.xml"));
+     ```
+4. Ejecutar aplicación y verificar Swagger UI en `https://localhost:5001/swagger`
+
+### Paso 24: Configurar CORS si Frontend está en Dominio Diferente
+
+1. En `Program.cs`, añadir configuración de CORS antes de `builder.Build()`:
+   ```csharp
+   builder.Services.AddCors(options =>
+   {
+       options.AddDefaultPolicy(builder =>
+       {
+           builder.WithOrigins("http://localhost:4200") // Angular dev server
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+       });
+   });
+   ```
+2. Añadir middleware de CORS después de `UseAuthentication()`:
+   ```csharp
+   app.UseCors();
+   ```
+
+### Paso 25: Crear Script de Seed Data para Testing
+
+1. Crear archivo `[Proyecto].Api/SeedData.cs` con método estático `SeedDatabase()`
+2. Implementar lógica para poblar datos iniciales:
+   - Crear grupos de organizaciones de ejemplo
+   - Crear aplicaciones y módulos de ejemplo
+   - Crear organizaciones de prueba con módulos asignados
+3. Llamar en `Program.cs` si argumento `--seed` está presente:
+   ```csharp
+   if (args.Contains("--seed"))
+   {
+       using var scope = app.Services.CreateScope();
+       var context = scope.ServiceProvider.GetRequiredService<EntityModel>();
+       SeedData.SeedDatabase(context);
+   }
+   ```
+4. Ejecutar:
+   ```bash
+   dotnet run --project [Proyecto].Api -- --seed
+   ```
+
+### Paso 26: Verificación Final y Pruebas Manuales
+
+1. Ejecutar aplicación:
+   ```bash
+   dotnet run --project [Proyecto].Api
+   ```
+2. Verificar que API arranca sin errores en `https://localhost:5001`
+3. Abrir Swagger UI: `https://localhost:5001/swagger`
+4. Verificar que endpoints de Organization aparecen:
+   - GET /api/Organization/GetById
+   - POST /api/Organization/Insert
+   - PUT /api/Organization/Update
+   - DELETE /api/Organization/DeleteById
+   - POST /api/Organization/GetAllKendoFilter
+   - GET /api/Organization/GetAll
+   - GET /api/Organization/GetNewEntity
+5. Probar flujo completo usando Postman o Swagger UI:
+   - Obtener JWT de Keycloak con usuario de prueba
+   - GetNewEntity → Verificar respuesta con valores null
+   - Insert con datos válidos → Verificar que retorna 201 con Id generado
+   - GetById con Id creado → Verificar configuración OrganizationComplete carga navegaciones
+   - Update cambiando GroupId → Verificar que se registra en AUDITLOG
+   - Update asignando módulos → Verificar que se publica evento (revisar logs)
+   - GetAllKendoFilter con filtros → Verificar paginación
+6. Verificar en base de datos:
+   - Tabla ORGANIZATION tiene registros
+   - Tabla ORGANIZATION_APPLICATIONMODULE tiene relaciones
+   - Tabla AUDITLOG tiene acciones registradas
+   - Tabla EVENTHASH tiene hashes de eventos publicados
+
+## CONTEXTO TÉCNICO
+
+- **Framework**: Helix6 v1.0 sobre .NET 8.0
+- **Arquitectura**: N-Layer (Api → Services → Data → DataModel)
+- **ORM**: Entity Framework Core 9.0.2 (escrituras) + Dapper 2.1.66 (lecturas optimizadas)
+- **Mapeo**: Mapster 7.4.0 para transformación Entity ↔ View
+- **Base de Datos**: PostgreSQL 15+ (diseño agnóstico, soporta SQL Server y MySQL)
+- **Message Broker**: Apache ActiveMQ Artemis 2.31+ (publicación de eventos)
+- **Autenticación**: JWT Bearer con Keycloak como IdP
+- **Logging**: Serilog 9.0.2 con sinks a archivo y consola
+- **Testing**: xUnit, Moq, FluentAssertions
+- **Documentación API**: Swagger/OpenAPI 3.0
+
+## CRITERIOS DE ACEPTACIÓN TÉCNICOS
+
+- [ ] Entidad `Organization` creada en DataModel con 15 campos (Id, SecurityCompanyId, 8 campos de negocio, 5 campos audit)
+- [ ] Tabla `ORGANIZATION` creada en BD con constraints (PK, 3 UK, FK a ORGANIZATIONGROUP)
+- [ ] Migración de EF Core aplicada exitosamente sin errores
+- [ ] Interfaz `IOrganizationRepository` definida heredando de `IBaseRepository<Organization>`
+- [ ] Clase `OrganizationRepository` implementada heredando de `BaseRepository<Organization>`
+- [ ] Configuraciones de carga implementadas: "OrganizationBasic", "OrganizationComplete", "OrganizationWithGroup"
+- [ ] OrganizationView auto-generado por Helix Generator con todas las propiedades
+- [ ] OrganizationViewMetadata creado con atributos de validación (Required, StringLength, RegularExpression, EmailAddress)
+- [ ] `OrganizationService` implementado heredando de `BaseService<OrganizationView, Organization, OrganizationViewMetadata>`
+- [ ] Hook `ValidateView()` implementado con:
+  - Verificación de permisos usando `IUserPermissions`
+  - Validación de unicidad de Name y TaxId (excluyendo soft-deleted)
+  - Validación de existencia y estado de GroupId
+  - Validación de formato de TaxId (regex CIF español)
+  - Llamada a `base.ValidateView()` al final
+- [ ] Hook `PreviousActions()` implementado con filtrado de payload según permisos
+- [ ] Hook `PostActions()` implementado con:
+  - Detección de cambios en GroupId y módulos
+  - Registro de 6 acciones críticas en tabla AUDITLOG
+  - Publicación de evento OrganizationEvent solo cuando corresponde (NO en cambios de datos básicos)
+  - Llamada a `base.PostActions()` al final
+- [ ] Métodos helper privados implementados: `RegisterAuditAction()`, `PublishOrganizationEvent()`
+- [ ] Servicio y repositorio registrados en DI (manual o por convención)
+- [ ] HelixEntities.xml configurado con Organization habilitando todos los endpoints
+- [ ] Endpoints auto-generados en `Endpoints/Base/Generator/OrganizationEndpoints.cs`
+- [ ] Endpoints registrados en `Program.cs` con `app.MapOrganizationEndpoints()`
+- [ ] Autenticación JWT configurada con Keycloak (Authority, Audience en appsettings.json)
+- [ ] Mapeo de claims implementado (KeyCloakUserClaimsMapping o personalizado)
+- [ ] `IUserPermissions` implementado leyendo permisos desde JWT
+- [ ] Event Publisher implementado con cliente ActiveMQ Artemis
+- [ ] Tabla EVENTHASH creada con migración para control de duplicados
+- [ ] Publicación de eventos usa hash SHA-256 para prevenir duplicados
+- [ ] Logging con Serilog configurado en puntos clave (Insert, Update, Eventos, Errores)
+- [ ] Tests unitarios del servicio con cobertura > 80%:
+  - Test de Insert con permiso 200 solo
+  - Test de Insert con permiso 200+202
+  - Test de Update con cambio de grupo
+  - Test de validaciones (nombre duplicado, TaxId inválido)
+  - Test de filtrado de payload según permisos
+- [ ] Tests de integración de endpoints:
+  - GetById retorna 200 con OrganizationView
+  - Insert retorna 201 con Id generado
+  - Insert sin permiso retorna 403
+  - Update con módulos publica evento
+  - GetAllKendoFilter con filtros retorna paginación correcta
+- [ ] Swagger UI muestra todos los endpoints de Organization con documentación
+- [ ] CORS configurado si frontend en dominio diferente
+- [ ] Seed data creado con grupos, aplicaciones, módulos y organizaciones de prueba
+- [ ] Verificación manual exitosa:
+  - GetNewEntity retorna template vacío
+  - Insert crea organización con SecurityCompanyId auto-generado
+  - GetById con "OrganizationComplete" carga navegaciones
+  - Update con cambio de grupo registra en AUDITLOG y publica evento
+  - Update con asignación de módulos publica evento OrganizationEvent
+  - GetAllKendoFilter con filtros funciona correctamente
+- [ ] Base de datos poblada con:
+  - Registros en ORGANIZATION
+  - Relaciones en ORGANIZATION_APPLICATIONMODULE
+  - Acciones en AUDITLOG (ModuleAssigned, GroupChanged, etc.)
+  - Hashes en EVENTHASH
+- [ ] Code review aprobado siguiendo guías de Helix6
+- [ ] Documentación técnica actualizada en README del proyecto
+
+## DEPENDENCIAS
+
+Este ticket backend tiene las siguientes dependencias técnicas y funcionales:
+
+### Tickets de Base de Datos (Bloqueantes)
+
+- **Ticket_ORG001_T003-DB**: Creación de estructura completa de base de datos con:
+  - Tabla ORGANIZATION (15 campos con PK Id, UK SecurityCompanyId, UK Name, UK TaxId, FK GroupId)
+  - Tabla ORGANIZATIONGROUP (8 campos)
+  - Tabla APPLICATION (9 campos)
+  - Tabla APPLICATIONMODULE (9 campos con FK a Application)
+  - Tabla ORGANIZATION_APPLICATIONMODULE (relación N:M con 8 campos, FK a ApplicationModule y Organization)
+  - Tabla AUDITLOG (10 campos para 6 acciones críticas: ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged)
+  - Tabla EVENTHASH (5 campos para control de duplicados de eventos)
+  - Todos los índices, constraints, foreign keys y triggers según diseño
+  - Scripts de migración iniciales si no se usa EF Core Migrations
+
+### Framework Helix6 Base (Prerequisito)
+
+- **Helix6.Base** (NuGet package versión 9.0.2+): Framework base con:
+  - `BaseRepository<TEntity>`, `BaseEFRepository<TEntity>`, `BaseDapperRepository<TEntity>`
+  - `BaseService<TView, TEntity, TMetadata>`
+  - `IUserContext`, `IApplicationContext`, `IUserPermissions`
+  - Middleware de excepciones (`HelixExceptionsMiddleware`)
+  - Helpers de endpoints (`EndpointHelper`)
+  - Sistema de auditoría automática
+
+- **Helix6.Base.Domain** (NuGet package versión 9.0.2+): Dominio base con:
+  - `IEntityBase`, `IViewBase`
+  - Enumeraciones (`EnumActionType`, `SecurityLevel`, `EnumDBMSType`)
+  - `HelixValidationProblem`
+  - `IGenericFilter`, `FilterResult<T>`
+
+- **Helix6.Base.Utils** (NuGet package versión 9.0.2+): Utilidades con:
+  - `FileHelper`, `MailHelper`
+  - Extensiones de conversión
+
+### Paquetes NuGet Adicionales
+
+- **Microsoft.EntityFrameworkCore** (9.0.2): ORM para operaciones de escritura
+- **Microsoft.EntityFrameworkCore.Tools** (9.0.2): Herramientas de migración
+- **Npgsql.EntityFrameworkCore.PostgreSQL** (9.0.2): Provider para PostgreSQL (o equivalente para SQL Server/MySQL)
+- **Dapper** (2.1.66): Micro-ORM para consultas optimizadas
+- **Mapster** (7.4.0): Mapeo de alto rendimiento Entity ↔ View
+- **Serilog.AspNetCore** (9.0.2): Logging estructurado
+- **Serilog.Sinks.File** (6.0.0): Sink de archivo para logs
+- **Swashbuckle.AspNetCore** (6.8.1): Generación de Swagger/OpenAPI
+- **Microsoft.AspNetCore.Authentication.JwtBearer** (8.0.0): Autenticación JWT
+- **Apache.NMS.ActiveMQ** (2.2.0): Cliente para ActiveMQ Artemis
+- **System.Linq.Dynamic.Core** (1.6.0.2): Consultas LINQ dinámicas
+
+### Infraestructura Externa
+
+- **Base de Datos PostgreSQL 15+**: Instancia ejecutándose con:
+  - Usuario con permisos de creación de tablas
+  - Esquema definido (por defecto "public")
+  - Cadena de conexión configurada en appsettings.json
+
+- **Apache ActiveMQ Artemis 2.31+**: Message broker ejecutándose con:
+  - Tópico `infoportone.events.organization` configurado o auto-creación habilitada
+  - Credenciales de acceso (username/password)
+  - BrokerUri accesible desde backend (ej: activemq:tcp://localhost:61616)
+
+- **Keycloak 23+**: Identity Provider configurado con:
+  - Realm `InfoportOne` creado
+  - Client para InfoportOneAdmon registrado (confidential client con client_id y client_secret)
+  - Usuarios de prueba con roles y permisos asignados:
+    - Usuario Organization Administrator (permisos 200, 201, 202, 203)
+    - Usuario Organization Manager (permisos 200, 201)
+    - Usuario Application Manager (permisos 201, 202, 203)
+    - Usuario Organization Viewer (permisos 201, 203)
+  - Protocol Mapper configurado para incluir permisos en JWT (claim "permissions")
+  - Authority URL accesible desde backend
+
+### Configuración de Entorno
+
+- **.NET 8 SDK** (8.0.100+): Instalado en entorno de desarrollo
+- **Entity Framework Core CLI Tools**: Instalado globalmente (`dotnet tool install --global dotnet-ef`)
+- **Visual Studio 2022** (17.8+) o **Visual Studio Code** con extensión C# Dev Kit
+- **Postman** o herramienta similar para testing manual de endpoints
+
+### Archivos de Configuración
+
+- **appsettings.Development.json**: Configurado con:
+  - ConnectionStrings.DefaultConnection apuntando a PostgreSQL local
+  - Serilog.MinimumLevel y WriteTo configurados
+  - Authentication.JwtBearer con Authority, Audience, RequireHttpsMetadata
+  - ActiveMQ.BrokerUri, Username, Password
+  - ApplicationContext con ApplicationName, RolePrefix
+
+- **HelixEntities.xml**: Creado con configuración de entidad Organization
+
+### Tickets Frontend/Integración (No Bloqueantes)
+
+- **Ticket_ORG001_T001-FE**: Implementación de formulario Angular (consume endpoints de este ticket)
+  - Requiere que endpoints estén disponibles y documentados en Swagger
+  - Requiere NSwag clients regenerados después de completar este ticket
+
+### Orden de Implementación Recomendado
+
+1. **Primero**: Ticket_ORG001_T003-DB (estructura de datos)
+2. **Segundo**: Este ticket (Ticket_ORG001_T002-BE) - Backend con endpoints
+3. **Tercero**: Regenerar NSwag clients en proyecto frontend
+4. **Cuarto**: Ticket_ORG001_T001-FE (frontend que consume endpoints)
+
+### Verificación de Dependencias Antes de Empezar
+
+Ejecutar checklist de dependencias:
+- [ ] PostgreSQL instalado y ejecutándose
+- [ ] Base de datos creada (o permisos para crearla con EF Core)
+- [ ] ActiveMQ Artemis instalado y ejecutándose
+- [ ] Tópico `infoportone.events.organization` accesible
+- [ ] Keycloak instalado y ejecutándose
+- [ ] Realm InfoportOne configurado con usuarios de prueba
+- [ ] .NET 8 SDK instalado y verificado (`dotnet --version`)
+- [ ] EF Core Tools instalado (`dotnet ef --version`)
+- [ ] Helix6.Base NuGet packages disponibles (pública o feed privado configurado)
+- [ ] Proyecto Helix6 base generado con estructura inicial (Api, DataModel, Data, Services, Entities)
+- [ ] appsettings.Development.json con ConnectionString válido
+- [ ] Ticket_ORG001_T003-DB completado (tablas creadas)
+
+## RECURSOS
+
+- **Helix6 Backend Architecture**: Ver [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md) - Documentación completa del framework
+  - Sección 2: Estructura de Capas y Proyectos
+  - Sección 3: Implementación de Entidades y Repositorios
+  - Sección 4: Implementación de Servicios
+  - Sección 5: Generación de Endpoints
+  - Sección 7: Bootstrapping y Program.cs
+  - Sección 10: Seguridad y Autenticación
+- **Product Documentation**: Ver [readme.md](readme.md)
+  - Sección 3.2.1: Esquema tabla ORGANIZATION
+  - Sección 3.2.2: Esquema tabla ORGANIZATIONGROUP
+  - Sección 3.2.4: Esquema tabla AUDITLOG
+  - Sección 3.2.7: Esquema tabla ORGANIZATION_APPLICATIONMODULE
+  - Sección 1.3.1: Estructura de OrganizationEvent
+- **Entity Framework Core Documentation**: [Microsoft Docs](https://learn.microsoft.com/en-us/ef/core/)
+- **Dapper Documentation**: [GitHub](https://github.com/DapperLib/Dapper)
+- **Mapster Documentation**: [GitHub](https://github.com/MapsterMapper/Mapster)
+- **Serilog Documentation**: [Serilog.net](https://serilog.net/)
+- **ActiveMQ Artemis Documentation**: [Apache ActiveMQ](https://activemq.apache.org/components/artemis/)
+- **JWT Bearer Authentication**: [Microsoft Docs](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/)
+- **User Story**: [ORG001_Gestion_Organizacion.md](Epic1_UserStories/ORG001_Gestion_Organizacion/ORG001_Gestion_Organizacion.md)
+- **Frontend Ticket**: [Ticket_ORG001_T001-FE.md](ORG001_Tickets/Ticket_ORG001_T001-FE.md) (para entender contrato de API)
+
+=============================================================
+
+
+# ORG001-T003-DB: Crear tablas y migraciones necesarias para organización
+
+=============================================================
+**TICKET ID:** ORG001-T003-DB  
+**EPIC:** Gestión del Portfolio de Organizaciones Clientes  
+**USER STORY:** ORG-001 - Crear y editar organización cliente  
+**COMPONENT:** Base de Datos  
+**PRIORITY:** Alta  
+**ESTIMATION:** 6 horas  
+=============================================================
+
+## TÍTULO
+Crear tablas y migraciones necesarias para el proceso de creación/edición de `ORGANIZATION`
+
+## DESCRIPCIÓN
+
+Implementar la estructura completa de base de datos necesaria para soportar el CRUD de organizaciones clientes siguiendo el estándar del Framework Helix6 con PostgreSQL como motor de base de datos.
+
+**Tablas a crear**:
+
+1. **ORGANIZATIONGROUP**: Agrupaciones lógicas de organizaciones (holdings, consorcios)
+2. **ORGANIZATION**: Entidad principal de organizaciones clientes con `SecurityCompanyId` como identificador de negocio
+3. **APPLICATION**: Catálogo de aplicaciones satélite del ecosistema
+4. **APPLICATIONMODULE**: Módulos funcionales de cada aplicación
+5. **ORGANIZATION_APPLICATIONMODULE**: Relación N:M que define qué organizaciones tienen acceso a qué módulos
+6. **AUDITLOG**: Registro inmutable de acciones críticas (sin campos JSON de OldValue/NewValue en esta fase)
+
+**Características clave del diseño**:
+
+- **Estándar Helix6**: Todas las tablas usan `Id` como PK autonumérica y campos de auditoría (`AuditCreationUser`, `AuditCreationDate`, `AuditModificationUser`, `AuditModificationDate`, `AuditDeletionDate`)
+- **Soft Delete**: Todas las entidades soportan eliminación lógica mediante `AuditDeletionDate`
+- **Identificador de Negocio**: `SecurityCompanyId` es índice único en ORGANIZATION (independiente de `Id`)
+- **Prefijos de Aplicación**: El campo `RolePrefix` en APPLICATION se usa para nomenclatura de roles y módulos
+- **Índices Únicos**: Para garantizar unicidad de nombres, TaxId, SecurityCompanyId, etc.
+
+**Migración con Entity Framework Core**:
+- Se creará una migración inicial (`AddOrganizationInfrastructure`) que contenga todas las tablas
+- Se configurarán todas las relaciones, constraints, índices y defaults
+- Se incluirán scripts de seed data opcionales para datos de prueba
+
+## ESQUEMA DE TABLAS
+
+### Tabla 1: ORGANIZATIONGROUP
+
+**Propósito**: Agrupaciones lógicas de organizaciones (holdings, consorcios, franquicias).
+
+**Campos**:
+
+| Nombre Campo | Tipo PostgreSQL | Restricciones | Descripción |
+|--------------|-----------------|---------------|-------------|
+| Id | INTEGER | PK, SERIAL, NOT NULL | Identificador único técnico del grupo |
+| GroupName | VARCHAR(200) | UNIQUE, NOT NULL | Nombre del grupo (ej: "Holding Norte") |
+| Description | VARCHAR(500) | NULL | Descripción opcional del grupo |
+| AuditCreationUser | VARCHAR(255) | NULL | Email del usuario que creó el grupo |
+| AuditCreationDate | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación |
+| AuditModificationUser | VARCHAR(255) | NULL | Email del usuario que modificó |
+| AuditModificationDate | TIMESTAMP | NULL | Fecha de última modificación |
+| AuditDeletionDate | TIMESTAMP | NULL | Soft delete - fecha de eliminación lógica |
+
+**Índices**:
+```sql
+PK: Id
+UK: UX_OrganizationGroup_GroupName (GroupName)
+```
+
+**DDL PostgreSQL**:
+```sql
+CREATE TABLE "ORGANIZATIONGROUP" (
+    "Id" SERIAL PRIMARY KEY,
+    "GroupName" VARCHAR(200) NOT NULL,
+    "Description" VARCHAR(500),
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_OrganizationGroup_GroupName" UNIQUE ("GroupName")
+);
+```
+
+### Tabla 2: ORGANIZATION
+
+**Propósito**: Entidad principal de organizaciones clientes. Fuente de verdad para multi-tenancy.
+
+**Campos**:
+
+| Nombre Campo | Tipo PostgreSQL | Restricciones | Descripción |
+|--------------|-----------------|---------------|-------------|
+| Id | INTEGER | PK, SERIAL, NOT NULL | Identificador único técnico (PK Helix6) |
+| SecurityCompanyId | INTEGER | UNIQUE, NOT NULL | Identificador de negocio inmutable (usado en JWT claim c_ids) |
+| GroupId | INTEGER | FK → ORGANIZATIONGROUP(Id), NULL | Referencia opcional al grupo |
+| Name | VARCHAR(200) | UNIQUE, NOT NULL | Nombre comercial de la organización |
+| TaxId | VARCHAR(50) | UNIQUE, NOT NULL | Identificador fiscal (NIF/CIF/RFC) |
+| Address | VARCHAR(300) | NULL | Dirección postal |
+| City | VARCHAR(100) | NULL | Ciudad |
+| PostalCode | VARCHAR(20) | NULL | Código postal |
+| Country | VARCHAR(100) | NULL | País |
+| ContactEmail | VARCHAR(255) | NULL | Email de contacto |
+| ContactPhone | VARCHAR(50) | NULL | Teléfono de contacto |
+| AuditCreationUser | VARCHAR(255) | NULL | Usuario que creó la organización |
+| AuditCreationDate | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación (onboarding) |
+| AuditModificationUser | VARCHAR(255) | NULL | Usuario que modificó |
+| AuditModificationDate | TIMESTAMP | NULL | Fecha de última modificación |
+| AuditDeletionDate | TIMESTAMP | NULL | Soft delete - fecha de eliminación |
+
+**Índices**:
+```sql
+PK: Id
+UK: UX_Organization_SecurityCompanyId (SecurityCompanyId)
+UK: UX_Organization_Name (Name)
+UK: UX_Organization_TaxId (TaxId)
+IX: IX_Organization_GroupId (GroupId)
+```
+
+**DDL PostgreSQL**:
+```sql
+CREATE SEQUENCE "ORGANIZATION_SecurityCompanyId_seq" START WITH 1001;
+
+CREATE TABLE "ORGANIZATION" (
+    "Id" SERIAL PRIMARY KEY,
+    "SecurityCompanyId" INTEGER NOT NULL DEFAULT nextval('"ORGANIZATION_SecurityCompanyId_seq"'),
+    "GroupId" INTEGER,
+    "Name" VARCHAR(200) NOT NULL,
+    "TaxId" VARCHAR(50) NOT NULL,
+    "Address" VARCHAR(300),
+    "City" VARCHAR(100),
+    "PostalCode" VARCHAR(20),
+    "Country" VARCHAR(100),
+    "ContactEmail" VARCHAR(255),
+    "ContactPhone" VARCHAR(50),
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_Organization_SecurityCompanyId" UNIQUE ("SecurityCompanyId"),
+    CONSTRAINT "UX_Organization_Name" UNIQUE ("Name"),
+    CONSTRAINT "UX_Organization_TaxId" UNIQUE ("TaxId"),
+    CONSTRAINT "FK_Organization_OrganizationGroup" FOREIGN KEY ("GroupId") 
+        REFERENCES "ORGANIZATIONGROUP"("Id") ON DELETE SET NULL
+);
+
+CREATE INDEX "IX_Organization_GroupId" ON "ORGANIZATION"("GroupId");
+```
+
+**Nota importante**: `SecurityCompanyId` se genera automáticamente mediante secuencia independiente, comenzando en 1001.
+
+### Tabla 3: APPLICATION
+
+**Propósito**: Catálogo de aplicaciones satélite del ecosistema (CRM, ERP, BI, etc.).
+
+**Campos**:
+
+| Nombre Campo | Tipo PostgreSQL | Restricciones | Descripción |
+|--------------|-----------------|---------------|-------------|
+| Id | INTEGER | PK, SERIAL, NOT NULL | Identificador único técnico |
+| AppName | VARCHAR(100) | UNIQUE, NOT NULL | Nombre de la aplicación |
+| Description | VARCHAR(500) | NULL | Descripción de la aplicación |
+| RolePrefix | VARCHAR(10) | UNIQUE, NOT NULL | Prefijo para roles y módulos (ej: "STP", "CRM") |
+| AuditCreationUser | VARCHAR(255) | NULL | Usuario que creó la aplicación |
+| AuditCreationDate | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación |
+| AuditModificationUser | VARCHAR(255) | NULL | Usuario que modificó |
+| AuditModificationDate | TIMESTAMP | NULL | Fecha de modificación |
+| AuditDeletionDate | TIMESTAMP | NULL | Soft delete |
+
+**Índices**:
+```sql
+PK: Id
+UK: UX_Application_AppName (AppName)
+UK: UX_Application_RolePrefix (RolePrefix)
+```
+
+**DDL PostgreSQL**:
+```sql
+CREATE TABLE "APPLICATION" (
+    "Id" SERIAL PRIMARY KEY,
+    "AppName" VARCHAR(100) NOT NULL,
+    "Description" VARCHAR(500),
+    "RolePrefix" VARCHAR(10) NOT NULL,
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_Application_AppName" UNIQUE ("AppName"),
+    CONSTRAINT "UX_Application_RolePrefix" UNIQUE ("RolePrefix")
+);
+```
+
+### Tabla 4: APPLICATIONMODULE
+
+**Propósito**: Módulos funcionales de cada aplicación. Permite habilitar/deshabilitar funcionalidades por organización.
+
+**Campos**:
+
+| Nombre Campo | Tipo PostgreSQL | Restricciones | Descripción |
+|--------------|-----------------|---------------|-------------|
+| Id | INTEGER | PK, SERIAL, NOT NULL | Identificador único del módulo |
+| ApplicationId | INTEGER | FK → APPLICATION(Id), NOT NULL | Aplicación a la que pertenece |
+| ModuleName | VARCHAR(100) | NOT NULL | Nombre del módulo (ej: "MSTP_Trafico") |
+| Description | VARCHAR(500) | NULL | Descripción de funcionalidades |
+| DisplayOrder | INTEGER | DEFAULT 0 | Orden de visualización |
+| AuditCreationUser | VARCHAR(255) | NULL | Usuario que creó el módulo |
+| AuditCreationDate | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación |
+| AuditModificationUser | VARCHAR(255) | NULL | Usuario que modificó |
+| AuditModificationDate | TIMESTAMP | NULL | Fecha de modificación |
+| AuditDeletionDate | TIMESTAMP | NULL | Soft delete |
+
+**Índices**:
+```sql
+PK: Id
+UK: UX_ApplicationModule_AppId_ModuleName (ApplicationId, ModuleName)
+IX: IX_ApplicationModule_ApplicationId (ApplicationId)
+```
+
+**DDL PostgreSQL**:
+```sql
+CREATE TABLE "APPLICATIONMODULE" (
+    "Id" SERIAL PRIMARY KEY,
+    "ApplicationId" INTEGER NOT NULL,
+    "ModuleName" VARCHAR(100) NOT NULL,
+    "Description" VARCHAR(500),
+    "DisplayOrder" INTEGER DEFAULT 0,
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_ApplicationModule_AppId_ModuleName" UNIQUE ("ApplicationId", "ModuleName"),
+    CONSTRAINT "FK_ApplicationModule_Application" FOREIGN KEY ("ApplicationId") 
+        REFERENCES "APPLICATION"("Id") ON DELETE CASCADE
+);
+
+CREATE INDEX "IX_ApplicationModule_ApplicationId" ON "APPLICATIONMODULE"("ApplicationId");
+```
+
+### Tabla 6: ORGANIZATION_APPLICATIONMODULE
+
+**Propósito**: Relación N:M que define qué organizaciones tienen acceso a qué módulos.
+
+**Campos**:
+
+| Nombre Campo | Tipo PostgreSQL | Restricciones | Descripción |
+|--------------|-----------------|---------------|-------------|
+| Id | INTEGER | PK, SERIAL, NOT NULL | Identificador único |
+| ApplicationModuleId | INTEGER | FK → APPLICATIONMODULE(Id), NOT NULL | Módulo al que se concede acceso |
+| OrganizationId | INTEGER | FK → ORGANIZATION(Id), NOT NULL | Organización que recibe acceso |
+| AuditCreationUser | VARCHAR(255) | NULL | Usuario que concedió el acceso |
+| AuditCreationDate | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de concesión |
+| AuditModificationUser | VARCHAR(255) | NULL | Usuario que modificó |
+| AuditModificationDate | TIMESTAMP | NULL | Fecha de modificación |
+| AuditDeletionDate | TIMESTAMP | NULL | Soft delete (revocación) |
+
+**Índices**:
+```sql
+PK: Id
+UK: UX_OrgAppModule_ModuleId_OrgId (ApplicationModuleId, OrganizationId)
+IX: IX_OrgAppModule_OrganizationId (OrganizationId)
+```
+
+**DDL PostgreSQL**:
+```sql
+CREATE TABLE "ORGANIZATION_APPLICATIONMODULE" (
+    "Id" SERIAL PRIMARY KEY,
+    "ApplicationModuleId" INTEGER NOT NULL,
+    "OrganizationId" INTEGER NOT NULL,
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_OrgAppModule_ModuleId_OrgId" UNIQUE ("ApplicationModuleId", "OrganizationId"),
+    CONSTRAINT "FK_OrgAppModule_ApplicationModule" FOREIGN KEY ("ApplicationModuleId") 
+        REFERENCES "APPLICATIONMODULE"("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_OrgAppModule_Organization" FOREIGN KEY ("OrganizationId") 
+        REFERENCES "ORGANIZATION"("Id") ON DELETE CASCADE
+);
+
+CREATE INDEX "IX_OrgAppModule_OrganizationId" ON "ORGANIZATION_APPLICATIONMODULE"("OrganizationId");
+```
+
+### Tabla 7: AUDITLOG
+
+**Propósito**: Registro inmutable de acciones críticas. **Nota**: En esta fase no se incluyen campos OldValue/NewValue JSON.
+
+**Campos**:
+
+| Nombre Campo | Tipo PostgreSQL | Restricciones | Descripción |
+|--------------|-----------------|---------------|-------------|
+| Id | BIGINT | PK, SERIAL, NOT NULL | Identificador único del log |
+| EntityType | VARCHAR(50) | NOT NULL | Tipo de entidad (ej: "Organization") |
+| EntityId | VARCHAR(50) | NOT NULL | ID de la entidad afectada |
+| Action | VARCHAR(100) | NOT NULL | Acción realizada |
+| UserId | INTEGER | NULL | ID del usuario que realizó la acción |
+| Timestamp | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Momento de la acción |
+| CorrelationId | VARCHAR(100) | NULL | ID de correlación para trazabilidad |
+| AuditCreationUser | VARCHAR(255) | NULL | Usuario que creó el log |
+| AuditCreationDate | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación |
+| AuditModificationUser | VARCHAR(255) | NULL | Usuario que modificó (no aplica) |
+| AuditModificationDate | TIMESTAMP | NULL | Fecha de modificación (no aplica) |
+| AuditDeletionDate | TIMESTAMP | NULL | Soft delete (no aplica, tabla inmutable) |
+
+**Índices**:
+```sql
+PK: Id
+IX: IX_AuditLog_EntityType_EntityId (EntityType, EntityId)
+IX: IX_AuditLog_Timestamp (Timestamp DESC)
+IX: IX_AuditLog_UserId (UserId)
+```
+
+**DDL PostgreSQL**:
+```sql
+CREATE TABLE "AUDITLOG" (
+    "Id" BIGSERIAL PRIMARY KEY,
+    "EntityType" VARCHAR(50) NOT NULL,
+    "EntityId" VARCHAR(50) NOT NULL,
+    "Action" VARCHAR(100) NOT NULL,
+    "UserId" INTEGER,
+    "Timestamp" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "CorrelationId" VARCHAR(100),
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP
+);
+
+CREATE INDEX "IX_AuditLog_EntityType_EntityId" ON "AUDITLOG"("EntityType", "EntityId");
+CREATE INDEX "IX_AuditLog_Timestamp" ON "AUDITLOG"("Timestamp" DESC);
+CREATE INDEX "IX_AuditLog_UserId" ON "AUDITLOG"("UserId");
+```
+
+**Nota importante**: Esta tabla es **append-only** (solo INSERT, no UPDATE ni DELETE). El campo `AuditDeletionDate` no se usa.
+
+## MIGRACIONES DE ENTITY FRAMEWORK CORE
+
+### Comandos de Migración
+
+Para implementar esta estructura en PostgreSQL utilizando Entity Framework Core, ejecutar los siguientes comandos desde la carpeta del proyecto Api:
+
+**1. Crear la migración inicial**:
+```powershell
+dotnet ef migrations add AddOrganizationInfrastructure `
+    --project InfoportOneAdmon.Data `
+    --startup-project InfoportOneAdmon.Api `
+    --context EntityModel `
+    --output-dir Migrations
+```
+
+**2. Verificar script SQL generado** (opcional):
+```powershell
+dotnet ef migrations script `
+    --project InfoportOneAdmon.Data `
+    --startup-project InfoportOneAdmon.Api `
+    --context EntityModel `
+    --output "Migrations/AddOrganizationInfrastructure.sql"
+```
+
+**3. Aplicar migración a la base de datos**:
+```powershell
+dotnet ef database update `
+    --project InfoportOneAdmon.Data `
+    --startup-project InfoportOneAdmon.Api `
+    --context EntityModel
+```
+
+**4. Verificar estado de migraciones**:
+```powershell
+dotnet ef migrations list `
+    --project InfoportOneAdmon.Data `
+    --startup-project InfoportOneAdmon.Api `
+    --context EntityModel
+```
+
+### Estructura de la Migración (C#)
+
+El archivo de migración generado (`YYYYMMDDHHMMSS_AddOrganizationInfrastructure.cs`) contendrá:
+
+```csharp
+public partial class AddOrganizationInfrastructure : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        // 1. Crear secuencia para SecurityCompanyId
+        migrationBuilder.CreateSequence<int>(
+            name: "ORGANIZATION_SecurityCompanyId_seq",
+            startValue: 1001L);
+        
+        // 2. Crear tabla ORGANIZATIONGROUP
+        migrationBuilder.CreateTable(
+            name: "ORGANIZATIONGROUP",
+            columns: table => new
+            {
+                Id = table.Column<int>(nullable: false)
+                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                GroupName = table.Column<string>(maxLength: 200, nullable: false),
+                Description = table.Column<string>(maxLength: 500, nullable: true),
+                AuditCreationUser = table.Column<string>(maxLength: 255, nullable: true),
+                AuditCreationDate = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                AuditModificationUser = table.Column<string>(maxLength: 255, nullable: true),
+                AuditModificationDate = table.Column<DateTime>(nullable: true),
+                AuditDeletionDate = table.Column<DateTime>(nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ORGANIZATIONGROUP", x => x.Id);
+            });
+        
+        // 3. Crear tabla ORGANIZATION con FK a ORGANIZATIONGROUP
+        migrationBuilder.CreateTable(
+            name: "ORGANIZATION",
+            columns: table => new
+            {
+                Id = table.Column<int>(nullable: false)
+                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                SecurityCompanyId = table.Column<int>(nullable: false, defaultValueSql: "nextval('\"ORGANIZATION_SecurityCompanyId_seq\"')"),
+                GroupId = table.Column<int>(nullable: true),
+                Name = table.Column<string>(maxLength: 200, nullable: false),
+                TaxId = table.Column<string>(maxLength: 50, nullable: false),
+                Address = table.Column<string>(maxLength: 300, nullable: true),
+                City = table.Column<string>(maxLength: 100, nullable: true),
+                PostalCode = table.Column<string>(maxLength: 20, nullable: true),
+                Country = table.Column<string>(maxLength: 100, nullable: true),
+                ContactEmail = table.Column<string>(maxLength: 255, nullable: true),
+                ContactPhone = table.Column<string>(maxLength: 50, nullable: true),
+                AuditCreationUser = table.Column<string>(maxLength: 255, nullable: true),
+                AuditCreationDate = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                AuditModificationUser = table.Column<string>(maxLength: 255, nullable: true),
+                AuditModificationDate = table.Column<DateTime>(nullable: true),
+                AuditDeletionDate = table.Column<DateTime>(nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ORGANIZATION", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Organization_OrganizationGroup",
+                    column: x => x.GroupId,
+                    principalTable: "ORGANIZATIONGROUP",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.SetNull);
+            });
+        
+        // 4. Crear tabla APPLICATION
+        migrationBuilder.CreateTable(
+            name: "APPLICATION",
+            columns: table => new
+            {
+                Id = table.Column<int>(nullable: false)
+                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                AppName = table.Column<string>(maxLength: 100, nullable: false),
+                Description = table.Column<string>(maxLength: 500, nullable: true),
+                RolePrefix = table.Column<string>(maxLength: 10, nullable: false),
+                AuditCreationUser = table.Column<string>(maxLength: 255, nullable: true),
+                AuditCreationDate = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                AuditModificationUser = table.Column<string>(maxLength: 255, nullable: true),
+                AuditModificationDate = table.Column<DateTime>(nullable: true),
+                AuditDeletionDate = table.Column<DateTime>(nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_APPLICATION", x => x.Id);
+            });
+        
+        // 5. Crear tabla APPLICATIONMODULE
+        // 6. Crear tabla ORGANIZATION_APPLICATIONMODULE
+        // 7. Crear tabla AUDITLOG
+        
+        // 11. Crear índices únicos
+        migrationBuilder.CreateIndex(
+            name: "UX_OrganizationGroup_GroupName",
+            table: "ORGANIZATIONGROUP",
+            column: "GroupName",
+            unique: true);
+        
+        migrationBuilder.CreateIndex(
+            name: "UX_Organization_SecurityCompanyId",
+            table: "ORGANIZATION",
+            column: "SecurityCompanyId",
+            unique: true);
+        
+        migrationBuilder.CreateIndex(
+            name: "UX_Organization_Name",
+            table: "ORGANIZATION",
+            column: "Name",
+            unique: true);
+        
+        migrationBuilder.CreateIndex(
+            name: "UX_Organization_TaxId",
+            table: "ORGANIZATION",
+            column: "TaxId",
+            unique: true);
+        
+        // ... más índices
+    }
+    
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        // Eliminar tablas en orden inverso (respetando FKs)
+        migrationBuilder.DropTable(name: "ORGANIZATION_APPLICATIONMODULE");
+        migrationBuilder.DropTable(name: "APPLICATIONMODULE");
+        migrationBuilder.DropTable(name: "APPLICATION");
+        migrationBuilder.DropTable(name: "ORGANIZATION");
+        migrationBuilder.DropTable(name: "ORGANIZATIONGROUP");
+        migrationBuilder.DropTable(name: "AUDITLOG");
+        
+        migrationBuilder.DropSequence(name: "ORGANIZATION_SecurityCompanyId_seq");
+    }
+}
+```
+
+### Script SQL Completo (PostgreSQL)
+
+```sql
+-- =====================================================
+-- Script de creación de estructura de BD
+-- InfoportOneAdmon - Epic1 Organization Management
+-- Motor: PostgreSQL 15+
+-- =====================================================
+
+-- 1. Crear secuencia para SecurityCompanyId
+CREATE SEQUENCE "ORGANIZATION_SecurityCompanyId_seq" START WITH 1001;
+
+-- 2. Tabla ORGANIZATIONGROUP
+CREATE TABLE "ORGANIZATIONGROUP" (
+    "Id" SERIAL PRIMARY KEY,
+    "GroupName" VARCHAR(200) NOT NULL,
+    "Description" VARCHAR(500),
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_OrganizationGroup_GroupName" UNIQUE ("GroupName")
+);
+
+-- 3. Tabla ORGANIZATION
+CREATE TABLE "ORGANIZATION" (
+    "Id" SERIAL PRIMARY KEY,
+    "SecurityCompanyId" INTEGER NOT NULL DEFAULT nextval('"ORGANIZATION_SecurityCompanyId_seq"'),
+    "GroupId" INTEGER,
+    "Name" VARCHAR(200) NOT NULL,
+    "TaxId" VARCHAR(50) NOT NULL,
+    "Address" VARCHAR(300),
+    "City" VARCHAR(100),
+    "PostalCode" VARCHAR(20),
+    "Country" VARCHAR(100),
+    "ContactEmail" VARCHAR(255),
+    "ContactPhone" VARCHAR(50),
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_Organization_SecurityCompanyId" UNIQUE ("SecurityCompanyId"),
+    CONSTRAINT "UX_Organization_Name" UNIQUE ("Name"),
+    CONSTRAINT "UX_Organization_TaxId" UNIQUE ("TaxId"),
+    CONSTRAINT "FK_Organization_OrganizationGroup" FOREIGN KEY ("GroupId") 
+        REFERENCES "ORGANIZATIONGROUP"("Id") ON DELETE SET NULL
+);
+
+CREATE INDEX "IX_Organization_GroupId" ON "ORGANIZATION"("GroupId");
+
+-- 4. Tabla APPLICATION
+CREATE TABLE "APPLICATION" (
+    "Id" SERIAL PRIMARY KEY,
+    "AppName" VARCHAR(100) NOT NULL,
+    "Description" VARCHAR(500),
+    "RolePrefix" VARCHAR(10) NOT NULL,
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_Application_AppName" UNIQUE ("AppName"),
+    CONSTRAINT "UX_Application_RolePrefix" UNIQUE ("RolePrefix")
+);
+
+-- 5. Tabla APPLICATIONMODULE
+CREATE TABLE "APPLICATIONMODULE" (
+    "Id" SERIAL PRIMARY KEY,
+    "ApplicationId" INTEGER NOT NULL,
+    "ModuleName" VARCHAR(100) NOT NULL,
+    "Description" VARCHAR(500),
+    "DisplayOrder" INTEGER DEFAULT 0,
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_ApplicationModule_AppId_ModuleName" UNIQUE ("ApplicationId", "ModuleName"),
+    CONSTRAINT "FK_ApplicationModule_Application" FOREIGN KEY ("ApplicationId") 
+        REFERENCES "APPLICATION"("Id") ON DELETE CASCADE
+);
+
+CREATE INDEX "IX_ApplicationModule_ApplicationId" ON "APPLICATIONMODULE"("ApplicationId");
+
+-- 6. Tabla ORGANIZATION_APPLICATIONMODULE
+CREATE TABLE "ORGANIZATION_APPLICATIONMODULE" (
+    "Id" SERIAL PRIMARY KEY,
+    "ApplicationModuleId" INTEGER NOT NULL,
+    "OrganizationId" INTEGER NOT NULL,
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP,
+    
+    CONSTRAINT "UX_OrgAppModule_ModuleId_OrgId" UNIQUE ("ApplicationModuleId", "OrganizationId"),
+    CONSTRAINT "FK_OrgAppModule_ApplicationModule" FOREIGN KEY ("ApplicationModuleId") 
+        REFERENCES "APPLICATIONMODULE"("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_OrgAppModule_Organization" FOREIGN KEY ("OrganizationId") 
+        REFERENCES "ORGANIZATION"("Id") ON DELETE CASCADE
+);
+
+CREATE INDEX "IX_OrgAppModule_OrganizationId" ON "ORGANIZATION_APPLICATIONMODULE"("OrganizationId");
+
+-- 7. Tabla AUDITLOG
+CREATE TABLE "AUDITLOG" (
+    "Id" BIGSERIAL PRIMARY KEY,
+    "EntityType" VARCHAR(50) NOT NULL,
+    "EntityId" VARCHAR(50) NOT NULL,
+    "Action" VARCHAR(100) NOT NULL,
+    "UserId" INTEGER,
+    "Timestamp" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "CorrelationId" VARCHAR(100),
+    "AuditCreationUser" VARCHAR(255),
+    "AuditCreationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditModificationUser" VARCHAR(255),
+    "AuditModificationDate" TIMESTAMP,
+    "AuditDeletionDate" TIMESTAMP
+);
+
+CREATE INDEX "IX_AuditLog_EntityType_EntityId" ON "AUDITLOG"("EntityType", "EntityId");
+CREATE INDEX "IX_AuditLog_Timestamp" ON "AUDITLOG"("Timestamp" DESC);
+CREATE INDEX "IX_AuditLog_UserId" ON "AUDITLOG"("UserId");
+
+-- =====================================================
+-- Fin del script de creación
+-- =====================================================
+```
+
+## DATOS DE PRUEBA (SEED DATA)
+
+Script SQL opcional para poblar la base de datos con datos de prueba:
+
+```sql
+-- Insertar grupos de organizaciones
+INSERT INTO "ORGANIZATIONGROUP" ("GroupName", "Description", "AuditCreationUser", "AuditCreationDate")
+VALUES 
+    ('Holding Norte', 'Grupo de empresas del norte de España', 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    ('Grupo Logístico Peninsular', 'Consorcio de empresas de logística', 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    ('Franquicia Retail Sur', 'Red de franquicias comerciales', 'admin@infoportone.com', CURRENT_TIMESTAMP);
+
+-- Insertar organizaciones de prueba
+INSERT INTO "ORGANIZATION" ("Name", "TaxId", "Address", "City", "PostalCode", "Country", "ContactEmail", "ContactPhone", "GroupId", "AuditCreationUser", "AuditCreationDate")
+VALUES 
+    ('Transportes Rápidos S.L.', 'B12345678', 'Calle Principal 123', 'Barcelona', '08001', 'España', 'admin@transportesrapidos.com', '+34912345678', 1, 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    ('Logística Internacional S.A.', 'A98765432', 'Avenida del Puerto 456', 'Valencia', '46001', 'España', 'contacto@logisticaint.com', '+34923456789', 2, 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    ('Comercial Mediterráneo S.L.', 'B55555555', 'Plaza Mayor 1', 'Málaga', '29001', 'España', 'info@comercialmed.com', '+34955555555', 3, 'admin@infoportone.com', CURRENT_TIMESTAMP);
+
+-- Insertar aplicaciones
+INSERT INTO "APPLICATION" ("AppName", "Description", "RolePrefix", "AuditCreationUser", "AuditCreationDate")
+VALUES 
+    ('Sintraport', 'Sistema de gestión logística y portuaria', 'STP', 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    ('CRM Comercial', 'Sistema de gestión de relaciones con clientes', 'CRM', 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    ('ERP Financiero', 'Sistema de planificación de recursos empresariales', 'ERP', 'admin@infoportone.com', CURRENT_TIMESTAMP);
+
+-- Insertar módulos
+INSERT INTO "APPLICATIONMODULE" ("ApplicationId", "ModuleName", "Description", "DisplayOrder", "AuditCreationUser", "AuditCreationDate")
+VALUES 
+    (1, 'MSTP_Trafico', 'Módulo de gestión de tráfico y asignaciones', 10, 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    (1, 'MSTP_Almacen', 'Módulo de gestión de almacén', 20, 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    (1, 'MSTP_Facturacion', 'Módulo de facturación electrónica', 30, 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    (2, 'MCRM_Oportunidades', 'Módulo de gestión de oportunidades de venta', 10, 'admin@infoportone.com', CURRENT_TIMESTAMP),
+    (2, 'MCRM_Facturacion', 'Módulo de facturación de ventas', 20, 'admin@infoportone.com', CURRENT_TIMESTAMP);
+
+-- Asignar módulos a organizaciones
+INSERT INTO "ORGANIZATION_APPLICATIONMODULE" ("ApplicationModuleId", "OrganizationId", "AuditCreationUser", "AuditCreationDate")
+VALUES 
+    (1, 1, 'admin@infoportone.com', CURRENT_TIMESTAMP), -- Transportes Rápidos tiene MSTP_Trafico
+    (2, 1, 'admin@infoportone.com', CURRENT_TIMESTAMP), -- Transportes Rápidos tiene MSTP_Almacen
+    (1, 2, 'admin@infoportone.com', CURRENT_TIMESTAMP), -- Logística Internacional tiene MSTP_Trafico
+    (2, 2, 'admin@infoportone.com', CURRENT_TIMESTAMP), -- Logística Internacional tiene MSTP_Almacen
+    (3, 2, 'admin@infoportone.com', CURRENT_TIMESTAMP), -- Logística Internacional tiene MSTP_Facturacion
+    (4, 3, 'admin@infoportone.com', CURRENT_TIMESTAMP), -- Comercial Mediterráneo tiene MCRM_Oportunidades
+    (5, 3, 'admin@infoportone.com', CURRENT_TIMESTAMP); -- Comercial Mediterráneo tiene MCRM_Facturacion
+```
+
+## VERIFICACIÓN DE LA IMPLEMENTACIÓN
+
+### 1. Verificar que las tablas se crearon correctamente
+
+```sql
+-- Listar todas las tablas creadas
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+    AND table_type = 'BASE TABLE'
+ORDER BY table_name;
+
+-- Verificar constraints de cada tabla
+SELECT 
+    tc.table_name, 
+    tc.constraint_name, 
+    tc.constraint_type
+FROM information_schema.table_constraints tc
+WHERE tc.table_schema = 'public'
+ORDER BY tc.table_name, tc.constraint_type;
+```
+
+### 2. Verificar índices creados
+
+```sql
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    indexdef
+FROM pg_indexes
+WHERE schemaname = 'public'
+ORDER BY tablename, indexname;
+```
+
+### 3. Verificar foreign keys
+
+```sql
+SELECT
+    tc.table_name,
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+    AND tc.table_schema = kcu.table_schema
+JOIN information_schema.constraint_column_usage AS ccu
+    ON ccu.constraint_name = tc.constraint_name
+    AND ccu.table_schema = tc.table_schema
+WHERE tc.constraint_type = 'FOREIGN KEY'
+    AND tc.table_schema = 'public'
+ORDER BY tc.table_name;
+```
+
+### 4. Probar insert en ORGANIZATION y verificar SecurityCompanyId autogenerado
+
+```sql
+-- Insertar organización de prueba
+INSERT INTO "ORGANIZATION" ("Name", "TaxId", "AuditCreationUser")
+VALUES ('Test Organization', 'T99999999', 'test@test.com')
+RETURNING "Id", "SecurityCompanyId";
+
+-- Verificar que SecurityCompanyId se autogeneró correctamente (debe ser >= 1001)
+SELECT "Id", "SecurityCompanyId", "Name", "TaxId" 
+FROM "ORGANIZATION"
+WHERE "TaxId" = 'T99999999';
+
+-- Limpiar
+DELETE FROM "ORGANIZATION" WHERE "TaxId" = 'T99999999';
+```
+
+### 5. Probar soft delete
+
+```sql
+-- Simular soft delete
+UPDATE "ORGANIZATION" 
+SET "AuditDeletionDate" = CURRENT_TIMESTAMP
+WHERE "TaxId" = 'B12345678';
+
+-- Verificar que se estableció AuditDeletionDate
+SELECT "Id", "Name", "AuditDeletionDate"
+FROM "ORGANIZATION"
+WHERE "TaxId" = 'B12345678';
+
+-- Reactivar
+UPDATE "ORGANIZATION" 
+SET "AuditDeletionDate" = NULL
+WHERE "TaxId" = 'B12345678';
+```
+
+## CRITERIOS DE ACEPTACIÓN
+
+- [ ] Todas las 7 tablas se crean correctamente en PostgreSQL
+- [ ] La migración de Entity Framework Core se ejecuta sin errores
+- [ ] Todos los índices únicos (UK) están configurados correctamente
+- [ ] Todos los índices de búsqueda (IX) están creados
+- [ ] Todas las foreign keys (FK) están configuradas con el ON DELETE correcto
+- [ ] La secuencia `ORGANIZATION_SecurityCompanyId_seq` se crea y comienza en 1001
+- [ ] Los campos `SecurityCompanyId` se autogeneran correctamente al insertar organizaciones
+- [ ] Los campos de auditoría Helix6 (`AuditCreationDate`, `AuditModificationDate`, `AuditDeletionDate`) funcionan correctamente
+- [ ] El soft delete funciona (establecer `AuditDeletionDate` marca como eliminado, NULL reactiva)
+- [ ] Las restricciones de unicidad previenen duplicados (Name, TaxId, SecurityCompanyId, etc.)
+- [ ] La tabla AUDITLOG acepta inserts pero no se puede modificar (append-only)
+- [ ] Los datos de prueba (seed data) se insertan correctamente
+- [ ] Las queries de verificación retornan los resultados esperados
+- [ ] No hay errores de constraints al insertar datos relacionados
+- [ ] El script SQL completo puede ejecutarse múltiples veces de forma idempotente
+- [ ] La documentación de cada tabla está completa y clara
+- [ ] Los comentarios en el DDL explican decisiones de diseño importantes
+
+## DEPENDENCIAS
+
+- **PostgreSQL 15+**: Base de datos instalada y ejecutándose
+- **.NET 8 SDK**: Para ejecutar comandos de Entity Framework Core
+- **Npgsql.EntityFrameworkCore.PostgreSQL** (9.0.2): Provider de EF Core para PostgreSQL
+- **Microsoft.EntityFrameworkCore.Tools** (9.0.2): Herramientas de migración
+- **Helix6.Base.Domain**: Para interfaces `IEntityBase` y atributos de auditoría
+- **Acceso a base de datos**: Usuario con permisos CREATE TABLE, CREATE SEQUENCE, CREATE INDEX
+- **DbContext configurado**: EntityModel.cs debe estar configurado con connection string de PostgreSQL
+
+## RECURSOS
+
+- **Documentación de PostgreSQL**: https://www.postgresql.org/docs/15/index.html
+- **Entity Framework Core Migrations**: https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/
+- **Npgsql Provider**: https://www.npgsql.org/efcore/
+- **Helix6 Backend Architecture**: [Helix6_Backend_Architecture.md](../../../Helix6_Backend_Architecture.md) - Sección 2.5 (DataModel)
+- **Product Documentation**: [readme.md](../../../readme.md) - Sección 3 (Modelo de Datos)
+- **User Story**: [ORG001_Gestion_Organizacion.md](../ORG001_Gestion_Organizacion.md)
+
+=============================================================
+
 
 ---
 
