@@ -1,4 +1,4 @@
-#### US-003: Dar de alta / baja organización manualmente (toggle manual)
+#### ORG-003: Dar de alta / baja organización manualmente (toggle manual)
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
 **Rol:** SecurityManager
@@ -6,9 +6,8 @@
 
 **Historia:**
 ```
-Como SecurityManager,
-quiero poder dar de baja o dar de alta manualmente una organización cliente usando el mismo API genérico de Helix6,
-para bloquear o restaurar su acceso a las aplicaciones del ecosistema con trazabilidad y auditoría.
+Como SecurityManager, quiero poder dar de baja o dar de alta manualmente una organización cliente usando el mismo API genérico de Helix6, para bloquear o restaurar su acceso a las aplicaciones del ecosistema con trazabilidad y auditoría.
+
 ```
 
 **Criterios de aceptación:**
@@ -18,7 +17,7 @@ para bloquear o restaurar su acceso a las aplicaciones del ecosistema con trazab
 - No eliminar físicamente el registro (soft delete).
 - La grid debe mostrar una columna fija (a la derecha) con una papelera que permita abrir el modal y ejecutar la operación.
 
-**Dependencias:** US-001
+**Dependencias:** ORG-002
 
 **Notas técnicas:**
 - Usar el endpoint genérico Helix6 `DeleteUndeleteLogicById` (entidad `Organization`).

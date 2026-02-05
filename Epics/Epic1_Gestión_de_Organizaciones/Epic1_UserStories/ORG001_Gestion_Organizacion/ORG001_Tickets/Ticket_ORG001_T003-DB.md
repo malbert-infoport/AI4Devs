@@ -1,12 +1,14 @@
 # ORG001-T003-DB: Crear tablas y migraciones necesarias para organización
 
 =============================================================
+
 **TICKET ID:** ORG001-T003-DB  
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
 **USER STORY:** ORG-001 - Crear y editar organización cliente  
 **COMPONENT:** Base de Datos  
 **PRIORITY:** Alta  
 **ESTIMATION:** 6 horas  
+
 =============================================================
 
 ## TÍTULO

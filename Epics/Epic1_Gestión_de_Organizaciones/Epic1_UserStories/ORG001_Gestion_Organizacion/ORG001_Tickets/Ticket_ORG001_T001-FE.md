@@ -1,12 +1,14 @@
 # ORG001-T001-FE: Implementar formulario de creación y edición de organización con tres pestañas
 
 =============================================================
+
 **TICKET ID:** ORG001-T001-FE
 **EPIC:** Gestión del Portfolio de Organizaciones Clientes  
 **USER STORY:** ORG-001 - Crear y editar organización cliente  
 **COMPONENT:** Frontend - Angular  
 **PRIORITY:** Alta  
-**ESTIMATION:** 6 horas  
+**ESTIMATION:** 10 horas  
+
 =============================================================
 
 ## TÍTULO
