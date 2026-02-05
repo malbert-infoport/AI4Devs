@@ -12,5 +12,6 @@ Abstraer la complejidad de Keycloak para que administradores gestionen identidad
 ## Criterios de aceptación de la épica
 - Registro automático de aplicaciones en Keycloak via Admin API funcional
 - Configuración de claim `c_ids` como atributo multivalor operativa
+- Configuración de claim roles del usuario
 - Sincronización CREATE/UPDATE de usuarios sin intervención manual
 - PKCE para SPAs y ClientCredentials para APIs correctamente configurados
