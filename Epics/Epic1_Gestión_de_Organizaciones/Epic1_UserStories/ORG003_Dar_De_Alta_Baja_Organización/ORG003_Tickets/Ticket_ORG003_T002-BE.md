@@ -1,3 +1,33 @@
+## CONTRATO BACKEND (ESPECIFICACIÓN)
+  - `DELETE /api/Organization/DeleteUndeleteLogicById?id=123` — realiza soft-delete si la organización está activa; restaura si ya está soft-deleted.
+  - Opcional: `configurationName` como query param: `DELETE /api/Organization/DeleteUndeleteLogicById?id=123&configurationName=OrganizationFull`.
+Opcional:
+```
+DELETE /api/Organization/DeleteUndeleteLogicById?id=123&configurationName=OrganizationFull
+```
+2) Método público si `BaseService` no expone `DeleteUndeleteLogicById` directamente:
+
+```csharp
+public async Task<bool> DeleteUndeleteLogicById(int id, string? configurationName = null)
+{
+  if (!await _userPermissions.HasPermission("Organization", SecurityLevel.Modify))
+    throw new HelixForbiddenException();
+
+  var entity = await Repository.GetById(id, "OrganizationBasic");
+  if (entity == null) throw new HelixNotFoundException();
+
+  // Determina la acción en función del estado actual (toggle)
+  var doDelete = entity.AuditDeletionDate == null;
+  entity.AuditDeletionDate = doDelete ? DateTime.UtcNow : (DateTime?)null;
+  await Repository.Update(entity);
+
+  var view = MapEntityToView(entity);
+  await PostActions(view, EnumActionType.DeleteUndeleteLogic, configurationName);
+
+  return true;
+}
+```
+  // Act: await service.DeleteUndeleteLogicById(id)
 #### ORG003-T002-BE: Implementar baja/alta manual de organización (DeleteUndelete Helix6)
 
 =============================================================
