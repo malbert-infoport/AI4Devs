@@ -14,19 +14,18 @@
 Alta — Estimación 2 días
 
 ## Contrato Backend (esperado)
-- `GET /api/ApplicationModule/GetAllKendoFilter` — filtros/paginación Kendo (retorna FilterResult<ApplicationModuleView>). Config: `ModuleList`.
-- `GET /api/ApplicationModule/GetById?id={id}` — retorna `ApplicationModuleView`.
-- `POST /api/ApplicationModule/Insert` — body: `ApplicationModuleView` → retorna `ApplicationModuleView`.
-- `PUT /api/ApplicationModule/Update` — body: `ApplicationModuleView` → retorna `ApplicationModuleView`.
-- `DELETE /api/ApplicationModule/DeleteById?id={id}` — elimina módulo (backend puede rechazar si hay dependencias).
-- `GET /api/Application/GetById?id={id}&configurationName=ApplicationComplete` — incluye `ApplicationModules`.
+La `application-form` y los flujos de edición completa NO deben invocar directamente endpoints de `ApplicationModule`. En su lugar, deben usar el contrato de la entidad `Application` con la configuración de carga completa `ApplicationComplete`.
 
-Headers:
+- `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete` → `ApplicationView` que incluye `ApplicationModules`.
+- `POST /api/Application/Insert` / `POST /api/Application/Update` → aceptar `ApplicationView` completo con `ApplicationModules` y aplicar insert/update/delete de manera atómica.
+
+Headers esperados para mutaciones:
 - `Authorization: Bearer <token>`
 - `Accept-Language`
 - `X-Correlation-Id: <uuid>` (si disponible)
 
-Response codes: 200 OK, 201 Created, 204 No Content, 400 Validation, 403 Forbidden, 409 Conflict (si en uso), 404 Not Found.
+Notas:
+- Los endpoints específicos de `ApplicationModule` pueden existir para administración global, pero la `application-form` deberá sincronizar mediante el `ApplicationClient` y no usará `ApplicationModuleClient` directamente.
 
 ## UI / Flujo
 - `modules-management` (standalone) — grid `ClGrid` con columnas: `Name`, `Key`, `ApplicationId` (si aplica), `DisplayOrder`, `Actions` (edit/delete).

@@ -14,14 +14,15 @@
 Alta — Estimación 1.5 días
 
 ## Contrato Backend (esperado)
-- `POST /api/ApplicationCredential/Create` — body: { applicationId, name?, scopes? } → retorna `{ clientId, clientSecret }` (secret solo en respuesta inicial).
-- `POST /api/ApplicationCredential/Rotate?id={id}` — rota secret, retorna `{ clientId, clientSecret }`.
-- `DELETE /api/ApplicationCredential/DeleteById?id={id}` — elimina credencial.
-- `GET /api/ApplicationCredential/GetAllByApplicationId?applicationId={id}` — lista credenciales con metadata (no incluye secret).
+La `application-form` y los flujos de edición completa NO deben invocar directamente endpoints de `ApplicationCredential`. En su lugar, deben usar el contrato de la entidad `Application` con la configuración de carga completa `ApplicationComplete`.
+
+- `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete` → `ApplicationView` que incluye `ApplicationCredentials`.
+- `POST /api/Application/Insert` / `POST /api/Application/Update` → aceptar `ApplicationView` completo con `ApplicationCredentials` y aplicar insert/update/delete de manera atómica.
 
 Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id`.
 
-Response codes: 201 Created (create/rotate), 200 OK, 400 Validation, 403 Forbidden, 409 Conflict if in use.
+Notas:
+- Para flujos administrativos o integraciones puntuales, pueden existir endpoints específicos de credenciales, pero la `application-form` debe sincronizar mediante `ApplicationClient`.
 
 ## UI / Flujo
 - `application-credentials` en `application-form` → lista con columnas: `Name`, `ClientId`, `CreatedAt`, `LastRotationAt`, `CreatedBy`, `Actions`.

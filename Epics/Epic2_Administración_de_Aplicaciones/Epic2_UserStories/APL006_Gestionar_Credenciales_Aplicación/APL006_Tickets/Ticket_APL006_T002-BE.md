@@ -1,7 +1,7 @@
 ```markdown
-# APL006-T001-BE: Backend — Gestionar ApplicationCredentials (client credentials)
+# APL006-T002-BE: Backend — Gestionar ApplicationCredentials (client credentials)
 
-**TICKET ID:** APL006-T001-BE
+**TICKET ID:** APL006-T002-BE
 **EPIC:** Administración de Aplicaciones
 **COMPONENT:** Backend - Helix6 (.NET 8)
 **PRIORITY:** Alta
@@ -63,7 +63,7 @@ public override async Task<ApplicationCredentialView?> Insert(ApplicationCredent
 - POST `/api/ApplicationCredential/Rotate?id={id}` → `{ clientId, clientSecret }` (rotación directa)
 - DELETE `/api/ApplicationCredential/DeleteById?id={id}` (soft delete)
 - GET `/api/ApplicationCredential/GetAllByApplicationId?applicationId={id}`
-- Nota: Además de los endpoints específicos anteriores, documentar y soportar el uso de `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete` que devuelve `Application` con `Credentials` y `POST/PUT /api/Application` para insertar/actualizar la `ApplicationView` completa incluyendo `Credentials` como operación única/atómica gestionada por `ApplicationService`.
+- Nota: Además de los endpoints específicos anteriores, documentar y soportar el uso de `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete` que devuelve `Application` con `Credentials`. Para insertar/actualizar la `ApplicationView` completa (incluyendo `Credentials`) usar los endpoints generados `POST /api/Application/Insert` y `POST /api/Application/Update` como operación única/atómica gestionada por `ApplicationService`.
 
 ## MIGRACIONES / COMANDOS
 ```powershell

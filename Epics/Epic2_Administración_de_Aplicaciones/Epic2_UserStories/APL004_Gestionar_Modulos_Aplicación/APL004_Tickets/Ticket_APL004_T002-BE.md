@@ -1,7 +1,7 @@
 ```markdown
-# APL004-T001-BE: Backend — CRUD de ApplicationModule y asignación a Application
+# APL004-T002-BE: Backend — CRUD de ApplicationModule y asignación a Application
 
-**TICKET ID:** APL004-T001-BE
+**TICKET ID:** APL004-T002-BE
 **EPIC:** Administración de Aplicaciones
 **COMPONENT:** Backend - Helix6 (.NET 8)
 **PRIORITY:** Alta
@@ -52,7 +52,7 @@ Orquestación por `ApplicationService`:
 ## ENDPOINTS / CONTRATO
 - Mantener endpoints CRUD generados por Helix Generator para `ApplicationModule` para usos administrativos.
 - Para la UI que gestione una `Application` completa, exponer y documentar el uso de `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete` (o la convención de configuración de carga existente) que devuelve la `Application` junto a `Modules`, `Roles` y `Credentials`.
-- Documentar que la inserción/actualización completa se realiza vía `POST/PUT /api/Application` con el `ApplicationView` completo (configuración de carga `ApplicationComplete`) y que el backend aplicará las inserciones/actualizaciones/soft-deletes de `ApplicationModule` dentro de la misma transacción.
+- Documentar que la inserción/actualización completa se realiza vía los endpoints generados `POST /api/Application/Insert` y `POST /api/Application/Update` con el `ApplicationView` completo (configuración de carga `ApplicationComplete`) y que el backend aplicará las inserciones/actualizaciones/soft-deletes de `ApplicationModule` dentro de la misma transacción.
 
 ## MIGRACIONES / COMANDOS
 ```powershell

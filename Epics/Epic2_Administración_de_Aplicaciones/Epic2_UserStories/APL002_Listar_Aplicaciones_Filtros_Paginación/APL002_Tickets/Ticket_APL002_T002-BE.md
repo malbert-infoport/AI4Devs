@@ -1,7 +1,7 @@
 ```markdown
-# APL001-T001-BE: Backend — Listar Aplicaciones (paginación y filtros Kendo)
+# APL001-T002-BE: Backend — Listar Aplicaciones (paginación y filtros Kendo)
 
-**TICKET ID:** APL001-T001-BE
+**TICKET ID:** APL001-T002-BE
 **EPIC:** Administración de Aplicaciones
 **COMPONENT:** Backend - Helix6 (.NET 8)
 **PRIORITY:** Alta

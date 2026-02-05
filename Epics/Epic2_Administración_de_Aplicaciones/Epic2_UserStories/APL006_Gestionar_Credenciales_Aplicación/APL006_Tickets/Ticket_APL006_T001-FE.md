@@ -32,10 +32,11 @@ Gestionar credenciales de aplicación con prácticas seguras: el `clientSecret` 
 - `Copy`: copia segura al portapapeles; no almacenar secret en state persistente.
 
 ## CONTRATO BACKEND (NSWAG)
-- `ApplicationCredentialClient.getAllByApplicationId(applicationId)` → `ApplicationCredentialView[]` (no incluye secret)
-- `ApplicationCredentialClient.create(createRequest)` → `{ clientId: string, clientSecret: string }` (secret returned only here)
-- `ApplicationCredentialClient.rotate(id)` → `{ clientId: string, clientSecret: string }`
-- `ApplicationCredentialClient.deleteById(id)` → `void` / `ProblemDetails`
+La `application-form` debe usar únicamente el contrato de `Application` cuando trabaje con la vista completa:
+
+- `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationCredentials`, `ApplicationModules`, `ApplicationRoles`.
+- `ApplicationClient.insert(applicationView, { configurationName: 'ApplicationComplete' })` → Insert completo.
+- `ApplicationClient.update(applicationView, { configurationName: 'ApplicationComplete' })` → Update completo.
 
 Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id` (usar `CorrelationService` o generar UUID si no existe).
 

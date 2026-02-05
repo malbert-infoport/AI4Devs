@@ -24,11 +24,11 @@ Nota de integración con `application-form`:
 - Los endpoints `ApplicationRoleClient.*` siguen disponibles para uso administrativo (listados globales, import/export), pero no deberán usarse como fuente primaria para poblar las colecciones dentro de `application-form` en el flujo de edición completa.
 
 ## CONTRATO BACKEND
-- `ApplicationRoleClient.getAllKendoFilter(filter)`
-- `ApplicationRoleClient.getById(id)`
-- `ApplicationRoleClient.insert(view)`
-- `ApplicationRoleClient.update(view)`
-- `ApplicationRoleClient.deleteById(id)`
+La `application-form` debe usar únicamente el contrato de `Application` cuando trabaje con la vista completa:
+
+- `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationRoles`, `ApplicationModules`, `ApplicationCredentials`.
+- `ApplicationClient.insert(applicationView, { configurationName: 'ApplicationComplete' })` → Insert completo.
+- `ApplicationClient.update(applicationView, { configurationName: 'ApplicationComplete' })` → Update completo.
 
 Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id`.
 

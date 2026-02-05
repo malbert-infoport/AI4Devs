@@ -1,7 +1,7 @@
 ```markdown
-# APL003-T001-BE: Backend — Alta/Baja lógica de Aplicación (soft-delete / undelete)
+# APL003-T002-BE: Backend — Alta/Baja lógica de Aplicación (soft-delete / undelete)
 
-**TICKET ID:** APL003-T001-BE
+**TICKET ID:** APL003-T002-BE
 **EPIC:** Administración de Aplicaciones
 **COMPONENT:** Backend - Helix6 (.NET 8)
 **PRIORITY:** Alta

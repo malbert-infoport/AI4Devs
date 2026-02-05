@@ -26,35 +26,36 @@ Permitir a administradores gestionar módulos globales y asignarlos a aplicacion
 	- Soportar búsqueda e incorporación rápida de módulos (en modal) pero sincronizar siempre con la `ApplicationClient` en la operación de guardado de la `application-form`.
 
 ## CONTRATO BACKEND (CLIENTS NSWAG)
-- `ApplicationModuleClient.getAllKendoFilter(filter)` → `FilterResult<ApplicationModuleView>`
-- `ApplicationModuleClient.getById(id)` → `ApplicationModuleView`
-- `ApplicationModuleClient.insert(view)` → `ApplicationModuleView`
-- `ApplicationModuleClient.update(view)` → `ApplicationModuleView`
-- `ApplicationModuleClient.deleteById(id)` → `void` or `ProblemDetails` on conflict
-- `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationModules`
+La `application-form` debe usar únicamente el contrato de `Application` cuando trabaje con la vista completa:
+
+- `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationModules`, `ApplicationRoles`, `ApplicationCredentials`.
+- `ApplicationClient.insert(applicationView, { configurationName: 'ApplicationComplete' })` → Insert completo.
+- `ApplicationClient.update(applicationView, { configurationName: 'ApplicationComplete' })` → Update completo.
+
+Nota: Los endpoints específicos de `ApplicationModule` pueden existir para paneles de administración independientes, pero la `application-form` debe sincronizar siempre vía `ApplicationClient`.
  - `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationModules`, `ApplicationRoles`, `ApplicationCredentials`
 
 Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id` (usar `CorrelationService` si disponible).
 
 ## EJEMPLOS DE IMPLEMENTACIÓN (TypeScript)
 Service wrapper (minimal):
-
 ```typescript
 import { inject } from '@angular/core';
-import { ApplicationModuleClient } from 'src/webServicesReferences/api';
+import { ApplicationClient } from 'src/webServicesReferences/api';
 import { CorrelationService } from 'src/app/core/correlation.service';
 
-const api = inject(ApplicationModuleClient);
+const api = inject(ApplicationClient);
 const correlation = inject(CorrelationService);
 
-function createModule(view: any) {
+function loadApplicationComplete(id: number) {
 	const corr = correlation?.get() ?? '';
-	return api.insert(view, { headers: { 'X-Correlation-Id': corr } } as any);
+	return api.getById(id, 'ApplicationComplete', { headers: { 'X-Correlation-Id': corr } } as any);
 }
 
-function deleteModule(id: number) {
+function saveApplicationComplete(applicationView: any, isInsert = false) {
 	const corr = correlation?.get() ?? '';
-	return api.deleteById(id, { headers: { 'X-Correlation-Id': corr } } as any);
+	if (isInsert) return api.insert(applicationView, { headers: { 'X-Correlation-Id': corr }, queryParams: { configurationName: 'ApplicationComplete' } } as any);
+	return api.update(applicationView, { headers: { 'X-Correlation-Id': corr }, queryParams: { configurationName: 'ApplicationComplete' } } as any);
 }
 ```
 
@@ -65,16 +66,15 @@ onCreateModule() {
 	const modal = this.clModalService.open(ModuleFormComponent, { width: '600px' });
 	modal.afterClosed().subscribe(result => {
 		if (!result) return;
-		this.modulesService.createModule(result).subscribe(() => this.loadGrid());
+		// Prefer to create via admin flow or include in ApplicationView and save full application
+		// Here we trigger a full application reload to keep UI consistent
+		this.loadApplication(); // will call ApplicationClient.getById(..., 'ApplicationComplete')
 	});
 }
 
-onDeleteModule(row) {
-	const corr = this.correlation.get();
-	this.modulesService.deleteModule(row.id).subscribe({
-		next: () => this.loadGrid(),
-		error: err => this.handleDeleteError(err)
-	});
+onSaveApplication(applicationView) {
+	const isNew = !applicationView.id;
+	this.modulesService.saveApplicationComplete(applicationView, isNew).subscribe(() => this.loadApplication());
 }
 ```
 

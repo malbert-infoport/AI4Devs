@@ -26,7 +26,7 @@ Extender el formulario de la aplicación para soportar baja lógica desde UI. De
 -- Preferido: `PUT /api/Application/DeleteUndeleteLogicById?id={id}`
   - (El endpoint maneja la lógica de baja/alta según la implementación del backend)
   - Response: `200 OK` con `ApplicationView` actualizado o `204 No Content`
-- Fallback: `PUT /api/Application/Update` con `ApplicationView` donde `Active=false` y `configurationName=ApplicationComplete`
+- Fallback: `POST /api/Application/Update` con `ApplicationView` donde `Active=false` y `configurationName=ApplicationComplete`
 
 Headers esperados:
 - `Authorization: Bearer {token}`
