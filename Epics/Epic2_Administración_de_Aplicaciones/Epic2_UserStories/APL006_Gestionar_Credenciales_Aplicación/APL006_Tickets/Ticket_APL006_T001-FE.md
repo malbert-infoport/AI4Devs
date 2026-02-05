@@ -39,6 +39,9 @@ Gestionar credenciales de aplicación con prácticas seguras: el `clientSecret` 
 
 Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id` (usar `CorrelationService` o generar UUID si no existe).
 
+Nota de integración con `application-form`:
+- La `application-form` deberá solicitar la `Application` completa mediante `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` para obtener `Credentials` junto a `Modules` y `Roles` en una sola llamada. Las operaciones de creación/rotación/eliminación de credenciales desde la `application-form` deberían reflejarse en el `ApplicationView` completo y enviarse al backend mediante `ApplicationClient.update` (configuración `ApplicationComplete`) cuando se trate de una edición/guardado del formulario completo; alternativamente se podrá usar los endpoints específicos (`ApplicationCredentialClient.create/rotate/delete`) para flujos directos, pero la sincronización con la `ApplicationView` completa será responsabilidad del frontend para mantener consistencia.
+
 ## EJEMPLO DE IMPLEMENTACIÓN (TypeScript)
 ```typescript
 import { inject } from '@angular/core';

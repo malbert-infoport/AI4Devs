@@ -19,8 +19,11 @@ Permitir a administradores gestionar módulos globales y asignarlos a aplicacion
 	- Acciones por fila: `Editar` (abre `ClModal`), `Eliminar` (modal confirm, manejar conflictos).
 - `application-form` → pestaña `Módulos`:
 	- Multiselect/lista de módulos asignados.
-	- Botón `Crear módulo` abre modal global; al guardar, asigna automáticamente al `Application` actual y refresca vista.
-	- Soportar búsqueda e incorporación rápida de módulos.
+	- Importante: la `application-form` debe cargar la `Application` completa mediante `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` para obtener `Application` junto con sus `ApplicationModules`, `ApplicationRoles` y `ApplicationCredentials` en una sola llamada. No se deberá depender de múltiples llamadas separadas desde la UI para poblar las colecciones de la `application-form`.
+	- Botón `Crear módulo` abre modal global; al guardar, el flujo esperado es:
+		1. Preferir crear el módulo por la API administrativa (`ApplicationModuleClient.insert`) cuando se gestiona módulos globales.
+		2. Para la edición/guardado del formulario de `Application` completo, usar `ApplicationClient.update(applicationView, { configurationName: 'ApplicationComplete' })` que incluya la colección `ApplicationModules` y deje que el backend orqueste insert/update/delete en una sola transacción.
+	- Soportar búsqueda e incorporación rápida de módulos (en modal) pero sincronizar siempre con la `ApplicationClient` en la operación de guardado de la `application-form`.
 
 ## CONTRATO BACKEND (CLIENTS NSWAG)
 - `ApplicationModuleClient.getAllKendoFilter(filter)` → `FilterResult<ApplicationModuleView>`
@@ -29,6 +32,7 @@ Permitir a administradores gestionar módulos globales y asignarlos a aplicacion
 - `ApplicationModuleClient.update(view)` → `ApplicationModuleView`
 - `ApplicationModuleClient.deleteById(id)` → `void` or `ProblemDetails` on conflict
 - `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationModules`
+ - `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')` → `ApplicationView` con `ApplicationModules`, `ApplicationRoles`, `ApplicationCredentials`
 
 Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id` (usar `CorrelationService` si disponible).
 

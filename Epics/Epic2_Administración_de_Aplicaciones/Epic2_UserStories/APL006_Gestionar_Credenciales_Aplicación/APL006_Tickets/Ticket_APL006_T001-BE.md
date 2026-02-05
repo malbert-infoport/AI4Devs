@@ -15,6 +15,8 @@ Implementar API y servicios que permitan crear (generar secret), rotar y elimina
 - Backend debe generar `clientSecret` seguro y devolverlo únicamente en la respuesta de `Create` y `Rotate`.
 - Registrar auditoría (CreatedBy, CreatedAt, RotatedBy, RotatedAt).
 
+Importante (configuración de carga completa): cuando el cliente solicite la configuración de carga `ApplicationComplete` a través de `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete`, la respuesta debe incluir las `Credentials` de la aplicación junto a `Modules` y `Roles`. Asimismo, las operaciones de inserción/actualización que usen el `ApplicationView` completo deben permitir crear/rotar/eliminar credenciales como parte de la transacción gestionada por `ApplicationService`.
+
 ## DATAMODEL SUGERIDO
 Si no existe `ApplicationCredential`:
 
@@ -57,10 +59,11 @@ public override async Task<ApplicationCredentialView?> Insert(ApplicationCredent
 ```
 
 ## ENDPOINTS / CONTRATO
-- POST `/api/ApplicationCredential/Create` → `{ clientId, clientSecret }`
-- POST `/api/ApplicationCredential/Rotate?id={id}` → `{ clientId, clientSecret }`
-- DELETE `/api/ApplicationCredential/DeleteById?id={id}`
+- POST `/api/ApplicationCredential/Create` → `{ clientId, clientSecret }` (creación directa de credencial; `clientSecret` devuelto una vez)
+- POST `/api/ApplicationCredential/Rotate?id={id}` → `{ clientId, clientSecret }` (rotación directa)
+- DELETE `/api/ApplicationCredential/DeleteById?id={id}` (soft delete)
 - GET `/api/ApplicationCredential/GetAllByApplicationId?applicationId={id}`
+- Nota: Además de los endpoints específicos anteriores, documentar y soportar el uso de `GET /api/Application/GetById?id={id}&configuration=ApplicationComplete` que devuelve `Application` con `Credentials` y `POST/PUT /api/Application` para insertar/actualizar la `ApplicationView` completa incluyendo `Credentials` como operación única/atómica gestionada por `ApplicationService`.
 
 ## MIGRACIONES / COMANDOS
 ```powershell

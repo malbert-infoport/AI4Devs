@@ -19,6 +19,10 @@ Permitir definir roles por aplicación con un conjunto de permisos y asignarlos 
 	- Export/Import CSV mínimo: exportar la lista de roles; import validado en frontend (preview antes de aplicar).
 - `application-form` → pestaña `Roles`: lista roles asignados y botón `Añadir rol` que abre selector global y opción para crear nuevo.
 
+Nota de integración con `application-form`:
+- La `application-form` deberá cargar la `Application` completa usando `ApplicationClient.getById(id, configurationName = 'ApplicationComplete')`, que incluye las colecciones `ApplicationRoles`, `ApplicationModules` y `ApplicationCredentials` en una sola llamada. Para guardar cambios que afectan a roles asignados dentro del formulario, la UI debe enviar el `ApplicationView` completo a `ApplicationClient.update`/`insert` con la configuración de carga completa y dejar que el backend orqueste las inserciones/actualizaciones/eliminaciones de `ApplicationRole` en una transacción atómica.
+- Los endpoints `ApplicationRoleClient.*` siguen disponibles para uso administrativo (listados globales, import/export), pero no deberán usarse como fuente primaria para poblar las colecciones dentro de `application-form` en el flujo de edición completa.
+
 ## CONTRATO BACKEND
 - `ApplicationRoleClient.getAllKendoFilter(filter)`
 - `ApplicationRoleClient.getById(id)`
