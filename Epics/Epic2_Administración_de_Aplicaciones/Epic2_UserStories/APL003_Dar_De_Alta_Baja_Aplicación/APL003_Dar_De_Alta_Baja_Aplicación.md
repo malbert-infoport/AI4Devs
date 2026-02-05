@@ -106,7 +106,7 @@ async function confirmToggleActive(applicationId: number, toDelete: boolean) {
 Media — Estimación 4 horas
 
 ## Contrato Backend
-- `PUT /api/Application/DeleteUndeleteLogicById?id={id}&delete=true|false` (usar rutina base si existe)
+	- `DELETE /api/Application/DeleteUndeleteLogicById?id={id}` (usar rutina base si existe)
 - `ApplicationService` debe registrar en `AUDITLOG` y publicar evento.
 
 ## Criterios

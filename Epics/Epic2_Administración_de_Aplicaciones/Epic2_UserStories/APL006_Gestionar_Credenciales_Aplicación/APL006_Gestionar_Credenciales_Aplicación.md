@@ -3,29 +3,68 @@
 **ID:** APL006
 **EPIC:** Administración de Aplicaciones
 
-**RESUMEN:** Gestionar credenciales seguras para aplicaciones: creación (generación de secret), rotación, eliminación y listado con auditoría de rotaciones.
+**RESUMEN:** Implementar UI y contratos frontend para gestionar credenciales de tipo client credentials: creación (secret generado por backend), rotación, eliminación y listado con auditoría. Garantizar seguridad: secret mostrado solo una vez, copia segura y logs de auditoría.
 
 ## Objetivos
-- Crear credencial (clientId/clientSecret), mostrar secret solo una vez.
-- Rotación de secret con confirmación y auditoría.
-- Eliminar credenciales con modal crítico si están en uso.
+- Crear credencial (clientId + clientSecret generado por backend) y mostrar secret solo una vez al crear/rotar.
+- Rotación de secret con confirmación y registro de auditoría (userId, timestamp).
+- Eliminación con confirmación crítica si credencial está en uso.
 
 ## Prioridad
 Alta — Estimación 1.5 días
 
-## Contrato Backend
-- `ApplicationCredentialClient.create`, `rotate`, `delete`, `getAllByApplicationId`.
-- Backend debe generar secret seguro y retornar una única vez.
+## Contrato Backend (esperado)
+- `POST /api/ApplicationCredential/Create` — body: { applicationId, name?, scopes? } → retorna `{ clientId, clientSecret }` (secret solo en respuesta inicial).
+- `POST /api/ApplicationCredential/Rotate?id={id}` — rota secret, retorna `{ clientId, clientSecret }`.
+- `DELETE /api/ApplicationCredential/DeleteById?id={id}` — elimina credencial.
+- `GET /api/ApplicationCredential/GetAllByApplicationId?applicationId={id}` — lista credenciales con metadata (no incluye secret).
 
-## UI
-- `application-credentials` componente en `application-form` pestaña Credenciales con lista y acciones `Create/Rotate/Delete/Copy`.
-- Mostrar fecha de creación, última rotación y auditor (userId) si aplica.
+Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id`.
+
+Response codes: 201 Created (create/rotate), 200 OK, 400 Validation, 403 Forbidden, 409 Conflict if in use.
+
+## UI / Flujo
+- `application-credentials` en `application-form` → lista con columnas: `Name`, `ClientId`, `CreatedAt`, `LastRotationAt`, `CreatedBy`, `Actions`.
+	- Acción `Create` abre modal para nombre/roles/scopes; tras crear mostrar `clientSecret` en modal con aviso "copiar ahora: secret mostrado solo una vez".
+	- Acción `Rotate` similar (confirma y muestra nuevo secret una vez).
+	- Acción `Delete` muestra modal crítico; si credencial en uso backend devuelve 409 con detalle.
+	- `Copy` button copia a clipboard de forma segura; no persistir secret en UI state más de lo necesario.
 
 ## Seguridad
-- Mostrar secret enmascarado; solo desvelar una vez en creación/rotación.
-- Registrar en auditoría quién rotó y cuándo.
+- No almacenar `clientSecret` en localStorage o logs.
+- Mostrar secret en modal con botón `Copiar` y contador visual indicando que será ocultado.
 
-## TESTS
-- Unit: create/rotate/delete flows, copy secret clipboard.
+## Ejemplo de implementación (TS)
+
+```typescript
+import { inject } from '@angular/core';
+import { ApplicationCredentialClient } from 'src/webServicesReferences/api';
+import { CorrelationService } from 'src/app/core/correlation.service';
+
+const client = inject(ApplicationCredentialClient);
+const correlation = inject(CorrelationService);
+
+async function createCredential(applicationId: number, name?: string) {
+	const corr = correlation?.get() ?? '';
+	const result = await client.create({ applicationId, name }, { headers: { 'X-Correlation-Id': corr } } as any).toPromise();
+	// result contains clientId and clientSecret (secret only here)
+	return result;
+}
+```
+
+## Tests recomendados
+- Unit:
+	- Crear credencial muestra modal con secret y permite copia.
+	- Rotación actualiza `LastRotationAt` y muestra nuevo secret.
+	- Eliminación maneja 200/409 correctamente.
+
+## Criterios de aceptación
+- [ ] CRUD/rotación/eliminación de credenciales implementado y testeado.
+- [ ] Secret mostrado solo en create/rotate y no persistido.
+- [ ] Auditoría visible (CreatedBy/CreatedAt/LastRotationAt).
+
+## Notas de implementación
+- Evitar almacenar secrets en el estado largo del componente; mantener en memoria hasta cerrar modal.
+- Registrar `X-Correlation-Id` en mutaciones.
 
 ***

@@ -95,7 +95,7 @@ Puntos clave a implementar:
 - `PostActions(OrganizationView? view, EnumActionType actionType, string? configurationName = null)`
   - Tras el `Insert/Update`, calcular `previousModules` vs `currentModules` y publicar evento al broker (ej: `OrganizationModulesChanged`).
   - Si `currentModules` queda vacío y `view.Id > 0`, ejecutar la lógica de auto-baja:
-    - `await DeleteUndeleteLogicById(view.Id.Value, delete: true)` o la rutina del framework que exista para baja lógica.
+    - `await DeleteUndeleteLogicById(view.Id.Value)` o la rutina del framework que exista para baja lógica.
     - Registrar evento `OrganizationAutoDeactivated`.
   - Llamar `await base.PostActions(...)`.
 
@@ -119,8 +119,8 @@ public override async Task PostActions(OrganizationView? view, EnumActionType ac
 
     if ((currentModules == null || currentModules.Count == 0) && (view.Id ?? 0) > 0)
     {
-        await base.DeleteUndeleteLogicById(view.Id.Value, delete: true);
-        await _eventPublisher.PublishAsync(new OrganizationAutoDeactivatedEvent { OrganizationId = view.Id.Value, UserId = _userContext.UserId });
+      await base.DeleteUndeleteLogicById(view.Id.Value);
+      await _eventPublisher.PublishAsync(new OrganizationAutoDeactivatedEvent { OrganizationId = view.Id.Value, UserId = _userContext.UserId });
     }
 
     await base.PostActions(view, actionType, configurationName);

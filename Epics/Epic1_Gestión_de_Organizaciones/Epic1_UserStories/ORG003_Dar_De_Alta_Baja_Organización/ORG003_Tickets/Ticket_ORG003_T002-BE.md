@@ -166,7 +166,7 @@ public async Task<bool> DeleteUndeleteLogicById(int id, bool? delete = null, str
 public async Task DeleteUndelete_LogsAudit_WhenAuthorized()
 {
     // Arrange: mocks for IUserContext.UserId, repository returns entity active, auditLogService and eventPublisher mocked
-    // Act: await service.DeleteUndeleteLogicById(id, true)
+    // Act: await service.DeleteUndeleteLogicById(id)
     // Assert: Verify auditLogService.LogAsync called with Action = OrganizationDeactivatedManual
 }
 ```

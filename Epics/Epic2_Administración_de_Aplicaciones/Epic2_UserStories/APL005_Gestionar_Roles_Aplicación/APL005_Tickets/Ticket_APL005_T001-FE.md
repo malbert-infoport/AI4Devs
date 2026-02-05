@@ -1,26 +1,52 @@
+```markdown
 # APL005-T001-FE: Frontend — CRUD Roles de Aplicación y asignación de permisos
 
 **TICKET ID:** APL005-T001-FE
 **EPIC:** Administración de Aplicaciones
-**COMPONENT:** Frontend - Angular
+**COMPONENT:** Frontend - Angular (SintraportV4.Front)
 **PRIORITY:** Media
 **ESTIMATION:** 1 día
 
 ## TÍTULO
-Implementar `application-roles` con CRUD, selección de permisos por role y asignación dentro de `application-form`.
+Crear `application-roles` para gestionar roles por aplicación y un selector de permisos reutilizable.
 
-## DESCRIPCIÓN
-- `application-roles` lista roles con `ClGrid`, `ClModal` para crear/editar y selector de permisos (checkbox list).
-- Al eliminar role: comprobar uso y pedir confirmación.
-- Export/import roles (CSV) opción mínima.
+## OBJETIVO
+Permitir definir roles por aplicación con un conjunto de permisos y asignarlos desde `application-form`.
 
-## CONTRATO
-- `ApplicationRoleClient.getAllKendoFilter`, `create`, `update`, `delete`.
+## DESCRIPCIÓN DETALLADA
+- `application-roles` componente con `ClGrid` mostrando `Name`, `Key`, `PermissionsSummary`, `Actions`.
+	- `ClModal` para creación/edición: campos `Name`, `Key`, `Description` y checklist de permisos (grupos y permisos individuales).
+	- Export/Import CSV mínimo: exportar la lista de roles; import validado en frontend (preview antes de aplicar).
+- `application-form` → pestaña `Roles`: lista roles asignados y botón `Añadir rol` que abre selector global y opción para crear nuevo.
 
-## TESTS
-- Unit: permisos, crear/editar role, asignación.
+## CONTRATO BACKEND
+- `ApplicationRoleClient.getAllKendoFilter(filter)`
+- `ApplicationRoleClient.getById(id)`
+- `ApplicationRoleClient.insert(view)`
+- `ApplicationRoleClient.update(view)`
+- `ApplicationRoleClient.deleteById(id)`
 
-## CRITERIOS
+Headers: `Authorization`, `Accept-Language`, `X-Correlation-Id`.
+
+## EJEMPLO DE IMPLEMENTACIÓN (TS)
+Selector de permisos (snippet):
+
+```typescript
+import { inject } from '@angular/core';
+import { ApplicationRoleClient } from 'src/webServicesReferences/api';
+const api = inject(ApplicationRoleClient);
+
+async function loadRoles(filter) {
+	return api.getAllKendoFilter(filter).toPromise();
+}
+```
+
+## TESTS RECOMENDADOS
+- Unit: mostrar/ocultar acciones según permisos, crear/editar role invoca client, import preview valida CSV.
+
+## CRITERIOS DE ACEPTACIÓN
 - [ ] CRUD roles implementado y testeado.
+- [ ] Selector de permisos reutilizable y usado en `application-form`.
 
 ***
+```
