@@ -2220,10 +2220,11 @@ erDiagram
     USERCACHE {
         int Id PK "AUTO_INCREMENT, Identificador único"
         string Email UK "NOT NULL, Email del usuario (clave de búsqueda)"
-        string ConsolidatedCompanyIds "NOT NULL, JSON array de SecurityCompanyIds"
-        string ConsolidatedRoles "NOT NULL, JSON array de roles consolidados"
-        datetime LastConsolidationDate "NOT NULL, Última consolidación"
-        string LastEventHash "Hash SHA-256 del último evento procesado"
+      string ConsolidatedCompanyIds "NOT NULL, JSON array de SecurityCompanyIds"
+      string ConsolidatedRoles "NOT NULL, JSON array de roles consolidados"
+      datetime LastConsolidationDate "NOT NULL, Última consolidación"
+      string LastEventHash "Hash SHA-256 del último evento procesado"
+      datetime LastKeycloakSyncAt "Timestamp última sincronización con Keycloak"
     }
     
     AUDITLOG {
@@ -2246,6 +2247,17 @@ erDiagram
         string EntityId PK "NOT NULL, ID de la entidad"
         string LastEventHash "NOT NULL, Hash SHA-256 del último evento"
         datetime LastEventTimestamp "NOT NULL, Timestamp del último evento"
+    }
+
+    KEYCLOAK_SYNC_LOG {
+      int Id PK "AUTO_INCREMENT, Identificador único"
+      string Email "NOT NULL, Email del usuario sincronizado"
+      datetime AttemptAt "NOT NULL, Timestamp del intento"
+      string Status "NOT NULL, 'Pending'|'Processed'|'Error'"
+      string Response "Respuesta del API Keycloak (texto)"
+      int Attempts "Número de intentos"
+      string AuditCreationUser "Usuario que creó el log"
+      datetime AuditCreationDate "NOT NULL, Fecha de creación"
     }
 ```
 
@@ -2720,6 +2732,8 @@ Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar 
 | **LastConsolidationDate** | DATETIME | NOT NULL | Timestamp de la última consolidación exitosa. |
 | **LastEventHash** | VARCHAR(64) | NULL | Hash SHA-256 del último UserEvent procesado para este usuario. |
 
+| **LastKeycloakSyncAt** | DATETIME | NULL | Timestamp de la última sincronización exitosa con Keycloak. Se actualiza cuando el worker confirma la creación/actualización del usuario en Keycloak. |
+
 **Relaciones**: Ninguna (tabla de caché independiente).
 
 **Restricciones de Negocio**:
@@ -2746,6 +2760,50 @@ LastEventHash: "a3f5b8c9d2e1f4g6..."
 ```
 
 **Uso en Background Worker**:
+
+---
+
+#### **3.2.9. KEYCLOAK_SYNC_LOG**
+
+**Propósito**: Auditoría y control de intentos de sincronización con Keycloak. Permite inspección, reintentos controlados y debugging de errores de sincronización.
+
+**Tabla de Atributos**:
+
+| Nombre Campo | Tipo | Restricciones | Descripción |
+|--------------|------|---------------|-------------|
+| **Id** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del log. |
+| **Email** | VARCHAR(255) | NOT NULL | Email del usuario sincronizado. |
+| **AttemptAt** | DATETIME | NOT NULL | Timestamp del intento de sincronización. |
+| **Status** | VARCHAR(50) | NOT NULL | Estado del intento: `Pending`, `Processed`, `Error`. |
+| **Response** | TEXT | NULL | Respuesta (o payload) devuelto por la API de Keycloak. |
+| **Attempts** | INT | DEFAULT 1 | Número de intentos realizados para este registro. |
+| **AuditCreationUser** | VARCHAR(255) | NULL | Usuario que generó el log (si aplica). |
+| **AuditCreationDate** | DATETIME | NOT NULL | Fecha de creación del log. |
+
+**Relaciones**: Ninguna obligatoria; se indexa por `Email` para búsquedas por usuario.
+
+**Índices**:
+```sql
+IX: Email
+```
+
+**Ejemplo de Registro**:
+```sql
+Id: 100
+Email: "juan.perez@example.com"
+AttemptAt: "2026-01-09 10:12:30"
+Status: "Processed"
+Response: "201 Created - Keycloak user id: 12345"
+Attempts: 1
+AuditCreationDate: "2026-01-09 10:12:30"
+```
+
+**Uso**:
+- El worker de sincronización registra un `KEYCLOAK_SYNC_LOG` por cada intento hacia Keycloak.
+- En caso de éxito, además de insertar el log con `Status = 'Processed'`, se actualiza `USERCACHE.LastKeycloakSyncAt`.
+- En caso de error transitorio, el registro puede ser reintentado basándose en `Attempts` y políticas de backoff.
+
+---
 ```csharp
 // 1. Buscar en caché
 var cached = await _cache.FirstOrDefaultAsync(u => u.Email == email);
