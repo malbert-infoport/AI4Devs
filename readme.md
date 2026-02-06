@@ -2089,6 +2089,16 @@ public string ComputeEventHash(object payload)
 
 **(No aplica todavia en esta fase documental)**
 
+### **2.7. Arquitectura Helix6 (Front + Back)**
+
+Breve descripción de la arquitectura Helix6 empleada en este proyecto. Se combina un backend basado en servicios y generación automática de endpoints con un frontend que consume los `Views` y clientes generados por NSwag.
+
+- **Backend (Helix6)**: Servicio central que implementa `BaseService<TView, TEntity, TMetadata>`, repositorios `BaseRepository<TEntity>` y endpoints generados por el `Helix Generator`. Proporciona pipelines de validación y hooks (`ValidateView`, `PreviousActions`, `PostActions`) para personalización. Documentación técnica: [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
+
+- **Frontend (patrones Helix6 Front)**: Conjunto de convenciones y componentes (ClGrid, ClModal, AccessService, NSwag clients) para consumir de forma consistente los endpoints y `Views` expuestos por Helix6. Guía de frontend y patrones: [.github/agents/Helix6Front.agent.md](.github/agents/Helix6Front.agent.md).
+
+Beneficios clave: generación de código que reduce boilerplate, contratos front/back consistentes mediante `Views`, y hooks extensibles para lógica de negocio.
+
 ---
 
 ## 3. Modelo de Datos
