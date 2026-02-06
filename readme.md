@@ -3147,6 +3147,13 @@ Content-Type: application/json
 
 ## 5. Historias de Usuario
 
+> Para consultar los requerimientos del proyecto, ver: [requirements.md](requirements.md)
+
+> Para consultar los casos de uso por requerimiento, ver: [useCases.md](useCases.md)
+
+> Para consultar las épicas del proyecto, las historias de usuario y los tickets asociados por historia, ver: [Epics.md](Epics.md)
+
+
 #### ORG-001: Crear y editar organización cliente
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
