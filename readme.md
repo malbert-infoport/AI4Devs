@@ -522,13 +522,16 @@ El sistema soporta evolución de esquemas mediante el campo `SchemaVersion`:
 
 A continuación se muestran mockups clave que ilustran la experiencia de usuario:
 
-**Login (Keycloak):** Pantalla de inicio de sesión mediante Keycloak, redirección y manejo de errores.  
-<img src="Mockups/Login_Keycloak.png" alt="Login Keycloak" width="700" />
+- **Login (Keycloak):** Pantalla de inicio de sesión mediante Keycloak, redirección y manejo de errores.
 
-**Grid de Organizaciones:** Vista principal con listado, filtros y acciones (crear/editar/eliminar).  
+<img src="Mockups/Login_Keycloak.png" alt="Login Keycloak" width="300" />
+
+- **Grid de Organizaciones:** Vista principal con listado, filtros y acciones (crear/editar/eliminar).
+
 <img src="Mockups/Grid_Organizaciones.png" alt="Grid Organizaciones" width="700" />
 
-**Ficha de Organización:** Formulario de detalle/edición de una organización con validaciones y campos clave.  
+- **Ficha de Organización:** Formulario de detalle/edición de una organización con validaciones y campos clave.
+
 <img src="Mockups/Ficha_Organizaciones.png" alt="Ficha Organizaciones" width="700" />
 
 ### **1.4. Instrucciones de instalación:**
