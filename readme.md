@@ -35,7 +35,7 @@ El sistema utiliza una arquitectura orientada a eventos basada en **ActiveMQ Art
 
 ### **0.4. URL del proyecto:**
 
-(Sin definir)
+(Sin definir al no tener implementado ni desplegado el producto)
 
 ### 0.5. URL o archivo comprimido del repositorio
 
@@ -511,9 +511,9 @@ El sistema soporta evolución de esquemas mediante el campo `SchemaVersion`:
 - **v1.0**: Versión inicial
 - **v1.1**: Podría agregar campos opcionales sin romper compatibilidad
 - **v2.0**: Cambios que rompen compatibilidad (requieren actualización de consumidores)
-
+ 
 **Estrategia de migración:**
-1. Publicar eventos con ambas versiones durante período de transición
+1. Publicar eventos con ambas versiones durante período de transición 
 2. Consumidores implementan lógica para soportar múltiples versiones
 3. Deprecación gradual de versiones antiguas con notificaciones
 
@@ -522,6 +522,8 @@ El sistema soporta evolución de esquemas mediante el campo `SchemaVersion`:
 > Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.0
 
 ### **1.4. Instrucciones de instalación:**
+
+**(No son completas al no tener implementado ni desplegado el producto)**
 
 InfoportOneAdmon está construido sobre el framework Helix6 para .NET 8. A continuación se detallan los pasos para instalar y poner en marcha el proyecto en un entorno de desarrollo local.
 
