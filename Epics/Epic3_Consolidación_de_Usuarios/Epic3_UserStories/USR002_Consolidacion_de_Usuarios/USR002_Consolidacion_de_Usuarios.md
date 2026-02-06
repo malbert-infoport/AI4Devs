@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # USR002 - Consolidación de Usuarios
 
 **ID:** USR002_Consolidacion_de_Usuarios
@@ -12,7 +13,7 @@
 - Mantener `EVENTHASH` con el hash de último evento procesado por `eventId`/`email` para evitar reprocesos redundantes.
 
 ## ACEPTACIÓN
-- [ ] Tras procesar un evento, `USERCACHE` contiene la combinación actualizada de organizaciones y roles para el `email`.
+- [ ] Tras procesar un evento, `USERCACHE` contiene la combinación actualizada del usuario de organizaciones y roles para el `email`.
 - [ ] Eventos duplicados (mismo hash) son ignorados.
 - [ ] Existe migración SQL que crea `USERCACHE` y `EVENTHASH`.
 
@@ -20,5 +21,5 @@
 - `Ticket_USR002_T001-BE.md` — implementación del servicio de consolidación.
 - `Ticket_USR002_T002-DB.md` — migración y DDL para `USERCACHE` y `EVENTHASH`.
 
-***
+```
 ```

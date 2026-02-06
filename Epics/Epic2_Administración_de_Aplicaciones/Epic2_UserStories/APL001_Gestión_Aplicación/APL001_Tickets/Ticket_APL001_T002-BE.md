@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # APL001-T002-BE: Backend — Application service orchestration (ApplicationComplete load/save)
 
 **TICKET ID:** APL001-T002-BE
@@ -111,5 +112,5 @@ dotnet ef database update --project Helix6.Back.Data --startup-project Helix6.Ba
 - Coordinar con equipos de seguridad la persistencia de `clientSecret` (no almacenar en texto claro).
 - Auditar eventos de cambio en `Credentials` y notificar según política.
 
-***
+```
 ```

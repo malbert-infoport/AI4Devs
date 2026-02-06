@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # APL001-T002-BE: Backend — Listar Aplicaciones (paginación y filtros Kendo)
 
 **TICKET ID:** APL001-T002-BE
@@ -68,5 +69,5 @@ dotnet ef database update --project Helix6.Back.Data --startup-project Helix6.Ba
 ## NOTAS
 - Registrar la configuración `ApplicationList` en `HelixEntities.xml` y ejecutar Helix Generator si es necesario.
 
-***
+```
 ```

@@ -1,3 +1,4 @@
+```markdown
 # ORG005-T001-FE: Frontend — Consultar Auditoría de Cambios en Organización
 
 =============================================================
@@ -80,4 +81,4 @@ function openDetail(event: AuditEventView) {
 - Crear `AuditClient` NSwag contract si no existe o coordinar con backend para `Audit/GetByOrganizationId`.
 - Implementar componente `organization-audit.component.ts` standalone y tests.
 
-***
+```

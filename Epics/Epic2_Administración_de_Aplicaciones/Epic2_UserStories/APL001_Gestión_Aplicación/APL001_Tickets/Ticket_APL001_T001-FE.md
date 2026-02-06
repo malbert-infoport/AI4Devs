@@ -1,3 +1,4 @@
+```markdown
 # APL001-T001-FE: Implementar formulario de creación/edición de `Application` con pestañas (Datos, Módulos, Roles, Credenciales)
 
 =============================================================
@@ -84,4 +85,4 @@ async function saveApplication(view: ApplicationView) {
 - Coordinar con backend para confirmar `ApplicationComplete` y endpoints de roles/credentials.
 - Implementar tests unitarios y E2E.
 
-***
+```

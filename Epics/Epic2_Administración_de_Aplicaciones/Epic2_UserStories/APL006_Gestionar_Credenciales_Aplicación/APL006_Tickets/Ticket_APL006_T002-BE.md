@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # APL006-T002-BE: Backend — Gestionar ApplicationCredentials (client credentials)
 
 **TICKET ID:** APL006-T002-BE
@@ -84,5 +85,5 @@ dotnet ef database update --project Helix6.Back.Data --startup-project Helix6.Ba
 - Evitar almacenar secret en logs; cifrar en DB o almacenar derivado seguro.
 - Coordinar con equipos de seguridad para políticas de retención/rotación.
 
-***
+```
 ```

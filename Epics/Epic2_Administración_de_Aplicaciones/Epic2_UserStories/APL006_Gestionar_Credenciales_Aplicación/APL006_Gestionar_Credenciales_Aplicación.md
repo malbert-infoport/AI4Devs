@@ -1,3 +1,4 @@
+```markdown
 # APL006 - Gestionar Credenciales de Aplicación (OAuth / ClientCredentials)
 
 **ID:** APL006
@@ -68,4 +69,4 @@ async function createCredential(applicationId: number, name?: string) {
 - Evitar almacenar secrets en el estado largo del componente; mantener en memoria hasta cerrar modal.
 - Registrar `X-Correlation-Id` en mutaciones.
 
-***
+```

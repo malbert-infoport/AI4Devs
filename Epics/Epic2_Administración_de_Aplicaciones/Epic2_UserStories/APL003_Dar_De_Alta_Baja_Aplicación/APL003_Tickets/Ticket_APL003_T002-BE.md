@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # APL003-T002-BE: Backend — Alta/Baja lógica de Aplicación (soft-delete / undelete)
 
 **TICKET ID:** APL003-T002-BE
@@ -41,5 +42,5 @@ else
 - [ ] Endpoint toggle implementado y probado.
 - [ ] Eventos publicados y `AUDITLOG` actualizado.
 
-***
+```
 ```

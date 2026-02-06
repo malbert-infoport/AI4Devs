@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # APL005-T002-BE: Backend — CRUD ApplicationRole y gestión de permisos
 
 **TICKET ID:** APL005-T002-BE
@@ -42,5 +43,5 @@ Orquestación por `ApplicationService`:
 - [ ] CRUD roles implementado y endpoints generados.
 - [ ] Selector de permisos soportado y tests añadidos.
 
-***
+```
 ```

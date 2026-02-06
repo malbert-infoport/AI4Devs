@@ -1,3 +1,4 @@
+```markdown
 # ORG004-T001-FE: Implementar UI para asignación y gestión de módulos en organización
 
 =============================================================
@@ -83,4 +84,4 @@ async saveModules(applicationModules: ApplicationModuleView[]) {
 - Implementar componente standalone `organization-modules.component.ts` y tests.
 - Coordinar con backend para validar `Organization.Update` comportamiento de auto-baja.
 
-***
+```

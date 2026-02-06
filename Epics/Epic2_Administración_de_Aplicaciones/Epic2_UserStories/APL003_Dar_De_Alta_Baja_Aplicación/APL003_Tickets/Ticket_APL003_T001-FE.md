@@ -1,3 +1,4 @@
+```markdown
 APL003-T001-FE: Frontend — Alta/Baja lógica de Aplicación
 
 =============================================================
@@ -104,4 +105,4 @@ async function toggleActive(applicationId: number, toDelete: boolean) {
 - [ ] Unit tests añadidos y pasan
 - [ ] Contrato backend verificado o fallback implementado
 
-***
+```

@@ -6,12 +6,9 @@
 **Prioridad:** Media | **Estimación:** 3 Story Points
 
 **Historia:**
-```
 Como ApplicationManager,
 quiero que los cambios críticos en las Applications queden registrados en el sistema de auditoría,
 para disponer de historial y trazar modificaciones que puedan afectar integraciones o accesos.
-
-```
 
 ## Acciones que desencadenan la auditoría (mínimo)
 - `ApplicationConfigChanged` — cambio de configuración crítica (dbname, endpoints, flags)

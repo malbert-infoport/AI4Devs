@@ -1,3 +1,4 @@
+```markdown
 ## APL003 - Alta / Baja Lógica de Aplicación (Activar / Desactivar)
 
 **ID:** APL003
@@ -89,7 +90,7 @@ async function confirmToggleActive(applicationId: number, toDelete: boolean) {
 - [ ] Unit tests for UI and toggle flow
 - [ ] Backend contract verified (DeleteUndeleteLogicById exists) or fallback implemented
 - [ ] Documentation updated in story and ticket
-***
+```
 # APL003 - Dar de Alta / Baja Lógica de Aplicación
 
 **ID:** APL003

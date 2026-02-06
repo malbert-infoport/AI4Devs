@@ -1,4 +1,5 @@
 ```markdown
+```markdown
 # APL004-T002-BE: Backend — CRUD de ApplicationModule y asignación a Application
 
 **TICKET ID:** APL004-T002-BE
@@ -69,5 +70,5 @@ dotnet ef database update --project Helix6.Back.Data --startup-project Helix6.Ba
 - [ ] CRUD funcional y tests añadidos.
 - [ ] Eventos publicados en cambios de asignación.
 
-***
+```
 ```

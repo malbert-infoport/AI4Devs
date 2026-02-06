@@ -1,3 +1,4 @@
+```markdown
 # ORG004-T001-BE: Backend — Gestión de módulos en organización (DataModel, Repo, Service, Endpoint)
 
 =============================================================
@@ -173,4 +174,4 @@ dotnet test Helix6.Back.Data.Tests
 - [ ] Pruebas unitarias de servicio y repositorio.
 - [ ] Documentación en el ticket con comandos para migración y tests.
 
-***
+```

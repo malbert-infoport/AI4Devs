@@ -1,3 +1,4 @@
+```markdown
 #### ORG-004: Gestionar módulos y permisos de una organización
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
@@ -5,11 +6,9 @@
 **Prioridad:** Alta | **Estimación:** 8 Story Points
 
 **Historia:**
-```
 Como ApplicationManager u Organization Administrator,
 quiero poder asignar aplicaciones y módulos a una organización al crearla y también añadir/quitar módulos en organizaciones existentes,
 para que los permisos reflejen el contrato y, en caso de quedar sin módulos, el sistema gestione la auto-baja con aviso y registro de auditoría/eventos.
-```
 
 ## Criterios de aceptación
 - Desde la pestaña «Módulos y Permisos de Acceso» en el formulario de organización poder:
@@ -42,4 +41,4 @@ para que los permisos reflejen el contrato y, en caso de quedar sin módulos, el
 - Unit: validar que el grid hace las llamadas correctas al servicio y que el modal crítico se muestra cuando procede.
 - Integration (opcional): flujo asignar/modificar módulos y validación de eventos/auditoría en backend.
 
-***
+```

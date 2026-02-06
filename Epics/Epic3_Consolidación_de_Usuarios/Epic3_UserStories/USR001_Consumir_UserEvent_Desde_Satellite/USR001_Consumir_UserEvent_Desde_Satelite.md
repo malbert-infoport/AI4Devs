@@ -25,5 +25,4 @@
 ## TICKETS BACKEND RELACIONADOS
 - `Ticket_USR001_T001-BE.md` — implementación del consumidor background y orquestación básica.
 
-***
 ```

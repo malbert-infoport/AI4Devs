@@ -128,5 +128,5 @@ dotnet ef database update --project Helix6.Back.Data --startup-project Helix6.Ba
 - [ ] Migración EF Core generada y script revisado.
 - [ ] Se pueden insertar y consultar registros de prueba.
 
-***
+```
 ```

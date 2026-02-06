@@ -6,11 +6,8 @@
 **Prioridad:** Alta | **Estimación:** 3 Story Points
 
 **Historia:**
-```
 Como Admin o IdentityManager,
-quiero que los cambios críticos en usuarios sean auditados y, cuando proceda, se sincronice con Keycloak,
-para garantizar trazabilidad y consistencia entre la plataforma y el proveedor de identidad.
-```
+quiero que los cambios críticos en usuarios sean auditados y, cuando proceda, se sincronice con Keycloak, para garantizar trazabilidad y consistencia entre la plataforma y el proveedor de identidad.
 
 ## Acciones que desencadenan la auditoría y/o sincronización
 - `RoleAssigned` / `RoleRemoved`
