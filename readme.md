@@ -2087,7 +2087,7 @@ public string ComputeEventHash(object payload)
 
 ### **2.6. Tests**
 
-> Describe brevemente algunos de los tests realizados
+**(No aplica todavia en esta fase documental)**
 
 ---
 
@@ -2803,233 +2803,7 @@ if (cached != null)
 }
 ```
 
----
-
 #### **3.2.9. AUDITLOG**
-
-**Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon.
-
-(La descripción de AUDITLOG se mantiene igual que antes, con `Id` como PK en lugar de `AuditLogId`)
-
----
-
-#### **3.2.10. EVENTHASH**
-
-**Propósito**: Tabla de control para prevención de duplicados en la publicación de eventos.
-
-(La descripción de EVENTHASH se mantiene igual que antes)
-
----
-
-#### **Resumen de Entidades**
-
-| Entidad | Propósito | PK | FKs | Restricciones Únicas | Relaciones |
-|---------|-----------|----|----|---------------------|------------|
-| **OrganizationGroup** | Agrupación de organizaciones | Id | - | GroupName | 1:N con Organization |
-| **Organization** | Cliente del ecosistema | Id | GroupId | SecurityCompanyId, Name, TaxId | N:1 con Group, 1:N con ModuleAccess |
-| **Application** | App satélite del portfolio | Id | - | AppName, RolePrefix | 1:N con Module, 1:N con AppRole, 1:N con ApplicationSecurity |
-| **ApplicationSecurity** | Credenciales OAuth2 | Id | ApplicationId | ClientId | N:1 con Application |
-| **Module** | Módulo funcional de app | Id | ApplicationId | (ApplicationId, ModuleName) | N:1 con App, 1:N con ModuleAccess |
-| **ModuleAccess** | Acceso módulo-organización | Id | ModuleId, OrganizationId | (ModuleId, OrganizationId) | N:1 con Module y Organization |
-| **AppRoleDefinition** | Catálogo de roles | Id | ApplicationId | (ApplicationId, RoleName) | N:1 con Application |
-| **UserConsolidationCache** | Caché consolidación usuarios | Id | - | Email | Ninguna (caché) |
-| **AuditLog** | Registro de auditoría | Id | - | - | N:1 lógico con todas las entidades |
-| **EventHashControl** | Control de duplicados | (EntityType, EntityId) | - | - | Ninguna (tabla de control) |
-
-**Relaciones**:
-- **1:N con Module**: Una aplicación contiene múltiples módulos. FK en Module: `AppId`. ON DELETE CASCADE (si se elimina la app, se eliminan sus módulos).
-- **1:N con AppRoleDefinition**: Una aplicación define múltiples roles. FK en AppRoleDefinition: `AppId`. ON DELETE CASCADE.
-- **1:N con AuditLog**: Una aplicación genera registros de auditoría.
-
-**Restricciones de Negocio**:
-- `AppName` debe ser único (índice `UX_Application_AppName`)
-- `RolePrefix` debe ser único (índice `UX_Application_RolePrefix`) y se utiliza como prefijo para nomenclatura de roles y módulos
-- `ClientId` debe ser único (índice `UX_Application_ClientId`)
-- **Regla de negocio**: Toda aplicación debe tener al menos un módulo (validado a nivel de aplicación)
-- `ClientSecretHash` es NULL para public clients (Angular SPAs con PKCE)
-- `ClientSecretHash` es obligatorio para confidential clients (APIs backend)
-- `ClientSecretHash` nunca se devuelve en APIs; solo se muestra el secreto en texto plano en el momento de creación de confidential clients
-- Public clients (Angular) usan PKCE y no almacenan secretos
-- **Nomenclatura de roles**: Los roles de la aplicación deben usar el prefijo definido en `RolePrefix` (ej: si RolePrefix="STP", entonces roles como "STP_AsignadorTransporte", "STP_Supervisor")
-- **Nomenclatura de módulos**: Los módulos de la aplicación deben usar "M" + `RolePrefix` (ej: si RolePrefix="STP", entonces módulos como "MSTP_Trafico", "MSTP_Almacen")
-
-**Índices**:
-```sql
-PK: AppId
-UK: AppName
-UK: RolePrefix
-UK: ClientId
-```
-
-**Ejemplo de Registro (Public Client - Angular SPA)**:
-```sql
-AppId: 5
-AppName: "CRM Comercial Frontend"
-RolePrefix: "CRM"
-ClientId: "crm-app-frontend"
-IsPublicClient: TRUE
-ClientSecretHash: NULL
-RedirectUris: '["https://crm.infoportone.com/*"]'
-```
-
-**Ejemplo de Registro (Confidential Client - Backend API)**:
-```sql
-AppId: 6
-AppName: "CRM Comercial API"
-RolePrefix: "CRM"
-ClientId: "crm-api-backend"
-IsPublicClient: FALSE
-ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
-RedirectUris: NULL
-```
-
-**Ejemplo de Registro (Aplicación Sintraport)**:
-```sql
-AppId: 7
-AppName: "Sintraport"
-RolePrefix: "STP"
-ClientId: "sintraport-app"
-IsPublicClient: TRUE
-ClientSecretHash: NULL
-RedirectUris: '["https://sintraport.infoportone.com/*"]'
-```
-> Con este RolePrefix="STP", los roles serán como "STP_AsignadorTransporte", "STP_Supervisor" y los módulos como "MSTP_Trafico", "MSTP_Almacen"
-
----
-
-#### **3.2.4. APPLICATIONMODULE (duplicado)**
-
-**Propósito**: Representa módulos funcionales dentro de una aplicación. Permite habilitar/deshabilitar funcionalidades por organización.
-
-**Tabla de Atributos**:
-
-| Nombre Campo | Tipo | Restricciones | Descripción |
-|--------------|------|---------------|-------------|
-| **ModuleId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del módulo. |
-| **AppId** | INT | FK → Application.AppId, NOT NULL | Aplicación a la que pertenece el módulo. |
-| **ModuleName** | VARCHAR(100) | NOT NULL | Nombre del módulo (ej: "Módulo Facturación", "Módulo Reporting Avanzado"). |
-| **Description** | VARCHAR(500) | NULL | Descripción de las funcionalidades que ofrece el módulo. |
-| **DisplayOrder** | INT | NULL, DEFAULT 0 | Orden de visualización en interfaces (menor número = mayor prioridad). |
-| **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del módulo. |
-| **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
-
-**Relaciones**:
-- **N:1 con Application**: Un módulo pertenece a una aplicación. FK: `AppId`. ON DELETE CASCADE.
-- **1:N con ModuleAccess**: Un módulo puede asignarse a múltiples organizaciones.
-
-**Restricciones de Negocio**:
-- Combinación (`AppId`, `ModuleName`) debe ser única (índice `UX_Module_AppId_ModuleName`)
-- Toda aplicación debe tener al menos un módulo disponible
-- Cuando un módulo está dado de baja (soft delete), no se puede asignar a nuevas organizaciones, pero las organizaciones existentes pueden seguir usándolo
-
-**Índices**:
-```sql
-PK: ModuleId
-UK: (AppId, ModuleName)
-IX: AppId
-```
-
-**Ejemplo de Registro**:
-```sql
-ModuleId: 101
-AppId: 5
-ModuleName: "Módulo Facturación Electrónica"
-Description: "Emisión y gestión de facturas electrónicas con firma digital"
-DisplayOrder: 10
-```
-
----
-
-#### **3.2.5. ORGANIZATION_APPLICATIONMODULE (duplicado)**
-
-**Propósito**: Tabla de relación N:M entre módulos y organizaciones. Define qué organizaciones tienen acceso a qué módulos.
-
-**Tabla de Atributos**:
-
-| Nombre Campo | Tipo | Restricciones | Descripción |
-|--------------|------|---------------|-------------|
-| **ModuleAccessId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del registro de acceso. |
-| **ModuleId** | INT | FK → Module.ModuleId, NOT NULL | Módulo al que se concede acceso. |
-| **SecurityCompanyId** | INT | FK → Organization.SecurityCompanyId, NOT NULL | Organización que recibe el acceso. |
-| **GrantedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha y hora en que se concedió el acceso. |
-| **GrantedBy** | VARCHAR(255) | NULL | Email del administrador que concedió el acceso. |
-| **ExpiresAt** | DATETIME | NULL | Fecha de expiración del acceso (para licencias temporales). NULL = sin expiración. |
-
-**Relaciones**:
-- **N:1 con Module**: FK: `ModuleId`. ON DELETE CASCADE.
-- **N:1 con Organization**: FK: `SecurityCompanyId`. ON DELETE CASCADE.
-
-**Restricciones de Negocio**:
-- Combinación (`ModuleId`, `SecurityCompanyId`) debe ser única (índice `UX_ModuleAccess_Module_Company`)
-- Una organización no puede tener el mismo módulo asignado dos veces
-- Si `ExpiresAt` está en el pasado, las aplicaciones deben denegar acceso al módulo
-
-**Índices**:
-```sql
-PK: ModuleAccessId
-UK: (ModuleId, SecurityCompanyId)
-IX: SecurityCompanyId
-IX: ExpiresAt
-```
-
-**Ejemplo de Registro**:
-```sql
-ModuleAccessId: 5001
-ModuleId: 101
-SecurityCompanyId: 12345
-GrantedAt: "2026-01-01 10:00:00"
-GrantedBy: "admin@infoportone.com"
-ExpiresAt: NULL
-```
-
-**Uso en Aplicaciones**:
-Las aplicaciones satélite consultan esta relación (sincronizada vía `OrganizationEvent`) para validar si una organización puede acceder a un módulo específico mediante la presencia del registro activo (no soft-deleted).
-
----
-
-#### **3.2.6. APPLICATIONROLE (duplicado)**
-
-**Propósito**: Catálogo maestro de roles disponibles en cada aplicación. Define "qué roles existen" (no quién los tiene).
-
-**Tabla de Atributos**:
-
-| Nombre Campo | Tipo | Restricciones | Descripción |
-|--------------|------|---------------|-------------|
-| **RoleId** | INT | PK, AUTO_INCREMENT, NOT NULL | Identificador único del rol. |
-| **AppId** | INT | FK → Application.AppId, NOT NULL | Aplicación a la que pertenece el rol. |
-| **RoleName** | VARCHAR(100) | NOT NULL | Nombre del rol (ej: "Vendedor", "Gerente", "Administrador"). |
-| **Description** | VARCHAR(500) | NULL | Descripción de los permisos y responsabilidades del rol. |
-| **CreatedAt** | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Fecha de creación del rol. |
-| **UpdatedAt** | DATETIME | NULL, ON UPDATE CURRENT_TIMESTAMP | Fecha de última modificación. |
-
-**Relaciones**:
-- **N:1 con Application**: Un rol pertenece a una aplicación. FK: `AppId`. ON DELETE CASCADE.
-
-**Restricciones de Negocio**:
-- Combinación (`AppId`, `RoleName`) debe ser única (índice `UX_AppRole_AppId_RoleName`)
-- Cuando un rol está dado de baja (soft delete), no se puede asignar a nuevos usuarios, pero los usuarios existentes pueden mantenerlo
-- **Principio de responsabilidad**: InfoportOneAdmon define roles, aplicaciones satélite los asignan a usuarios
-
-**Índices**:
-```sql
-PK: Id
-UK: (ApplicationId, RoleName)
-IX: ApplicationId
-```
-
-**Ejemplo de Registro**:
-```sql
-Id: 201
-ApplicationId: 5
-RoleName: "CRM_GerenteVentas"
-Description: "Puede ver y gestionar oportunidades, crear presupuestos y aprobar descuentos hasta 15%"
-```
-
-**Sincronización**: Los roles se sincronizan como parte del `ApplicationEvent`, no tienen evento propio.
-
----
-
-#### **3.2.7. AUDITLOG (duplicado)**
 
 **Propósito**: Registro inmutable de todas las acciones administrativas realizadas en InfoportOneAdmon. Esencial para compliance y auditorías.
 
@@ -3095,7 +2869,7 @@ AuditDeletionDate: NULL
 
 ---
 
-#### **3.2.8. EVENTHASH (duplicado)**
+#### **3.2.10. EVENTHASH**
 
 **Propósito**: Tabla de control para prevención de duplicados en la publicación de eventos. Almacena el hash SHA-256 del último evento publicado para cada entidad.
 
@@ -3176,7 +2950,64 @@ await UpdateEventHashControl(entityType, entityId, currentHash, DateTime.UtcNow)
 | **AuditLog** | Registro de auditoría | Id | - | - | N:1 lógico con todas las entidades |
 | **EventHashControl** | Control de duplicados | (EntityType, EntityId) | - | - | Ninguna (tabla de control) |
 
-> Recuerda incluir el máximo detalle de cada entidad, como el nombre y tipo de cada atributo, descripción breve si procede, claves primarias y foráneas, relaciones y tipo de relación, restricciones (unique, not null…), etc.
+**Relaciones**:
+- **1:N con Module**: Una aplicación contiene múltiples módulos. FK en Module: `AppId`. ON DELETE CASCADE (si se elimina la app, se eliminan sus módulos).
+- **1:N con AppRoleDefinition**: Una aplicación define múltiples roles. FK en AppRoleDefinition: `AppId`. ON DELETE CASCADE.
+- **1:N con AuditLog**: Una aplicación genera registros de auditoría.
+
+**Restricciones de Negocio**:
+- `AppName` debe ser único (índice `UX_Application_AppName`)
+- `RolePrefix` debe ser único (índice `UX_Application_RolePrefix`) y se utiliza como prefijo para nomenclatura de roles y módulos
+- `ClientId` debe ser único (índice `UX_Application_ClientId`)
+- **Regla de negocio**: Toda aplicación debe tener al menos un módulo (validado a nivel de aplicación)
+- `ClientSecretHash` es NULL para public clients (Angular SPAs con PKCE)
+- `ClientSecretHash` es obligatorio para confidential clients (APIs backend)
+- `ClientSecretHash` nunca se devuelve en APIs; solo se muestra el secreto en texto plano en el momento de creación de confidential clients
+- Public clients (Angular) usan PKCE y no almacenan secretos
+- **Nomenclatura de roles**: Los roles de la aplicación deben usar el prefijo definido en `RolePrefix` (ej: si RolePrefix="STP", entonces roles como "STP_AsignadorTransporte", "STP_Supervisor")
+- **Nomenclatura de módulos**: Los módulos de la aplicación deben usar "M" + `RolePrefix` (ej: si RolePrefix="STP", entonces módulos como "MSTP_Trafico", "MSTP_Almacen")
+
+**Índices**:
+```sql
+PK: AppId
+UK: AppName
+UK: RolePrefix
+UK: ClientId
+```
+
+**Ejemplo de Registro (Public Client - Angular SPA)**:
+```sql
+AppId: 5
+AppName: "CRM Comercial Frontend"
+RolePrefix: "CRM"
+ClientId: "crm-app-frontend"
+IsPublicClient: TRUE
+ClientSecretHash: NULL
+RedirectUris: '["https://crm.infoportone.com/*"]'
+```
+
+**Ejemplo de Registro (Confidential Client - Backend API)**:
+```sql
+AppId: 6
+AppName: "CRM Comercial API"
+RolePrefix: "CRM"
+ClientId: "crm-api-backend"
+IsPublicClient: FALSE
+ClientSecretHash: "$2a$12$K1.B1/sZQN..." (bcrypt hash)
+RedirectUris: NULL
+```
+
+**Ejemplo de Registro (Aplicación Sintraport)**:
+```sql
+AppId: 7
+AppName: "Sintraport"
+RolePrefix: "STP"
+ClientId: "sintraport-app"
+IsPublicClient: TRUE
+ClientSecretHash: NULL
+RedirectUris: '["https://sintraport.infoportone.com/*"]'
+```
+> Con este RolePrefix="STP", los roles serán como "STP_AsignadorTransporte", "STP_Supervisor" y los módulos como "MSTP_Trafico", "MSTP_Almacen"
 
 ---
 
