@@ -8,6 +8,7 @@
 5. [Historias de usuario](#5-historias-de-usuario)
 6. [Tickets de trabajo](#6-tickets-de-trabajo)
 7. [Pull requests](#7-pull-requests)
+8. [Planificación del Desarrollo y MVP](#8-planificación-del-desarrollo-y-mvp)
 
 ---
 
@@ -6531,4 +6532,54 @@ WHERE "TaxId" = 'B12345678';
 **Pull Request 2**
 
 **Pull Request 3**
+
+## 8. Planificación del Desarrollo y MVP
+
+Objetivo: Entregar un MVP práctico en ≤ 30 horas centrado en la gestión de organizaciones (alta/edición/listado), la publicación de OrganizationEvent y la integración mínima de publicación (Event Publisher). Opcionalmente dejar un spike para procesamiento de UserEvent y sincronización con Keycloak como siguiente fase.
+
+- Alcance MVP (obligatorio):
+  - Backend: Endpoints Helix6 para Organization (GetById, GetNewEntity, Insert, Update, GetAllKendoFilter) con validaciones y generación de SecurityCompanyId. Publicación de OrganizationEvent cuando se asignen módulos o cambie estado (IsDeleted/GroupId). Implementación del EventPublisher con prevención por hash SHA-256.
+  - Frontend: Formulario Angular (Pestaña 1 Datos básicos + Pestaña 2 Módulos mínimos) que permita crear/editar organización y asignar un módulo para disparar el OrganizationEvent.
+  - Tests mínimos: Unitarios para validaciones backend y un test de integración que verifique la publicación (simulada) del OrganizationEvent.
+
+- Roadmap y Hitos (priorizados):
+  1. Hito A — Backend CRUD + EventPublisher (12h)
+     - Implementar OrganizationService/Repository (Helix6) y endpoints (6h)
+     - Implementar EventPublisher con hash (SHA-256) y guardar EventHash (3h)
+     - Migraciones y tests backend básicos (3h)
+  2. Hito B — Frontend formulario y asignación de módulos (10h)
+     - Crear componente `organization-form` (Pestaña 1) y validaciones (4h)
+     - Implementar Pestaña 2 mínima (asignar módulo) y llamada a Insert/Update que active publicación (4h)
+     - Integración NSwag client y mensajes de éxito/errores (2h)
+  3. Hito C — Verificación, docs y despliegue local (8h)
+     - Pruebas E2E/ integración ligera (3h)
+     - Documentación portátil y checklist de despliegue (2h)
+     - Ajustes, revisión de seguridad y merge (3h)
+
+- Estimación total: 12 + 10 + 8 = 30 horas (MVP cerrado)
+
+- Backlog priorizado (rápido):
+  1. ORG-CORE: Backend Organization CRUD + validations — 6h
+  2. ORG-EVENT: EventPublisher (OrganizationEvent + EventHash) — 3h
+  3. ORG-TEST: Backend unit & integration tests — 3h
+  4. FE-ORG-BASIC: Angular form (Pestaña 1) — 4h
+  5. FE-ORG-MODULES: Assign modules UI + publish trigger — 4h
+  6. FE-INTEGRATION: NSwag client wiring + error handling — 2h
+  7. E2E & Docs: Integration smoke tests + README updates — 5h
+  8. BUFFER: Code review & small fixes — 3h
+
+- Criterios de Aceptación (MVP):
+  - Crear/editar organización funciona desde frontend y backend con validaciones; `SecurityCompanyId` generado y persistido.
+  - Al asignar el primer módulo o cambiar estado relevante, se publica un `OrganizationEvent` con payload mínimo; EventHash evita duplicados.
+  - Tests automatizados cubren validaciones críticas y la ruta de publicación (mocked broker).
+  - Documentación breve con pasos para ejecutar localmente (DB migrations, broker stub, ejecución frontend/backend).
+
+- Dependencias y riesgos:
+  - Depende de Helix6 generator y configuraciones de `OrganizationRepository` (nombres de `configurationName`).
+  - Riesgo: integración Keycloak y consumo de UserEvent quedan fuera del MVP por tiempo; se puede añadir como stretch (spike de 6–8h para validar Keycloak Admin API y flujo de sincronización).
+
+- Próximos pasos recomendados tras MVP:
+  - Sprint 2 (stretch): Implementar Background Worker para consumir `infoportone.events.user` y sincronizar con Keycloak (8h estimadas para spike + pruebas).
+  - Mejoras: Panel de auditoría y logs de sincronización (`KEYCLOAK_SYNC_LOG`).
+
 
