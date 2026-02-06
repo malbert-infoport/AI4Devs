@@ -2095,7 +2095,7 @@ Breve descripción de la arquitectura Helix6 empleada en este proyecto. Se combi
 
 - **Backend (Helix6)**: Servicio central que implementa `BaseService<TView, TEntity, TMetadata>`, repositorios `BaseRepository<TEntity>` y endpoints generados por el `Helix Generator`. Proporciona pipelines de validación y hooks (`ValidateView`, `PreviousActions`, `PostActions`) para personalización. Documentación técnica: [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
 
-- **Frontend (patrones Helix6 Front)**: Conjunto de convenciones y componentes (ClGrid, ClModal, AccessService, NSwag clients) para consumir de forma consistente los endpoints y `Views` expuestos por Helix6. Guía de frontend y patrones: [.github/agents/Helix6Front.agent.md](.github/agents/Helix6Front.agent.md).
+- **Frontend (patrones Helix6 Front)**: Conjunto de convenciones y componentes (ClGrid, ClModal, AccessService, NSwag clients) para consumir de forma consistente los endpoints y `Views` expuestos por Helix6. Guía de frontend y patrones: [.github/agents/Helix6_Frontend_Architecture.md](.github/agents/Helix6_Frontend_Architecture.md).
 
 Beneficios clave: generación de código que reduce boilerplate, contratos front/back consistentes mediante `Views`, y hooks extensibles para lógica de negocio.
 
