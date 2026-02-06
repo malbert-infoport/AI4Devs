@@ -11,68 +11,64 @@
 ---
 
 ## 1. Roles del Sistema
+### Roles usados en las historias y tickets
 
-### **Rol 1: OrganizationManager**
+- **Organization Administrator**: Usuario con permisos para crear/editar organizaciones y gestionar módulos asignados dentro de una organización (visto en múltiples tickets y HU).
+- **OrganizationManager**: Rol operativo para onboarding y gestión masiva de organizaciones (presente en HU y tests).
+- **ApplicationManager**: Responsable de registrar aplicaciones, asignar módulos y gestionar roles de aplicación.
+- **SecurityManager**: Responsable de acciones de seguridad y operaciones sensibles (desactivación/reactivación manual, auditoría).
+- **EndUser**: Usuario final que consume las aplicaciones (SSO, accesos con token).
 
-**Descripción del rol:**
-- **Responsabilidad principal**: Gestión del portfolio de organizaciones clientes y onboarding
-- **Alcance**: Creación, edición, desactivación y agrupación de organizaciones clientes
-- **Objetivos**: Incorporar nuevos clientes de forma rápida y sin errores, mantener información actualizada de organizaciones
-- **Desafíos**: Procesos manuales que generan errores, falta de visibilidad sobre el estado de cada cliente
-- **Nivel técnico**: Intermedio - Maneja interfaces web de administración
-- **Caso de uso típico**: "Dar de alta una nueva organización cliente en minutos completando un formulario simple con sus datos básicos, para iniciar su proceso de incorporación al ecosistema sin errores que retrasen el acceso a las aplicaciones."
-
-### **Rol 2: SecurityManager**
-
-**Descripción del rol:**
-- **Responsabilidad principal**: Administración de accesos, permisos y seguridad del ecosistema
-- **Alcance**: Control de autorizaciones, gestión de roles, gobierno de credenciales OAuth2
-- **Objetivos**: Garantizar que solo las organizaciones autorizadas accedan a cada aplicación, controlar permisos de forma granular
-- **Desafíos**: Procesos de autorización lentos, falta de auditoría clara de cambios de permisos
-- **Nivel técnico**: Avanzado - Conocimientos profundos de OAuth2, tokens JWT, conceptos de ciberseguridad
-- **Caso de uso típico**: "Desactivar inmediatamente una organización cliente sin eliminar su información, para bloquear su acceso a todas las aplicaciones del ecosistema en caso de impago, incidencia de seguridad o fin de contrato."
-
-### **Rol 3: ApplicationManager**
-
-**Descripción del rol:**
-- **Responsabilidad principal**: Gestión del portfolio de aplicaciones satélite y configuración de módulos
-- **Alcance**: Registro de aplicaciones, definición de módulos funcionales, configuración de permisos por organización
-- **Objetivos**: Configurar qué funcionalidades (módulos) están disponibles para cada cliente, gestionar el catálogo de aplicaciones
-- **Desafíos**: Descoordinación entre equipos, configuraciones inconsistentes entre aplicaciones
-- **Nivel técnico**: Intermedio-Avanzado - Comprende arquitectura de software y modelos de integración
-- **Caso de uso típico**: "Definir los módulos funcionales de una aplicación usando nomenclatura estándar (ej: MCRM_Facturacion), para establecer el catálogo de funcionalidades que se pueden vender y activar de forma granular por cliente."
-
-### **Rol 4: ComplianceOfficer**
-
-**Descripción del rol:**
-- **Responsabilidad principal**: Auditoría de sistemas y cumplimiento normativo
-- **Alcance**: Verificación de trazabilidad, generación de reportes de compliance (ISO 27001, GDPR)
-- **Objetivos**: Verificar trazabilidad de todos los cambios, demostrar cumplimiento en auditorías externas
-- **Desafíos**: Logs dispersos, falta de información de "quién hizo qué y cuándo"
-- **Nivel técnico**: Intermedio - Consulta logs y reportes, sin acceso directo a bases de datos
-- **Caso de uso típico**: "Consultar el historial completo de cambios realizados en una organización específica, para demostrar en auditorías externas que solo usuarios autorizados modificaron datos críticos y verificar trazabilidad completa."
-
-### **Rol 5: EndUser**
-
-**Descripción del rol:**
-- **Responsabilidad principal**: Consumidor final de las aplicaciones satélite del ecosistema
-- **Alcance**: Acceso a aplicaciones del ecosistema (CRM, ERP, BI) desde organización cliente
-- **Objetivos**: Acceder fácilmente a las aplicaciones del ecosistema sin problemas de autenticación
-- **Desafíos**: Múltiples contraseñas, retrasos cuando cambia de empresa y necesita nuevos accesos
-- **Nivel técnico**: Básico - Usuario de aplicaciones sin conocimientos técnicos
-- **Caso de uso típico**: "Hacer login una sola vez y acceder a todas las aplicaciones del ecosistema sin volver a introducir credenciales, para ahorrar tiempo y tener una experiencia fluida sin interrupciones por autenticaciones repetidas (SSO)."
-
+Las descripciones anteriores reflejan los roles reales referenciados en las HU y tickets del repositorio; se han simplificado para mantener coherencia entre artefactos.
 ---
 
-## 2. Épicas
+## 2. Épicas (índice)
 
-- [Epic1_Gestión_de_Organizaciones.md](Epic1_Gestión_de_Organizaciones/Epic1_Gestión_de_Organizaciones.md)
-- [Epic2_Administración_de_Aplicaciones.md](Epic2_Administración_de_Aplicaciones/Epic2_Administración_de_Aplicaciones.md)
-- [Epic3_Módulos_y_Permisos.md](Epic3_Módulos_y_Permisos/Epic3_Módulos_y_Permisos.md)
-- [Epic4_Gobierno_de_Roles_y_Seguridad.md](Epic4_Gobierno_de_Roles_y_Seguridad/Epic4_Gobierno_de_Roles_y_Seguridad.md)
-- [Epic5_Consolidación_de_Usuarios.md](Epic5_Consolidación_de_Usuarios/Epic5_Consolidación_de_Usuarios.md)
-- [Epic6_Keycloak_e_Identity_Management.md](Epic6_Keycloak_e_Identity_Management/Epic6_Keycloak_e_Identity_Management.md)
-- [Epic7_Eventos_y_Sincronización.md](Epic7_Eventos_y_Sincronización/Epic7_Eventos_y_Sincronización.md)
+- **Inicialización (Epic 0)**: [Epic0_Inicializacion.md](Epic0_Inicializacion/Epic0_Inicializacion.md)
+    - [Init: Backend scaffold](Epic0_Inicializacion/Epic0_UserStories/INIT001_Inicialización_Proyecto_Back_Helix6/INIT001_Inicialización_Proyecto_Back_Helix6.md)
+    - [Init: Frontend scaffold](Epic0_Inicializacion/Epic0_UserStories/INIT002_Inicialización_Proyecto_Front_Helix6/INIT002_Inicialización_Proyecto_Front_Helix6.md)
+    - [Init: Keycloak + Postgres + ActiveMQ Artemis (docker-compose)](Epic0_Inicializacion/Epic0_UserStories/INIT003_Configuración_Contenedores_Keycloak_Postgres_ActiveMQ_Artemis/INIT003_Configuración_Contenedores_Keycloak_Postgres_ActiveMQ_Artemis.md)
+
+- **Organizaciones (Epic 1)**: [Epic1_Gestión_de_Organizaciones.md](Epic1_Gestión_de_Organizaciones/Epic1_Gestión_de_Organizaciones.md)
+    - [Gestión de organización](Epic1_Gestión_de_Organizaciones/Epic1_UserStories/ORG001_Gestion_Organizacion/ORG001_Gestion_Organizacion.md)
+    - [Listar organizaciones (filtros y paginación)](Epic1_Gestión_de_Organizaciones/Epic1_UserStories/ORG002_Listar_Organizaciones_Filtros_Paginación/ORG002_Listar_Organizaciones_Filtros_Paginación.md)
+    - [Alta/Baja de organización](Epic1_Gestión_de_Organizaciones/Epic1_UserStories/ORG003_Dar_De_Alta_Baja_Organización/ORG003_Dar_De_Alta_Baja_Organización.md)
+    - [Gestionar módulos de organización](Epic1_Gestión_de_Organizaciones/Epic1_UserStories/ORG004_Gestionar_modulos_organizacion/ORG004_Gestionar_modulos_organizacion.md)
+    - [Consultar auditoría de organización](Epic1_Gestión_de_Organizaciones/Epic1_UserStories/ORG005_Consultar_Auditoría_Cambios_Organización/ORG005_Consultar_Auditoría_Cambios_Organización.md)
+
+- **Aplicaciones (Epic 2)**: [Epic2_Administración_de_Aplicaciones.md](Epic2_Administración_de_Aplicaciones/Epic2_Administración_de_Aplicaciones.md)
+    - [Gestión de aplicación](Epic2_Administración_de_Aplicaciones/Epic2_UserStories/APL001_Gestión_Aplicación/APL001_Gestión_Aplicación.md)
+    - [Listar aplicaciones (filtros/paginación)](Epic2_Administración_de_Aplicaciones/Epic2_UserStories/APL002_Listar_Aplicaciones_Filtros_Paginación/APL002_Listar_Aplicaciones_Filtros_Paginación.md)
+    - [Alta/Baja de aplicación](Epic2_Administración_de_Aplicaciones/Epic2_UserStories/APL003_Dar_De_Alta_Baja_Aplicación/APL003_Dar_De_Alta_Baja_Aplicación.md)
+    - [Gestionar módulos de aplicación](Epic2_Administración_de_Aplicaciones/Epic2_UserStories/APL004_Gestionar_Modulos_Aplicación/APL004_Gestionar_Modulos_Aplicación.md)
+    - [Gestionar roles de aplicación](Epic2_Administración_de_Aplicaciones/Epic2_UserStories/APL005_Gestionar_Roles_Aplicación/APL005_Gestionar_Roles_Aplicación.md)
+    - [Gestionar credenciales de aplicación](Epic2_Administración_de_Aplicaciones/Epic2_UserStories/APL006_Gestionar_Credenciales_Aplicación/APL006_Gestionar_Credenciales_Aplicación.md)
+
+- **Consolidación de usuarios (Epic 3)**: [Epic3_Consolidación_de_Usuarios.md](Epic3_Consolidación_de_Usuarios/Epic3_Consolidación_de_Usuarios.md)
+    - [Consumir UserEvent desde apps satélite](Epic3_Consolidación_de_Usuarios/Epic3_UserStories/USR001_Consumir_UserEvent_Desde_Satellite/USR001_Consumir_UserEvent_Desde_Satellite.md)
+    - [Consolidación de usuarios](Epic3_Consolidación_de_Usuarios/Epic3_UserStories/USR002_Consolidacion_de_Usuarios/USR002_Consolidacion_de_Usuarios.md)
+    - [Sincronización de usuarios](Epic3_Consolidación_de_Usuarios/Epic3_UserStories/USR003_Sincronizacion_de_Usuarios/USR003_Sincronizacion_de_Usuarios.md)
+
+- **Keycloak e Identity (Epic 4)**: [Epic4_Keycloak_e_Identity_Management.md](Epic4_Keycloak_e_Identity_Management/Epic4_Keycloak_e_Identity_Management.md)
+    - [Crear realm InfoportOne](Epic4_Keycloak_e_Identity_Management/Epic4_UserStories/KEY001_Crear_Realm_InfoportOne/KEY001_Crear_Realm_InfoportOne.md)
+    - [Crear usuario en Keycloak vía API](Epic4_Keycloak_e_Identity_Management/Epic4_UserStories/KEY002_Creación_Usuario_Keycloak_con_Api/KEY002_Creación_Usuario_Keycloak_con_Api.md)
+    - [Crear clientes (apps) en Keycloak](Epic4_Keycloak_e_Identity_Management/Epic4_UserStories/KEY003_Creación_Clientes_Keycloak/KEY003_Creación_Clientes_Keycloak.md)
+
+- **Eventos y sincronización (Epic 5)**: [Epic5_Eventos_y_Sincronización.md](Epic5_Eventos_y_Sincronización/Epic5_Eventos_y_Sincronización.md)
+    - [OrganizationEvent (publicación/consumo)](Epic5_Eventos_y_Sincronización/EVT001_OrganizationEvent/EVT001_OrganizationEvent.md)
+    - [ApplicationEvent](Epic5_Eventos_y_Sincronización/EVT002_ApplicationEvent/EVT002_ApplicationEvent.md)
+    - [UserEvent](Epic5_Eventos_y_Sincronización/EVT003_UserEvent/EVT003_UserEvent.md)
+    - [Sincronización global de eventos](Epic5_Eventos_y_Sincronización/EVT004_Sincronización_Global_de_Eventos/EVT004_Sincronización_Global_de_Eventos.md)
+
+- **Auditoría de cambios (Epic 6)**: [Epic6_Auditoria_de_Cambios.md](Epic6_Auditoria_de_Cambios/Epic6_Auditoria_de_Cambios.md)
+    - [Auditoría por organización](Epic6_Auditoria_de_Cambios/Epic6_UserStories/AUD001_Auditoria_Organización/AUD001_Auditoria_Organización.md)
+    - [Auditoría por aplicación](Epic6_Auditoria_de_Cambios/Epic6_UserStories/AUD002_Auditoría_Aplicación/AUD002_Auditoría_Aplicación.md)
+    - [Auditoría por usuario](Epic6_Auditoria_de_Cambios/Epic6_UserStories/AUD003_Auditoria_Usuario/AUD003_Auditoria_Usuario.md)
+
+- **Grupos de organizaciones (Epic 7)**: [Epic7_Gestión_de_Grupos_Organizaciones.md](Epic7_Gestión_de_Grupos_Organizaciones/Epic7_Gestión_de_Grupos_Organizaciones.md)
+    - [Gestión de grupos de organización](Epic7_Gestión_de_Grupos_Organizaciones/Epic7_UserStories/GRP001_Gestión_Grupo_Organización/GRP001_Gestión_Grupo_Organización.md)
+    - [Listas de grupos (filtros y paginación)](Epic7_Gestión_de_Grupos_Organizaciones/Epic7_UserStories/GRP002_Listas_Grupos_Organizaciones_Filtros_Paginación/GRP002_Listas_Grupos_Organizaciones_Filtros_Paginación.md)
+    - [Eliminar grupo físicamente](Epic7_Gestión_de_Grupos_Organizaciones/Epic7_UserStories/GRP003_Eliminar_Fisicamente/GRP003_Eliminar_Fisicamente.md)
 
 ---
 
