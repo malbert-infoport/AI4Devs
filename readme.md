@@ -3219,7 +3219,7 @@ para encontrar rápidamente la organización que busco sin tener que desplazarme
 - Usar VW_ORGANIZATION con campos calculados `ModuleCount` y `AppCount`
 - Query params en URL para estado de filtros
 
-## USR001 - Consumir UserEvent desde Satelite (Historia Técnica)
+### USR001 - Consumir UserEvent desde Satelite (Historia Técnica)
 
 **Épica:** Consolidación de Usuarios
 **Prioridad:** Media | **Estimación:** 4 Story Points
