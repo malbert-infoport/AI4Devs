@@ -19,7 +19,6 @@
 - **SecurityManager**: Responsable de acciones de seguridad y operaciones sensibles (desactivación/reactivación manual, auditoría).
 - **EndUser**: Usuario final que consume las aplicaciones (SSO, accesos con token).
 
-Las descripciones anteriores reflejan los roles reales referenciados en las HU y tickets del repositorio; se han simplificado para mantener coherencia entre artefactos.
 ---
 
 ## 2. Épicas (índice)
