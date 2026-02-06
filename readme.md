@@ -2016,20 +2016,29 @@ public class CreateOrganizationValidator : AbstractValidator<CreateOrganizationD
 **Descripción**: La propia interfaz de InfoportOneAdmon implementa RBAC para distinguir entre diferentes tipos de administradores.
 
 **Roles definidos**:
-- **SuperAdmin**: Acceso total (gestión de organizaciones, apps, roles, módulos)
-- **OrgManager**: Solo gestión de organizaciones y grupos
-- **AppManager**: Solo gestión de aplicaciones y módulos
-- **Auditor**: Solo lectura de auditorías y logs (sin modificación)
+- **OrganizationAdministrator**: Administrador global de la plataforma; permisos para todas las operaciones (organizaciones, aplicaciones, módulos, roles, auditoría).
+- **OrganizationManager**: Gestión de organizaciones y grupos (alta/edición/desactivación, asignación de módulos a organizaciones).
+- **ApplicationManager**: Gestión del catálogo de aplicaciones, módulos y roles (definición del catálogo, credenciales y módulos).
+- **SecurityManager**: Operaciones sensibles de seguridad y gestión de credenciales en Keycloak; revocación y auditoría de accesos.
+- **EndUser**: Usuario final de las aplicaciones satélite; no tiene acceso al panel administrativo.
 
 **Implementación**:
 ```csharp
-[Authorize(Roles = "SuperAdmin")]
+// Endpoint para gestión de organizaciones: acceso restringido a OrganizationManager y OrganizationAdministrator
+[Authorize(Roles = "OrganizationManager,OrganizationAdministrator")]
 [HttpPost("api/organization")]
-public async Task<IActionResult> CreateOrganization(...)
+public async Task<IActionResult> CreateOrganization([FromBody] OrganizationView view)
+{
+  // lógica de creación
+}
 
-[Authorize(Roles = "SuperAdmin,Auditor")]
-[HttpGet("api/audit-log")]
-public async Task<IActionResult> GetAuditLogs(...)
+// Endpoint para gestión del catálogo de aplicaciones: acceso restringido a ApplicationManager y OrganizationAdministrator
+[Authorize(Roles = "ApplicationManager,OrganizationAdministrator")]
+[HttpPost("api/application")]
+public async Task<IActionResult> CreateApplication([FromBody] ApplicationView view)
+{
+  // lógica de creación
+}
 ```
 
 #### **2.5.10. Prevención de Duplicados mediante Hash (Integridad de Eventos)**

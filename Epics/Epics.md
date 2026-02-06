@@ -13,7 +13,7 @@
 ## 1. Roles del Sistema
 ### Roles usados en las historias y tickets
 
-- **Organization Administrator**: Usuario con permisos para crear/editar organizaciones y gestionar módulos asignados dentro de una organización (visto en múltiples tickets y HU).
+- **OrganizationAdministrator**: Usuario con permisos para crear/editar organizaciones y gestionar módulos asignados dentro de una organización (visto en múltiples tickets y HU).
 - **OrganizationManager**: Rol operativo para onboarding y gestión masiva de organizaciones (presente en HU y tests).
 - **ApplicationManager**: Responsable de registrar aplicaciones, asignar módulos y gestionar roles de aplicación.
 - **SecurityManager**: Responsable de acciones de seguridad y operaciones sensibles (desactivación/reactivación manual, auditoría).
