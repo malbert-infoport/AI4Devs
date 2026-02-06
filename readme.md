@@ -35,11 +35,11 @@ El sistema utiliza una arquitectura orientada a eventos basada en **ActiveMQ Art
 
 ### **0.4. URL del proyecto:**
 
-> Puede ser pública o privada, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/).
+(Sin definir)
 
 ### 0.5. URL o archivo comprimido del repositorio
 
-> Puedes tenerlo alojado en público o en privado, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/). También puedes compartir por correo un archivo zip con el contenido
+https://github.com/malbert-infoport/AI4Devs-Final-Project
 
 
 ---
@@ -250,15 +250,11 @@ sequenceDiagram
 
 **Objetivo**: Garantizar desacoplamiento total entre InfoportOneAdmon y las aplicaciones satélite, permitiendo autonomía operacional mientras se mantiene consistencia en la identidad multi-organización.
 
-### **1.3. Diseño y experiencia de usuario:**
-
-> Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.0
-
-### **1.3.1. Modelo de Datos de Eventos (Event Schema)**
+##### **1.3.1. Modelo de Datos de Eventos (Event Schema)**
 
 InfoportOneAdmon utiliza un modelo estandarizado para todos los eventos publicados en ActiveMQ Artemis, garantizando consistencia y facilidad de integración para las aplicaciones satélite.
 
-#### **Estructura Base de Evento (Envelope)**
+###### **Estructura Base de Evento (Envelope)**
 
 Todos los eventos comparten una estructura común (envelope) que contiene metadatos de trazabilidad y el payload específico:
 
@@ -285,7 +281,7 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - `SchemaVersion` (string): Versión del esquema del payload (versionado evolutivo)
 - `Payload` (array): Lista de objetos del tipo correspondiente
 
-#### **Evento de Usuario (Apps Satélite → InfoportOneAdmon)**
+###### **Evento de Usuario (Apps Satélite → InfoportOneAdmon)**
 
 **Tópico**: `infoportone.events.user`
 
@@ -336,7 +332,7 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - El Background Worker sincroniza directamente con Keycloak mediante Admin API, configurando el atributo `c_ids` como **atributo multivalor** (array de strings en la API de Keycloak) que contiene el array completo de todas las organizaciones del usuario
 - No se publica un evento adicional tras la consolidación
 
-#### **Evento de Organización**
+###### **Evento de Organización**
 
 **Tópico**: `infoportone.events.organization`
 
@@ -403,7 +399,7 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 - ✅ **Simplicidad**: Apps satélite procesan solo eventos de organizaciones relevantes
 - ✅ **Onboarding natural**: Alta de organización incluye directamente qué puede usar
 
-#### **Evento de Aplicación (Catálogo de Módulos y Roles)**
+###### **Evento de Aplicación (Catálogo de Módulos y Roles)**
 
 **Tópico**: `infoportone.events.application`
 
@@ -463,7 +459,7 @@ Todos los eventos comparten una estructura común (envelope) que contiene metada
 
 **Nota importante**: Este evento define el CATÁLOGO de la aplicación. Los permisos de acceso por organización se definen en el `OrganizationEvent`.
 
-#### **Patrones de Procesamiento de Eventos**
+###### **Patrones de Procesamiento de Eventos**
 
 **Para consumidores (Apps Satélite y Workers):**
 
@@ -508,7 +504,7 @@ public bool ValidateEventSchema(EventEnvelope envelope)
 }
 ```
 
-#### **Versionado de Esquemas**
+###### **Versionado de Esquemas**
 
 El sistema soporta evolución de esquemas mediante el campo `SchemaVersion`:
 
@@ -520,6 +516,10 @@ El sistema soporta evolución de esquemas mediante el campo `SchemaVersion`:
 1. Publicar eventos con ambas versiones durante período de transición
 2. Consumidores implementan lógica para soportar múltiples versiones
 3. Deprecación gradual de versiones antiguas con notificaciones
+
+### **1.3. Diseño y experiencia de usuario:**
+
+> Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.0
 
 ### **1.4. Instrucciones de instalación:**
 
@@ -821,32 +821,6 @@ curl https://localhost:5001/api/health
 4. Verificar en Artemis que se publicó el evento `OrganizationEvent`
 5. Verificar en la tabla `EventHash` el hash del evento
 
-#### **1.4.7. Troubleshooting Común**
-
-**Problema**: Error de conexión a PostgreSQL
-```
-Npgsql.NpgsqlException: Connection refused...
-```
-**Solución**: Verificar que PostgreSQL está ejecutándose y que el puerto 5432 está abierto. Revisar credenciales y permisos de usuario.
-
-**Problema**: Error de autenticación con Keycloak
-```
-IDX10501: Signature validation failed. Unable to match key...
-```
-**Solución**: Limpiar caché de claves públicas y reiniciar la API. Verificar que el `issuer` en `appsettings.json` coincide exactamente con el de Keycloak.
-
-**Problema**: Eventos no se publican en Artemis
-```
-System.NullReferenceException at EventPublisher.Publish()
-```
-**Solución**: Verificar que ActiveMQ Artemis está ejecutándose y que las credenciales en `appsettings.json` son correctas.
-
-**Problema**: Endpoints no aparecen en Swagger
-**Solución**: Regenerar código con Helix Generator:
-```powershell
-cd InfoportOneAdmon.HelixGenerator
-dotnet run
-```
 
 > **Documentación completa de arquitectura**: Para comprender el flujo de datos, ciclo de vida de peticiones y patrones implementados, consultar [Helix6_Backend_Architecture.md](Helix6_Backend_Architecture.md).
 
@@ -3250,12 +3224,56 @@ El onboarding rápido y sin errores reduce el tiempo de activación y la carga d
 - Usar EF Core, `SecurityCompanyId` por secuencia PostgreSQL
 - NO publicar `OrganizationEvent` al crear o editar salvo cuando se asignen módulos
 
+#### ORG-002: Listar organizaciones con filtros y paginación
 
+**Épica:** Gestión del Portfolio de Organizaciones Clientes
+**Rol:** OrganizationManager
+**Prioridad:** Media | **Estimación:** 5 Story Points
 
-**Historia de Usuario 2**
+**Historia:**
+```
+Como OrganizationManager que gestiona cientos de organizaciones clientes,
+quiero visualizar el listado de organizaciones con opciones de filtrado (por nombre, estado, grupo) y paginación,
+para encontrar rápidamente la organización que busco sin tener que desplazarme por listas interminables.
+```
 
-**Historia de Usuario 3**
+**Criterios de aceptación:**
+- Kendo Grid con columnas: SecurityCompanyId, Nombre, CIF, Email, Teléfono, Grupo, Nº Apps, Nº Módulos, Acciones
+- Filtros: Nombre, Estado, Grupo, Aplicación accesible, Sin módulos asignados
+- Paginación server-side y ordenación multi-columna
+- Acciones contextual Dar de alta/baja con modales
 
+**Dependencias:** ORG-001
+
+**Notas técnicas:**
+- Usar VW_ORGANIZATION con campos calculados `ModuleCount` y `AppCount`
+- Query params en URL para estado de filtros
+
+# USR001 - Consumir UserEvent desde Satelite
+
+**ID:** USR001_Consumir_UserEvent_Desde_Satelite
+**EPIC:** Consolidación de Usuarios
+
+**RESUMEN:** Definir la historia que implementa el consumidor de eventos de usuario desde la cola/tema de eventos (satelite). El backend correrá un proceso en background que se suscribe a la cola de eventos de usuario y encola para procesamiento posterior.
+
+## OBJETIVOS
+- Implementar un servicio background en el backend que se suscriba a la cola `UserEvents` (broker: Artemis/ActiveMQ) y reciba eventos de usuario.
+- Validar y normalizar el payload mínimo (email, eventId, timestamp, payload) y persistir un registro de ingestión en `EVENTHASH` (ver USR002-DB).
+- Encolar tareas de procesamiento (ej: a un bus interno o marcar para proceso inmediato según configuración).
+
+## ACEPTACIÓN
+- [ ] Existe un servicio background registrado en `Program.cs` que inicia la suscripción a `UserEvents`.
+- [ ] Mensajes inválidos son rechazados y logueados con `CorrelationId`.
+- [ ] Para cada evento válido se crea/actualiza registro en `EVENTHASH` y se genera trabajo de consolidación (por ejemplo insert en tabla `USERCACHE` o push a queue interna).
+
+## NOTAS TÉCNICAS / CONTRATO
+- Broker: Artemis / ActiveMQ (configurar conexión desde `appsettings`).
+- Cola/Topic: `UserEvents` (suscripción durable).
+- Retries: política con backoff y DLQ en caso de fallo permanente.
+- Seguridad: conexión con credenciales y trazabilidad `X-Correlation-Id` cuando aplique.
+
+## TICKETS BACKEND RELACIONADOS
+- `Ticket_USR001_T001-BE.md` — implementación del consumidor background y orquestación básica.
 
 
 ## 6. Tickets de Trabajo
