@@ -1,3 +1,4 @@
+```markdown
 # APL002-T001-FE: Frontend — Grid de Aplicaciones (Filtros, Paginación, Export)
 
 =============================================================
@@ -82,3 +83,4 @@ function buildKendoFilter(search: string, active?: boolean, rolePrefix?: string,
 - [ ] Documentation updated (README or story file)
 
 ***
+```
