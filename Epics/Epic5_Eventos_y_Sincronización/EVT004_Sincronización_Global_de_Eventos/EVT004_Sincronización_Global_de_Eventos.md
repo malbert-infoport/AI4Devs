@@ -1,4 +1,3 @@
-```markdown
 # EVT004 — Sincronización Global de Eventos
 
 ## Resumen
@@ -11,5 +10,3 @@ Funcionalidad administrativa que permite publicar el estado completo (último es
 - [ ] API backend definida y documentada.
 - [ ] Worker que publica eventos en batches con control de paginación y idempotencia.
 - [ ] Front-end podrá invocar el API para iniciar la sincronización (se definirá API front después).
-
-```

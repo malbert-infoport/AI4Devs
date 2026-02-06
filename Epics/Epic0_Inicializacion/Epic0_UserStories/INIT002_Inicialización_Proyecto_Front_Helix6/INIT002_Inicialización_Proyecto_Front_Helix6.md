@@ -1,4 +1,3 @@
-```markdown
 #### INIT002 - Inicialización Proyecto Front Helix6 (Angular 20)
 
 **ID:** INIT002_Inicialización_Proyecto_Front_Helix6
@@ -40,5 +39,3 @@ npm run start
 ## CRITERIOS DE ACEPTACIÓN
 - [ ] Proyecto Angular creado y reproducible localmente.
 - [ ] NSwag clients integrados y ejemplo de uso en componentes.
-
-```

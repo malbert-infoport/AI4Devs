@@ -1,4 +1,3 @@
-```markdown
 # KEY001 — Crear Realm `InfoportOne` en Keycloak
 
 ## Resumen
@@ -19,5 +18,3 @@ Instalar y configurar Keycloak (o su distribución compatible) con un único Rea
 ## Riesgos y notas
 - Mantener credenciales admin fuera de repositorio (Key Vault / secrets manager).
 - Pensar en estrategia de backup/restore y versión del servidor Keycloak al aplicar realm JSON.
-
-```

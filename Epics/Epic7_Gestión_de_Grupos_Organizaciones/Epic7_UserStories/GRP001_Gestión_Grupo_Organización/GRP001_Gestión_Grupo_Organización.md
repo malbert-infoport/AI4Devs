@@ -1,4 +1,3 @@
-```markdown
 #### GRP001 - Gestión Grupo Organización
 
 **ID:** GRP001_Gestión_Grupo_Organización
@@ -40,5 +39,3 @@
 - [ ] `group-organization-form` implementado y exportado en rutas.
 - [ ] Pestaña `Organizaciones` muestra `ClGrid` readonly con datos correctos.
 - [ ] Tests unitarios añadidos.
-
-```

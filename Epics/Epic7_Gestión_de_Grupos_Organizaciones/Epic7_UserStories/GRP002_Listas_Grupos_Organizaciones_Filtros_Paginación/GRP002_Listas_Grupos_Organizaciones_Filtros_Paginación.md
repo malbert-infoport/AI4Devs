@@ -1,4 +1,3 @@
-```markdown
 #### GRP002 - Listas Grupos Organizaciones (Filtros y Paginación)
 
 **ID:** GRP002_Listas_Grupos_Organizaciones_Filtros_Paginación
@@ -29,5 +28,3 @@
 ## CRITERIOS DE ACEPTACIÓN
 - [ ] Endpoint y UI list funcionando con filtros y paginación.
 - [ ] Tests básicos de servicio/back-end añadidos.
-
-```

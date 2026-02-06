@@ -1,4 +1,3 @@
-```markdown
 # USR003 — Sincronización de usuarios hacia Keycloak
 
 ## Resumen
@@ -16,5 +15,3 @@ Cuando el sistema detecte cambios consolidados en `USERCACHE` (a partir de `EVEN
 ## Notas de implementación
 - Keycloak URL/realm/credentials deben leerse desde `appsettings.*` y protegerse con Secrets.
 - Considerar compatibilidad con creación y actualización de usuarios por `email`.
-
-```

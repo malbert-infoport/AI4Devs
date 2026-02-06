@@ -1,4 +1,3 @@
-```markdown
 #### AUD002: Auditoría — Aplicación
 
 **Épica:** Auditoría de Cambios Críticos
@@ -27,5 +26,3 @@ para disponer de historial y trazar modificaciones que puedan afectar integracio
 - [ ] Cada acción listada genera entrada en `AUDIT_LOG` con `EntityType`="Application" y `EntityId`.
 - [ ] No se almacenan secretos; sólo referencias a credenciales.
 - [ ] Tests unitarios/integración incluidos.
-
-```

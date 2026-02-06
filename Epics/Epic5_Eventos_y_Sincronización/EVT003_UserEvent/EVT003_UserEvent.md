@@ -1,4 +1,3 @@
-```markdown
 # EVT003 — UserEvent
 
 ## Resumen
@@ -17,5 +16,3 @@ Documentar y definir el `UserEvent` consumido por InfoportOneAdmon desde aplicac
 - **Triggers:** Creación/actualización/baja de usuario en la aplicación origen, cambios de roles o de `SecurityCompanyId`, y acciones de reconciliación iniciadas por admins o procesos automáticos.
 - **Subscribers:** `InfoportOneAdmon` consumer (Background Worker), auditoría, procesos de análisis y, tras consolidación, `KeycloakSyncService`.
 - **Processing (suscriptor):** calcular hash del payload para idempotencia (`EVENTHASH`), merge/upsert en `USERCACHE` (merge de `Cids` y `Roles`), encolar sincronización a Keycloak si cambia `Cids` o roles, ack al broker y registro de `EVENTHASH`/estado.
-
-```

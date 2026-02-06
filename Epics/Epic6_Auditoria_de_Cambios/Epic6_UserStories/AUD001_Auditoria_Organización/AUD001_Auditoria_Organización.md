@@ -1,4 +1,3 @@
-```markdown
 #### AUD001: Auditoría — Organización
 
 **Épica:** Auditoría de Cambios Críticos
@@ -6,11 +5,9 @@
 **Prioridad:** Alta | **Estimación:** 3 Story Points
 
 **Historia:**
-```
 Como SecurityManager u OrganizationManager,
 quiero que los cambios críticos en las organizaciones queden registrados en el sistema de auditoría,
 para poder investigar quién realizó cambios que afectan permisos, accesos o el estado de la organización.
-```
 
 ## Acciones que desencadenan la auditoría (mínimo)
 - `ModuleAssigned` — asignación de módulo/aplicación a una organización
@@ -31,5 +28,3 @@ para poder investigar quién realizó cambios que afectan permisos, accesos o el
 - [ ] `UserId` poblado para acciones iniciadas por usuario; `NULL` si originada por sistema.
 - [ ] `CorrelationId` incluido cuando aplica.
 - [ ] Tests unitarios e integración que verifiquen la persistencia y contenido.
-
-```

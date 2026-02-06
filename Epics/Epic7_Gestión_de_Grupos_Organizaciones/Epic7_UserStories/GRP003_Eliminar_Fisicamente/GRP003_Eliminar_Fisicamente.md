@@ -1,4 +1,3 @@
-```markdown
 #### GRP003 - Eliminar Físicamente un Grupo de Organizaciones
 
 **ID:** GRP003_Eliminar_Fisicamente
@@ -19,13 +18,11 @@
 
 ## NOTAS TÉCNICAS
 - Implementar la lógica en `GroupOrganizationService.PreviousActions` o en un método transaccional del repositorio:
-	- Leer `Organization` rows con `GroupId = id` y aplicar `UPDATE Organization SET GroupId = NULL`.
-	- Eliminar el registro de `GroupOrganization` (o marca soft-delete si política lo requiere).
-	- Publicar entrada en `AUDIT_LOG` con `EntityType='GroupOrganization'`, `ActionType='Delete'`, `CorrelationId`.
+  - Leer `Organization` rows con `GroupId = id` y aplicar `UPDATE Organization SET GroupId = NULL`.
+  - Eliminar el registro de `GroupOrganization` (o marca soft-delete si política lo requiere).
+  - Publicar entrada en `AUDIT_LOG` con `EntityType='GroupOrganization'`, `ActionType='Delete'`, `CorrelationId`.
 - Asegurar que el endpoint es seguro y requiere permiso `GroupOrganization data modification`.
 
 ## CRITERIOS DE ACEPTACIÓN
 - [ ] End-to-end verified: group deleted and organizations updated.
 - [ ] Auditoría creada y tests unitarios/integración añadidos.
-
-```

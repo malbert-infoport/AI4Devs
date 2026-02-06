@@ -1,4 +1,3 @@
-```markdown
 # EVT001 — OrganizationEvent
 
 ## Resumen
@@ -18,5 +17,3 @@ Definir el contrato de evento `OrganizationEvent` publicado por InfoportOneAdmon
 - **Triggers:** Alta de organización, actualización de datos relevantes (nombre, taxId, apps/modules, group), y soft-delete (`AuditDeletionDate` set). También puede originarse desde la operación de sincronización global (`EVT004`).
 - **Subscribers:** Aplicaciones satélite (consumen `infoportone.events.organization`), servicios de auditoría/monitorización, procesos de onboarding automático en aplicaciones satélite.
 - **Processing (suscriptor):** cada consumer realiza upsert local de la organización: validar esquema, mapear `SecurityCompanyId`, actualizar `Apps` y `AccessibleModules`, aplicar soft-delete si `IsDeleted=true`.
-
-```

@@ -1,4 +1,3 @@
-```markdown
 #### ORG-004: Gestionar módulos y permisos de una organización
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
@@ -40,5 +39,3 @@ para que los permisos reflejen el contrato y, en caso de quedar sin módulos, el
 ## Tests recomendados
 - Unit: validar que el grid hace las llamadas correctas al servicio y que el modal crítico se muestra cuando procede.
 - Integration (opcional): flujo asignar/modificar módulos y validación de eventos/auditoría en backend.
-
-```

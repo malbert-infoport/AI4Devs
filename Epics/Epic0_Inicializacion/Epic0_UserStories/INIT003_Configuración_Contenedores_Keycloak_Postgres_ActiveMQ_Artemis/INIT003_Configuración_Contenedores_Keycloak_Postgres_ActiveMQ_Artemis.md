@@ -1,4 +1,3 @@
-```markdown
 #### INIT003 - Configuración Contenedores: Keycloak + Postgres + ActiveMQ Artemis
 
 **ID:** INIT003_Configuración_Contenedores_Keycloak_Postgres_ActiveMQ_Artemis
@@ -94,5 +93,3 @@ docker-compose logs -f artemis
 
 ## REFERENCIAS
 - Ver guía de implementación de ActiveMQ Artemis y la librería `IPVInterchangeShared` en `ActiveMQ_Events.md` para patrones de topics/queues, `QueueNameConvention`, y recomendaciones de retry/persistencia.
-
-```

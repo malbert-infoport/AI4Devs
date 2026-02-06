@@ -1,4 +1,3 @@
-```markdown
 # Epic0 - Inicialización de proyectos Helix6 (Backend + Front)
 
 Objetivo: Preparar los proyectos base para iniciar el desarrollo. Se crearán las plantillas iniciales para el backend (Helix6 .NET 8) y frontend (Angular 20) siguiendo las convenciones de Helix6, además de una configuración inicial de contenedores para Keycloak y PostgreSQL usada en desarrollo.
@@ -16,5 +15,3 @@ Resultados esperados:
 Stakeholders: Backend Team, Frontend Team, DevOps, Product Owner.
 
 Prioridad: Alta
-
-```

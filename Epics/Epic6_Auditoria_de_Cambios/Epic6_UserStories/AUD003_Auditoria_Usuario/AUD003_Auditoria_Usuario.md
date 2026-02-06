@@ -1,4 +1,3 @@
-```markdown
 #### AUD003: Auditoría — Usuario
 
 **Épica:** Auditoría de Cambios Críticos
@@ -26,5 +25,3 @@ quiero que los cambios críticos en usuarios sean auditados y, cuando proceda, s
 - [ ] Entradas en `AUDIT_LOG` por cada acción listada.
 - [ ] Sincronización a Keycloak invocada para las acciones que lo requieran y `CorrelationId` registrado.
 - [ ] Tests unitarios e integración añadidos.
-
-```

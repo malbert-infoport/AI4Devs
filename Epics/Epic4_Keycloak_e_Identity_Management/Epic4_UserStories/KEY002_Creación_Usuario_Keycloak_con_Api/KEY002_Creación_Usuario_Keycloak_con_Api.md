@@ -1,4 +1,3 @@
-```markdown
 # KEY002 — Creación de usuario en Keycloak mediante API
 
 ## Resumen
@@ -13,5 +12,3 @@ Definir la API y el flujo backend para crear/actualizar usuarios en Keycloak usa
 - [ ] API interna `IKeycloakUserService.CreateOrUpdateUser(UserDto)` implementada.
 - [ ] Se puede crear un usuario nuevo y asignar `c_ids` y roles con una llamada de ejemplo.
 - [ ] Documentación técnica con ejemplos de payload y secuencia de llamadas a Keycloak Admin REST.
-
-```

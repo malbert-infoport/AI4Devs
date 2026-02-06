@@ -1,4 +1,3 @@
-```markdown
 # KEY003 — Creación de clientes en Keycloak por aplicación
 
 ## Resumen
@@ -42,5 +41,3 @@ La historia debe incluir convenciones de nombres, configuración mínima (redire
 - `infrastructure/keycloak/clients/templates/confidential-client.json`
 - `scripts/keycloak/create-client.sh` (usa kcadm.sh o Admin REST)
 - Documentación `docs/keycloak-clients.md`
-
-```

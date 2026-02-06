@@ -1,4 +1,3 @@
-```markdown
 # EVT002 — ApplicationEvent
 
 ## Resumen
@@ -17,5 +16,3 @@ Definir el contrato de evento `ApplicationEvent` que publica InfoportOneAdmon cu
 - **Triggers:** Creación/actualización/baja de `Application`, cambios en `ApplicationModule` o `ApplicationRole`, rotación de credenciales (sin incluir secrets). También operaciones manuales de reprovisionamiento y la sincronización global (`EVT004`).
 - **Subscribers:** Aplicaciones satélite que consumen catálogo (`infoportone.events.application`), procesos de provisioning de clientes, dashboards administrativos y servicios de guardado local de catálogo.
 - **Processing (suscriptor):** Validar esquema, actualizar o reemplazar catálogo local, reconciliar roles (añadir/quitar), no persistir `ClientSecret` en payload.
-
-```

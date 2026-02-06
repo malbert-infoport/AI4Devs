@@ -1,4 +1,3 @@
-```markdown
 #### INIT001 - Inicialización Proyecto Back Helix6
 
 **ID:** INIT001_Inicialización_Proyecto_Back_Helix6
@@ -72,5 +71,3 @@ dotnet run --project Helix6.Back.Api
 - [ ] Estructura de proyectos creada en el repo.
 - [ ] Documentación con pasos reproducibles para generar migraciones y ejecutar el app.
 - [ ] Endpoints generados por Helix disponibles en runtime.
-
-```

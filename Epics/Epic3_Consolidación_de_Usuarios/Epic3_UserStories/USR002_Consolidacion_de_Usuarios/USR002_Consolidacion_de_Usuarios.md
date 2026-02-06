@@ -1,5 +1,3 @@
-```markdown
-```markdown
 # USR002 - Consolidación de Usuarios
 
 **ID:** USR002_Consolidacion_de_Usuarios
@@ -20,6 +18,3 @@
 ## TICKETS RELACIONADOS
 - `Ticket_USR002_T001-BE.md` — implementación del servicio de consolidación.
 - `Ticket_USR002_T002-DB.md` — migración y DDL para `USERCACHE` y `EVENTHASH`.
-
-```
-```

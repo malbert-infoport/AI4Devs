@@ -44,5 +44,3 @@ El onboarding rápido y sin errores reduce el tiempo de activación y la carga d
 **Notas técnicas:**
 - Usar EF Core, `SecurityCompanyId` por secuencia PostgreSQL
 - NO publicar `OrganizationEvent` al crear o editar salvo cuando se asignen módulos
-
-```

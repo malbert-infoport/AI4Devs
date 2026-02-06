@@ -1,4 +1,3 @@
-```markdown
 # USR001 - Consumir UserEvent desde Satelite
 
 **ID:** USR001_Consumir_UserEvent_Desde_Satelite
@@ -24,5 +23,3 @@
 
 ## TICKETS BACKEND RELACIONADOS
 - `Ticket_USR001_T001-BE.md` — implementación del consumidor background y orquestación básica.
-
-```

@@ -1,4 +1,3 @@
-```markdown
 # APL001 - Gestión de Aplicación (Datos básicos, Módulos, Roles, Credenciales)
 
 **ID:** APL001
@@ -65,5 +64,3 @@ Headers recomendados:
 ## Notas técnicas
 - Usar `inject()` para dependencias: `ApplicationClient`, `ApplicationModuleClient`, `ApplicationRoleClient`, `ApplicationCredentialClient`, `AccessService`, `ClModalService`, `SharedMessageService`.
 - Seguir patrones `ClGrid`/`ClModal` y `Helix6_Frontend_Architecture.md`.
-
-```
