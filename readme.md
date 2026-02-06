@@ -3013,7 +3013,125 @@ RedirectUris: '["https://sintraport.infoportone.com/*"]'
 
 ## 4. Especificación de la API
 
-> Si tu backend se comunica a través de API, describe los endpoints principales (máximo 3) en formato OpenAPI. Opcionalmente puedes añadir un ejemplo de petición y de respuesta para mayor claridad
+> Se listan a continuación los 3 endpoints principales que ofrece el backend de InfoportOneAdmon. Los dos primeros (`GetById`, `GetAllKendoFilter`) son endpoints genéricos proporcionados por el framework Helix6 (endpoints auto-generados por el Helix Generator y soportados por `BaseService`/`BaseRepository`). El tercero es un endpoint de orquestación para sincronizaciones masivas definido en el ticket de sincronización.
+
+---
+
+### 4.1. GET /api/Organization/GetById
+
+- **Descripción**: Endpoint generado por Helix6 para obtener una organización por su `Id`. Acepta el parámetro `configurationName` para seleccionar la carga (navegaciones y colecciones) definida en el `OrganizationRepository` (por ejemplo `OrganizationComplete`). Usualmente usado por el frontend para cargar el formulario de edición con todas las entidades relacionadas (grupos, módulos asignados, auditoría parcial).
+- **Método**: GET
+- **URL**: `/api/Organization/GetById?id={id}&configurationName={configurationName}`
+
+- **Ejemplo de petición**:
+
+```http
+GET /api/Organization/GetById?id=123&configurationName=OrganizationComplete HTTP/1.1
+Host: api.infoportone.local
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+- **Ejemplo de respuesta (200 OK)**:
+
+```json
+{
+  "id": 123,
+  "securityCompanyId": 1001,
+  "name": "Transportes Rápidos S.L.",
+  "taxId": "B12345678",
+  "address": "C/ Ejemplo 1",
+  "city": "Madrid",
+  "contactEmail": "admin@transportesrapidos.com",
+  "groupId": 10,
+  "organizationGroup": { "id": 10, "groupName": "Holding Norte" },
+  "applicationModules": [ /* colecciones cargadas por OrganizationComplete */ ],
+  "auditLogs": [ /* página de auditoría */ ],
+  "auditCreationDate": "2026-01-08T10:00:00Z"
+}
+```
+
+---
+
+### 4.2. POST /api/Organization/GetAllKendoFilter
+
+- **Descripción**: Endpoint compatible con Kendo/ClGrid para obtener listados paginados, filtrados y ordenados del catálogo de organizaciones. Implementado siguiendo la convención Helix6 (`GetAllKendoFilter`) y devolviendo un objeto con `data` y `total`. Ideal para grids server-side del frontend.
+- **Método**: POST
+- **URL**: `/api/Organization/GetAllKendoFilter`
+
+- **Ejemplo de petición (body = Kendo-style filter)**:
+
+```http
+POST /api/Organization/GetAllKendoFilter HTTP/1.1
+Host: api.infoportone.local
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "Filter": {
+    "logic": "and",
+    "filters": [
+      { "field": "name", "operator": "contains", "value": "Transportes" },
+      { "field": "auditDeletionDate", "operator": "isnull" }
+    ]
+  },
+  "Sort": [{ "field": "name", "dir": "asc" }],
+  "Page": 1,
+  "PageSize": 20
+}
+```
+
+- **Ejemplo de respuesta (200 OK)**:
+
+```json
+{
+  "data": [
+    { "id": 123, "securityCompanyId": 1001, "name": "Transportes Rápidos S.L.", "taxId": "B12345678", "appCount": 3, "moduleCount": 5 },
+    { "id": 124, "securityCompanyId": 1002, "name": "Logística Norte S.A.", "taxId": "A98765432", "appCount": 2, "moduleCount": 4 }
+  ],
+  "total": 248
+}
+```
+
+---
+
+### 4.3. POST /api/Sync/Publish
+
+- **Descripción**: Endpoint que inicia una operación de sincronización global en batch (véase ticket EVT004-T001-BE). Recibe el tipo de entidad a sincronizar (`Organization` o `Application`), opcionalmente una lista de Ids, y parámetros de batching. Devuelve `202 Accepted` con un `OperationId` para seguimiento de la operación; la worker procesa la publicación por lotes y registra resultados en `SYNC_OPERATION_LOG`.
+- **Método**: POST
+- **URL**: `/api/Sync/Publish`
+
+- **Ejemplo de petición**:
+
+```http
+POST /api/Sync/Publish HTTP/1.1
+Host: api.infoportone.local
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "EntityType": "Organization",
+  "Ids": [123, 124, 125],
+  "PageSize": 200,
+  "Force": false
+}
+```
+
+- **Ejemplo de respuesta (202 Accepted)**:
+
+```json
+{
+  "operationId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "status": "Accepted",
+  "message": "Sync operation enqueued. Check SYNC_OPERATION_LOG for progress."
+}
+```
+
+---
+
+### Nota sobre Helix6 y endpoints genéricos
+
+- Los endpoints `GetById` y `GetAllKendoFilter` son parte del contrato y la generación automática de Helix6: el `Helix Generator` crea los endpoints HTTP que delegan en `BaseService<TView, TEntity, TMetadata>` y en las configuraciones de carga (`configurationName`) definidas en los repositories. Esto permite exponer vistas (`OrganizationView`) con navegaciones (ej. `OrganizationComplete`) sin escribir controllers manuales para CRUD básico. El equipo backend define qué navegaciones carga cada `configurationName` en `OrganizationRepository`.
 
 ---
 
