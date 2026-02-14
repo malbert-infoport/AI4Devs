@@ -14,6 +14,12 @@
 		},
 		{
 			"path": "../../Git/Helix6/Helix6Back"
+		},
+		{
+			"path": "InfoportOneAdmon.Back"
+		},
+		{
+			"path": "InfoportOneAdmin.Front"
 		}
 	],
 	"settings": {}

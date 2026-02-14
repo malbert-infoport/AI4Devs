@@ -50,13 +50,17 @@ var applicationContext = appSettings.GetApplicationContext();
 builder.Services.AddDependencyInjection(applicationContext);
 builder.Services.AddServicesRepositories(applicationContext);
 
-//Inyectamos el contexto de EF para usar sin repositorio la obtención de integraciones de VAlenciaport
+//Inyectamos el contexto de EF para usar sin repositorio la obtenciï¿½n de integraciones de VAlenciaport
 var defaultConnection = builder.Configuration.GetSection("ConnectionStrings:DefaultConnection").Value;
 if (defaultConnection != null)
 {
     //Inyecto el contexto como scope
     builder.Services.AddDbContext<EntityModel>(options =>
-        options.UseNpgsql(defaultConnection));
+        options.UseNpgsql(defaultConnection, npgsqlOptions =>
+            // Usar la tabla de historial de migraciones en el esquema 'admon'
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "admon")
+        )
+    );
 }
 
 //Mapster
