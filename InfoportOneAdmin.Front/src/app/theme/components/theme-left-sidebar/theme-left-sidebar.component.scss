@@ -1,0 +1,352 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+@mixin left-sidebar-theme($theme) {
+  // Get the color config from the theme.
+  $color-config: mat.m2-get-color-config($theme);
+
+  // Get the primary color pallete from the color-config
+  $primary-pallete: map.get($color-config, 'primary');
+  $accent-pallete: map.get($color-config, 'accent');
+  $warn-pallete: map.get($color-config, 'warn');
+
+  $is-dark-theme: map.get($color-config, 'is-dark');
+
+  // Get the typography config from the theme.
+  $typography-config: mat.m2-get-typography-config($theme);
+
+  theme-left-sidebar {
+    color: mat.m2-get-color-from-palette($primary-pallete, '700-contrast');
+    background-color: if(
+      $is-dark-theme,
+      mat.m2-get-color-from-palette($accent-pallete, '300-contrast'),
+      mat.m2-get-color-from-palette($accent-pallete, 'CL-WHITE')
+    );
+    border-right: 1px solid #c2ccd1;
+
+    .justify-flex-start {
+      justify-content: flex-start;
+      padding-left: 1rem;
+      margin-right: 0px;
+    }
+
+    .justify-center {
+      justify-content: center;
+    }
+
+    a.mat-mdc-button {
+      &.highlight-parent-node {
+        mat-icon {
+          &:not([fonticon='account_circle']) {
+            color: mat.m2-get-color-from-palette($primary-pallete, 500);
+          }
+        }
+        span.mdc-button__label {
+          color: if($is-dark-theme, white, mat.m2-get-color-from-palette($accent-pallete, 700));
+          font-weight: 600;
+        }
+      }
+
+      &:not(.highlight-parent-node):not(.highlight-node) {
+        color: if($is-dark-theme, white, mat.m2-get-color-from-palette($accent-pallete, 700));
+      }
+    }
+
+    .mat-mdc-button > .mat-icon {
+      font-size: 1.5rem;
+      min-width: 1.5rem;
+      min-height: 1.5rem;
+    }
+    .wrapper-sidebar {
+      display: flex;
+      flex-direction: column;
+      white-space: nowrap;
+      transition: all 0.3s;
+      height: 100%;
+      // overflow-y: scroll;
+      max-height: 100%;
+
+      &:not(.sidebar-closed) {
+        mat-tree {
+          mat-nested-tree-node {
+            &[aria-expanded='false'] {
+              div.mat-tree-node {
+                a {
+                  &::after {
+                    content: '\e5df';
+                    font-family: 'Material Icons';
+                    position: absolute;
+                    right: 0;
+                    font-size: 24px;
+                    margin-right: 10px;
+                    color: mat.m2-get-color-from-palette($accent-pallete, 400);
+                  }
+                }
+              }
+            }
+
+            &[aria-expanded='true'] {
+              &.mat-nested-tree-node {
+                div.mat-tree-node.leftnav-button {
+                  a.highlight-parent-node {
+                    background-color: if(
+                      $is-dark-theme,
+                      mat.m2-get-color-from-palette($accent-pallete, 100),
+                      mat.m2-get-color-from-palette($primary-pallete, 25)
+                    );
+                  }
+                }
+                ul {
+                  mat-tree-node.mat-tree-node {
+                    div.leftnav-button {
+                      a {
+                        &:has(mat-icon.mat-icon) {
+                          padding-left: 25px;
+                        }
+
+                        &:not(:has(mat-icon.mat-icon)) {
+                          padding-left: 56px;
+                          height: 48px;
+                        }
+                        &.highlight-node {
+                          &:has(span.mdc-button__label > span.leftnav-button-text) {
+                            span.mdc-button__label {
+                              span.leftnav-button-text {
+                                color: mat.m2-get-color-from-palette($primary-pallete, 500);
+                                font-weight: 600;
+                              }
+                            }
+                            mat-icon.mat-icon {
+                              color: mat.m2-get-color-from-palette($primary-pallete, 500);
+                            }
+                            &:hover {
+                              span.mdc-button__label {
+                                span.leftnav-button-text {
+                                  color: mat.m2-get-color-from-palette($accent-pallete, 700);
+                                  font-weight: 400;
+                                }
+                              }
+                              mat-icon.mat-icon {
+                                color: mat.m2-get-color-from-palette($accent-pallete, 700);
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              div.mat-tree-node {
+                a {
+                  &.mat-mdc-button {
+                    &.highlight-parent-node {
+                      &::after {
+                        content: '\e5c5';
+                        font-family: 'Material Icons';
+                        position: absolute;
+                        right: 0;
+                        font-size: 24px;
+                        margin-right: 10px;
+                        color: mat.m2-get-color-from-palette($accent-pallete, 400);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .icon-color {
+        color: var(--user-icon);
+        margin-bottom: 3px;
+      }
+
+      html ::-webkit-scrollbar {
+        width: 0.1em;
+        height: 0.1em;
+      }
+
+      .leftnav-tree {
+        background: inherit;
+        margin-bottom: 7px;
+
+        &.leftnav-body {
+          // overflow: auto;
+          .leftnav-node {
+            min-height: 44px;
+
+            .leftnav-button {
+              //height: 40px;
+              min-height: 40px;
+
+              > a {
+                height: 100%;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                text-align: left;
+                display: flex;
+                align-items: center;
+
+                font-family: mat.m2-font-family($typography-config, 'body-1');
+                font-size: mat.m2-font-size($typography-config, 'body-1');
+                font-weight: mat.m2-font-weight($typography-config, 'body-2');
+                line-height: mat.m2-line-height($typography-config, 'body-1');
+
+                .leftnav-button-text {
+                  margin-left: 10px;
+
+                  .last-connection {
+                    margin-bottom: 0;
+                    margin-left: 10px;
+                    font-size: 0.7em;
+                    opacity: 0.7;
+                  }
+                }
+
+                .beta-label {
+                  margin-left: 8px;
+                  padding: 2px 8px;
+                  font-size: 0.75rem;
+                  font-weight: 500;
+                  background-color: mat.m2-get-color-from-palette($accent-pallete, 500);
+                  color: mat.m2-get-color-from-palette($accent-pallete, '500-contrast');
+                  border-radius: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                }
+              }
+            }
+
+            ul {
+              &:has(mat-tree-node.mat-tree-node) {
+                padding-left: inherit;
+              }
+              .leftnav-node:has(.leftnav-button > a.highlight-node) {
+                background-color: mat.m2-get-color-from-palette($accent-pallete, 50);
+                span.mdc-button__label {
+                  span.leftnav-button-text {
+                    font-weight: 600;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .version {
+          text-decoration: none;
+          color: if(
+            $is-dark-theme,
+            mat.m2-get-color-from-palette($primary-pallete, 400),
+            mat.m2-get-color-from-palette($accent-pallete, 600)
+          );
+
+          &:hover {
+            color: mat.m2-get-color-from-palette($primary-pallete, 500);
+          }
+        }
+
+        .title {
+          img {
+            margin-left: 8px;
+            margin-bottom: 2px;
+            margin-right: 24px;
+            height: 40px;
+            width: 40px;
+          }
+
+          div {
+            display: flex;
+            flex-direction: column;
+          }
+        }
+
+        .mat-mdc-button,
+        .mat-mdc-icon-button,
+        .mat-mdc-outlined-button,
+        .mat-mdc-unelevated-button {
+          border-radius: 0px;
+        }
+
+        .highlight-node {
+          mat-icon {
+            color: mat.m2-get-color-from-palette($primary-pallete, 500);
+          }
+
+          span.mdc-button__label {
+            span.leftnav-button-text {
+              color: if($is-dark-theme, white, mat.m2-get-color-from-palette($accent-pallete, 700));
+
+              font-weight: 600;
+            }
+          }
+        }
+
+        /* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
+        a.mat-focus-indicator.mat-mdc-button.mat-mdc-button-base.mat-button-disabled {
+          opacity: 0.7;
+        }
+      }
+      .sidebar-toggler {
+        text-align: right;
+        min-height: 55px;
+        cursor: pointer;
+        margin-bottom: 10px;
+        span.arrow {
+          display: flex;
+          flex-direction: row;
+          align-content: center;
+          align-items: center;
+
+          font-size: 14px;
+          &.arrow-closed {
+            justify-content: center;
+          }
+          &.arrow-opened {
+            justify-content: flex-start;
+            padding: 0 2px;
+            span.arrow-child {
+              padding-left: 7px;
+              color: mat.m2-get-color-from-palette($accent-pallete, 700);
+              font-family: mat.m2-font-family($typography-config, 'body-1');
+              font-size: mat.m2-font-size($typography-config, 'body-1');
+              font-weight: mat.m2-font-weight($typography-config, 'body-2');
+            }
+          }
+        }
+
+        i {
+          min-height: 44px;
+          height: 40px;
+          display: flex;
+          flex-direction: row;
+          align-content: center;
+          align-items: center;
+          &.arrow-closed {
+            font-size: 32px;
+            justify-content: center;
+            color: mat.m2-get-color-from-palette($accent-pallete, A200);
+          }
+          &.arrow-opened {
+            font-size: 32px;
+            transform: rotate(180deg);
+            justify-content: flex-end;
+            padding: 0 8px;
+            color: mat.m2-get-color-from-palette($accent-pallete, A200);
+          }
+        }
+      }
+      span.fill-space-line {
+        border-top: 3px solid mat.m2-get-color-from-palette($accent-pallete, A200);
+        display: inline-block;
+        width: 84%;
+        height: 16px;
+        margin: 0 auto;
+      }
+    }
+  }
+}

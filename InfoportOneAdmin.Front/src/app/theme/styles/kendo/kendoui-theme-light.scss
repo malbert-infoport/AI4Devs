@@ -1,0 +1,83 @@
+/**PUEDES ELEGIR ENTRE LAS SIGUIENTES OPCCIONES
+1. ELEGIR UN TEMA PREDEFINIDO DE KENDO
+2. SOBREESCRIBIR LAS VARIABLES DEL TEMA
+**/
+
+/** 
+1. ELEGIR TEMA KENDO
+PUEDES ELEGIR UN TEMA,PREDEFINIDO DE KENDO, INDICANDO LOS SIGUIENTES:
+red | pink | purple | deepPurple | indigo | blue | lightBlue | cyan | teal
+green | lightGreen  | lime | yellow | amber | orange | deepOrange | brown | gray | blueGray
+ **/
+// $primary-palette-name: cyan;
+// $secondary-palette-name: teal;
+// $theme-type: light;
+// $adjust-contrast: true;
+
+/**COLORES PARA LAS GRÁFICAS**/
+// $series-a: #9c27b0;
+// $series-b: #2196f3;
+// $series-c: #009688;
+// $series-d: #ffeb3b;
+// $series-e: #f44336;
+// $series-f: #4caf50;
+
+/** END ELEGIR TEMA KENDO **/
+
+/** 
+2. SOBREESCRIBIR LAS VARIABLES DEL TEMA
+DEFINIR COLORES VARIABLES TEMA
+EN LUGAR DE USAR UN TEMA DE KENDO, PUEDES DEFINIR LOS COLORES DE TU TEMA, USANDO LAS VARIABLES DE KENDO
+**/
+
+$kendo-is-dark-theme: false;
+$kendo-color-primary: #3ba09a;
+$kendo-color-secondary: #3f5f6f; // #f6f6f6
+
+$kendo-color-info: #066cca;
+$kendo-color-success: #21b41e;
+$kendo-color-warning: #ffdb21;
+$kendo-color-error: #e73125;
+$kendo-body-text: #424242;
+$kendo-body-bg: #ffffff;
+$kendo-subtle-text: #666666;
+$kendo-disabled-text: #8f8f8f;
+$kendo-component-text: #424242;
+$kendo-component-bg: #ffffff;
+$kendo-base-text: #424242;
+$kendo-base-bg: #fafafa;
+$kendo-hover-text: #424242;
+$kendo-hover-bg: #ececec;
+$kendo-selected-text: #ffffff;
+$kendo-selected-bg: #28bfba;
+$kendo-button-text: #424242;
+$kendo-button-bg: #f5f5f5;
+$kendo-link-text: #28bfba;
+$kendo-link-hover-text: #22a09c;
+
+$kendo-series-a: #fc665c;
+$kendo-series-b: #ffdb21;
+$kendo-series-c: #21b41e;
+$kendo-series-d: #31bcdb;
+$kendo-series-e: #066cca;
+$kendo-series-f: #a623b1;
+
+/** VARIABLES DE COMPONENTES **/
+/** CHECKBOX **/
+$kendo-checkbox-checked-border: #3ba09a;
+$kendo-checkbox-checked-text: white;
+
+$kendo-button-theme-colors: (
+  'primary': #3ba09a,
+  'secondary': #ffffff,
+  'tertiary': #3ba09a4d,
+  'info': #066cca,
+  'success': #21b41e,
+  'warning': #ffdb21,
+  'error': #e73125
+);
+
+$kendo-button-border-width: 1px;
+
+@use 'kendoui-dependencies.scss';
+// @import '@progress/kendo-theme-default/dist/all';

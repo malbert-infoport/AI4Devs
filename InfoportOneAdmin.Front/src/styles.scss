@@ -1,0 +1,99 @@
+/* You can add global styles to this file, and also import other style files */
+@use '@app/theme/styles/styles.scss';
+@use '@app/theme/styles/material/material-custom-theme.scss';
+
+// $cl-typography-root: '/assets'; //'[PATH DE DOMINIO DE LA APLICACIÓN EN ENTORNOS DESAROLLO]'
+// $cl-typography-root: '/Sintra'; //'[PATH DE DOMINIO DE LA APLICACIÓN EN ENTORNOS PRODUCTIVOS]'
+@use 'colors';
+@use '@cl/common-library/assets/abstracts/variables' as cl_vars with (
+  $cl-typography-root: '/assets'
+);
+
+@use '@cl/common-library/assets/main.scss' as cl;
+@include cl.cl-all-components();
+
+/* You can definde global variables to use in any app component */
+:root {
+  --error-button: #273477;
+  --error-text: #131e26;
+  --white: #ffffff;
+  --hue: 294;
+  --saturation: 42%;
+  --lightness: 51%;
+  --user-icon: #b139c5;
+
+  /* ventanas modales con fondo --900-accent en dark-theme (ver en _palette.scss) */
+  .HLXLibrary-dark-theme .mat-mdc-dialog-container {
+    --mat-dialog-container-color: #1a1a1a;
+  }
+
+  .HLXLibrary-dark-theme .mdc-menu-surface {
+    background-color: var(--mat-theme-surface, #1a1a1a);
+  }
+
+  .rowDisabled {
+    color: #87d5d1 !important;
+  }
+
+  // TODO: TEMPORAL
+  .bg-common-theme {
+    background-color: #f7fbfb;
+  }
+
+  .k-tabstrip-content {
+    background-color: #f7fbfb;
+  }
+}
+
+/* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+/**
+Ocultamos el icono  de los combobox de Kendo, en los inputs de tipo buscador
+*/
+cl-look-up kendo-combobox .k-input-suffix.k-input-suffix-horizontal {
+  display: none !important;
+}
+
+/* ----------TOURS------------ */
+
+.driver-popover {
+  li {
+    margin-bottom: 0.6rem;
+  }
+  .driver-popover-description {
+    font-size: 15px !important;
+    img {
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+.driver-popover.driver-popover-xl {
+  max-width: 800px !important;
+  .driver-popover-description {
+    min-height: 420px; /* Reserva espacio para imágenes */
+  }
+}
+
+.driver-popover.driver-popover-l {
+  max-width: 650px !important;
+  .driver-popover-description {
+    min-height: 340px; /* Reserva espacio para imágenes */
+  }
+}
+
+.driver-popover.driver-popover-m {
+  max-width: 500px !important;
+  .driver-popover-description {
+    min-height: 260px; /* Reserva espacio para imágenes */
+  }
+}

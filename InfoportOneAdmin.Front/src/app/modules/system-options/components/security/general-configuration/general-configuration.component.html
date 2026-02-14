@@ -1,0 +1,65 @@
+@if (loadForm) {
+  <div class="container-fluid p-4 vh-77">
+    <form [formGroup]="generalConfigurationForm" (ngSubmit)="onSubmit()">
+      <div class="container-fluid">
+        <div class="row">
+          <h4>{{ 'SYSTEM_OPTIONS.SECURITY.GENERAL_DATA' | translate }}</h4>
+          <mat-form-field class="col-sm-6">
+            <mat-label>{{ 'SYSTEM_OPTIONS.SECURITY.GENERAL_CONFIGURATION.COMPANY_NAME' | translate }}</mat-label>
+            <input matInput [placeholder]="'COMPANY' | translate" type="text" formControlName="name" #name />
+
+            @if (nameCtrl.errors?.['required']) {
+              <mat-error>
+                {{
+                  'FORMS.VALIDATORS.REQUIRED'
+                    | translate: { title: 'SYSTEM_OPTIONS.SECURITY.GENERAL_CONFIGURATION.COMPANY_NAME' | translate }
+                }}
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="col-sm-6">
+            <mat-label>{{ 'SYSTEM_OPTIONS.SECURITY.GENERAL_CONFIGURATION.CIF' | translate }}</mat-label>
+            <input matInput [placeholder]="'CIF' | translate" type="text" formControlName="cif" #cif cifValidator />
+
+            @if (cifCtrl.errors?.['required']) {
+              <mat-error>
+                {{
+                  'FORMS.VALIDATORS.REQUIRED'
+                    | translate: { title: 'SYSTEM_OPTIONS.SECURITY.GENERAL_CONFIGURATION.CIF' | translate }
+                }}
+              </mat-error>
+            }
+
+            @if (cifCtrl.errors?.['invalidCif']) {
+              <mat-error>
+                {{ 'FORMS.VALIDATORS.CUSTOM.INVALID_CIF' | translate }}
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- generalConfigurationForm{{ generalConfigurationForm.value | json }} -->
+      </div>
+
+      <div class="footer">
+        <div class="button-container">
+          <button
+            mat-raised-button
+            type="submit"
+            color="primary"
+            [disabled]="
+              !accessService.companyConfigurationModification() ||
+              generalConfigurationForm.invalid ||
+              !generalConfigurationForm.dirty
+            "
+          >
+            {{ 'SAVE' | translate }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+} @else {
+  <theme-loading></theme-loading>
+}

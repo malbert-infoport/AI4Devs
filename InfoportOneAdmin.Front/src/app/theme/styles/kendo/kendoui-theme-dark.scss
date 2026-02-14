@@ -1,0 +1,31 @@
+/** COLORS **/
+// red | pink | purple | deepPurple | indigo | blue | lightBlue | cyan | teal
+// green | lightGreen  lime | yellow | amber | orange | deepOrange | brown | gray | blueGray
+
+$kendo-is-dark-theme: true;
+$kendo-color-primary: #3ba09a;
+$kendo-color-secondary: #3f5f6f;
+
+$kendo-body-bg: #33484a;
+$kendo-base-bg: #33484a;
+$kendo-toolbar-bg: #33484a;
+$kendo-toolbar-text: white;
+$kendo-grid-bg: #33484a;
+$kendo-pager-bg: #1d3437;
+$kendo-popup-bg: #33484a;
+
+$kendo-popup-text: white;
+
+$kendo-series-a: #fc665c;
+$kendo-series-b: #ffdb21;
+$kendo-series-c: #21b41e;
+$kendo-series-d: #31bcdb;
+$kendo-series-e: #066cca;
+$kendo-series-f: #a623b1;
+
+/** VARIABLES DE COMPONENTES **/
+/** CHECKBOX **/
+$kendo-checkbox-checked-border: #50bfb8;
+$kendo-checkbox-checked-text: white;
+
+@use 'kendoui-dependencies.scss';

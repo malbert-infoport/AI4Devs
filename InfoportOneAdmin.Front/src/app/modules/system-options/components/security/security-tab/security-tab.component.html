@@ -1,0 +1,26 @@
+<theme-secondary-topbar label="{{ 'SYSTEM_OPTIONS.TITLE' | translate }}: {{ 'SYSTEM_OPTIONS.SECURITY.TITLE' | translate }}">
+</theme-secondary-topbar>
+
+<cl-tabs [tabsData]="internalTabsData" [defaultTab]="0"></cl-tabs>
+
+<ng-template #profiles>
+  @if (accessService.profilesQuery() || accessService.profilesModification()) {
+    <div class="container-fluid bg-common-theme">
+      @if (dataGridRemote.data) {
+        <cl-grid
+          [data]="dataGridRemote"
+          [config]="gridConfigRemote"
+          (dataStateChangeEvent)="callApi($event); state = $event"
+          (rowSelected)="rowSelected($event)"
+        >
+        </cl-grid>
+      }
+    </div>
+  }
+</ng-template>
+
+<ng-template #generalConfig>
+  @if (accessService.companyConfigurationQuery() || accessService.companyConfigurationModification()) {
+    <general-configuration></general-configuration>
+  }
+</ng-template>

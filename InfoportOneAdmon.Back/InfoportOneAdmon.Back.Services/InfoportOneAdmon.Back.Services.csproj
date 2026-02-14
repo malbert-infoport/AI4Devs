@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Helix6.Base" Version="2.3.1" />
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.1" />
+    <PackageReference Include="Helix6.Base.Utils" Version="2.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.3.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InfoportOneAdmon.Back.DataModel\InfoportOneAdmon.Back.DataModel.csproj" />
+    <ProjectReference Include="..\InfoportOneAdmon.Back.Data\InfoportOneAdmon.Back.Data.csproj" />
+    <ProjectReference Include="..\InfoportOneAdmon.Back.Entities\InfoportOneAdmon.Back.Entities.csproj" />
+  </ItemGroup>
+</Project>

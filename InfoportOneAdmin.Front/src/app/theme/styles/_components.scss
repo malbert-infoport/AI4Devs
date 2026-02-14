@@ -1,0 +1,26 @@
+﻿@use '../components/theme-layout/theme-layout.component.scss' as theme-layout;
+@use '../components/theme-left-sidebar/theme-left-sidebar.component.scss' as theme-left-sidebar;
+@use '../components/theme-topbar/theme-topbar.component.scss' as theme-topbar;
+@use '../components/theme-secondary-topbar/theme-secondary-topbar.component.scss' as theme-secondary-topbar;
+@use '../components/theme-loading/theme-loading.component.scss' as theme-loading;
+@use '../components/theme-release-notes/theme-release-notes.component.scss' as theme-release-notes;
+@use '../components/theme-version/theme-version-detail/theme-version-detail.component.scss' as theme-version-detail;
+@use '../components/theme-not-found/theme-not-found.component.scss' as theme-not-found;
+@use '../components/theme-identity-server-offline/theme-identity-server-offline.component.scss' as theme-identity-server-offline;
+@use '../components/theme-unauthorized/theme-unauthorized.component.scss' as theme-unauthorized;
+@use '../components/theme-attachments/theme-attachments-dialog/theme-attachments-dialog.component.scss' as
+  theme-attachments-dialog;
+
+@mixin components-theme($theme) {
+  @include theme-layout.layout-theme($theme);
+  @include theme-left-sidebar.left-sidebar-theme($theme);
+  @include theme-topbar.topbar-theme($theme);
+  @include theme-secondary-topbar.secondary-topbar-theme($theme);
+  @include theme-loading.loading-theme($theme);
+  @include theme-release-notes.release-notes-theme($theme);
+  @include theme-version-detail.version-theme($theme);
+  @include theme-not-found.not-found-theme($theme);
+  @include theme-identity-server-offline.identity-server-offline-theme($theme);
+  @include theme-unauthorized.unauthorized-theme($theme);
+  @include theme-attachments-dialog.attachments-dialog-theme($theme);
+}

@@ -1,0 +1,368 @@
+<nav #leftSidebar class="wrapper-sidebar" [ngClass]="{ 'sidebar-closed': sidebarClosed }">
+  <!-- TITLE-->
+  <mat-tree class="leftnav-tree" [dataSource]="title" [treeControl]="titleTreeControl">
+    <mat-tree-node class="title w-100" *matTreeNodeDef="let node">
+      <img alt="logo" class="logo" src="{{ node.logo }}" />
+      @if (!sidebarClosed) {
+        <div>
+          <span class="mat-headline-6 title pt-1 mb-0"
+            >{{ node.appName }} <span class="mat-small">{{ node.appSlogan }}</span></span
+          >
+          <a class="mat-caption mb-0 version" (click)="openReleaseNotes()">{{ node.version }}</a>
+        </div>
+      }
+    </mat-tree-node>
+  </mat-tree>
+
+  <!-- MENU-->
+  <mat-tree class="leftnav-tree leftnav-body" [dataSource]="menu" [treeControl]="nestedTreeControl">
+    <mat-tree-node class="leftnav-node" *matTreeNodeDef="let node">
+      <div class="leftnav-button w-100">
+        @if (node.disabled) {
+          <a
+            mat-button
+            [disabled]="node.disabled"
+            [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+            matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+            [matTooltipPosition]="'right'"
+          >
+            <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+
+            @if (!sidebarClosed) {
+              <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+            }
+          </a>
+        }
+
+        @if (!node.disabled) {
+          <a
+            #element
+            mat-button
+            [disabled]="false"
+            [routerLink]="[node.url]"
+            [routerLinkActive]="'highlight-node'"
+            [routerLinkActiveOptions]="{ exact: node.exactUrl }"
+            class="w-100"
+            (click)="highlightService.closeSidenav.emit(); highlight(element); toggleSideBar(node.hasParent)"
+            [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+            matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+            [matTooltipPosition]="'right'"
+          >
+            @if (node.iconname) {
+              <mat-icon
+                [matBadge]="node.badgeOptions?.text"
+                [matBadgeSize]="node.badgeOptions?.size"
+                [matBadgeHidden]="node.badgeOptions?.hidden"
+                [matBadgeColor]="node.badgeOptions?.color ? node.badgeOptions?.color : 'warn'"
+                aria-hidden="false"
+                fontIcon="{{ node.iconname ? node.iconname : '' }}"
+              ></mat-icon>
+            }
+            @if (!sidebarClosed) {
+              <span class="leftnav-button-text"> {{ node.translateKey | translate }}</span>
+            }
+          </a>
+        }
+      </div>
+    </mat-tree-node>
+
+    <mat-nested-tree-node [disabled]="node.disabled" class="leftnav-node" *matTreeNodeDef="let node; when: hasChild">
+      <div class="mat-tree-node leftnav-button w-100">
+        @if (node.disabled) {
+          <a
+            mat-button
+            [disabled]="true"
+            class="w-100"
+            [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+            matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+            [matTooltipPosition]="'right'"
+          >
+            @if (node.iconname) {
+              <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+            }
+            @if (!sidebarClosed) {
+              <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+            }
+          </a>
+        }
+
+        @if (!node.disabled) {
+          <a
+            mat-button
+            [disabled]="false"
+            matTreeNodeToggle
+            #element
+            (click)="expandMenu(element)"
+            class="w-100"
+            [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+            matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+            [matTooltipPosition]="'right'"
+          >
+            @if (node.iconname) {
+              <mat-icon
+                [matBadge]="node.badgeOptions?.text"
+                [matBadgeColor]="node.badgeOptions?.color ? node.badgeOptions?.color : 'warn'"
+                [matBadgeSize]="node.badgeOptions?.size"
+                [matBadgeHidden]="node.badgeOptions?.hidden"
+                aria-hidden="false"
+                fontIcon="{{ node.iconname ? node.iconname : '' }}"
+              ></mat-icon>
+            }
+            @if (!sidebarClosed) {
+              <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+              @if (node.label) {
+                <span class="beta-label">{{ node.label }}</span>
+              }
+            }
+          </a>
+        }
+      </div>
+      <ul [hidden]="!nestedTreeControl.isExpanded(node)">
+        <ng-container matTreeNodeOutlet></ng-container>
+      </ul>
+    </mat-nested-tree-node>
+  </mat-tree>
+
+  <span class="fill-space"> </span> <span class="fill-space-line"></span>
+
+  <div class="sidebar-toggler d-xl-block" (click)="toggleSideBar()">
+    <!-- CONTACT INFO-->
+    <mat-tree class="leftnav-tree leftnav-body" [dataSource]="contactinfo" [treeControl]="nestedTreeControl">
+      <mat-tree-node class="leftnav-node" *matTreeNodeDef="let node">
+        <div class="leftnav-button w-100">
+          @if (node.disabled) {
+            <a
+              mat-button
+              [disabled]="true"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+              }
+
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+              }
+            </a>
+          }
+
+          @if (!node.disabled) {
+            <a
+              #element
+              mat-button
+              [disabled]="false"
+              href="{{ node.url }}"
+              (click)="highlight(element); highlightService.closeSidenav.emit()"
+              class="w-100"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+              }
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+              }
+            </a>
+          }
+        </div>
+      </mat-tree-node>
+
+      <mat-nested-tree-node [disabled]="node.disabled" class="leftnav-node" *matTreeNodeDef="let node; when: hasChild">
+        <div class="mat-tree-node leftnav-button w-100">
+          @if (node.disabled) {
+            <a
+              mat-button
+              [disabled]="true"
+              class="w-100"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon
+                  [ngClass]="{ 'icon-color': node.translateKey === 'USER' }"
+                  aria-hidden="false"
+                  fontIcon="{{ node.iconname ? node.iconname : '' }}"
+                ></mat-icon>
+              }
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }} </span>
+              }
+            </a>
+          }
+
+          @if (!node.disabled) {
+            <a
+              mat-button
+              [disabled]="false"
+              matTreeNodeToggle
+              #element
+              (click)="expandMenu(element)"
+              class="w-100"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon
+                  [ngClass]="{ 'icon-color': node.translateKey === 'USER' }"
+                  aria-hidden="false"
+                  fontIcon="{{ node.iconname ? node.iconname : '' }}"
+                ></mat-icon>
+              }
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+              }
+            </a>
+          }
+        </div>
+        <ul [hidden]="!nestedTreeControl.isExpanded(node)">
+          <ng-container matTreeNodeOutlet></ng-container>
+        </ul>
+      </mat-nested-tree-node>
+    </mat-tree>
+
+    <!-- USER MENU-->
+    <mat-tree class="leftnav-tree leftnav-body" [dataSource]="usermenu" [treeControl]="nestedTreeControl">
+      <mat-tree-node class="leftnav-node" *matTreeNodeDef="let node">
+        <div class="leftnav-button w-100">
+          @if (node.disabled) {
+            <a
+              mat-button
+              [disabled]="true"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+              }
+
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }} </span>
+              }
+            </a>
+          }
+          @if (!node.disabled && node.translateKey == 'PREFERENCES') {
+            <a
+              #element
+              mat-button
+              [disabled]="false"
+              [routerLink]="[node.url]"
+              (click)="highlight(element)"
+              class="w-100"
+              (click)="highlightService.closeSidenav.emit(); openSettings()"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+              }
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+              }
+            </a>
+          }
+          @if (!node.disabled && node.translateKey == 'CORE_SIGN_OUT') {
+            <a
+              #element
+              mat-button
+              [disabled]="false"
+              [routerLink]="[node.url]"
+              (click)="highlight(element)"
+              class="w-100"
+              (click)="highlightService.closeSidenav.emit(); authService.logout()"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon aria-hidden="false" fontIcon="{{ node.iconname ? node.iconname : '' }}"></mat-icon>
+              }
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }}</span>
+              }
+            </a>
+          }
+        </div>
+      </mat-tree-node>
+      <mat-nested-tree-node [disabled]="node.disabled" class="leftnav-node" *matTreeNodeDef="let node; when: hasChild">
+        <div class="mat-tree-node leftnav-button w-100">
+          @if (node.disabled) {
+            <a
+              mat-button
+              [disabled]="true"
+              class="w-100"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon
+                  [ngClass]="{ 'icon-color': node.iconname === 'account_circle' }"
+                  aria-hidden="false"
+                  fontIcon="{{ node.iconname ? node.iconname : '' }}"
+                ></mat-icon>
+              }
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">{{ node.translateKey | translate }} </span>
+              }
+            </a>
+          }
+          @if (!node.disabled) {
+            <a
+              style="padding-bottom: 8px"
+              mat-button
+              [disabled]="false"
+              matTreeNodeToggle
+              #element
+              class="w-100"
+              (click)="expandMenu(element)"
+              [ngClass]="{ 'justify-center': sidebarClosed, 'justify-flex-start': !sidebarClosed }"
+              matTooltip="{{ node.translateKey && sidebarClosed ? (node.translateKey | translate) : null }}"
+              [matTooltipPosition]="'right'"
+            >
+              @if (node.iconname) {
+                <mat-icon
+                  style="padding-top: 2px"
+                  [ngClass]="{ 'icon-color': node.iconname === 'account_circle' }"
+                  aria-hidden="false"
+                  fontIcon="{{ node.iconname ? node.iconname : '' }}"
+                ></mat-icon>
+              }
+
+              @if (!sidebarClosed) {
+                <span class="leftnav-button-text">
+                  <span> {{ node.translateKey | translate | splitUserName }} </span>
+                  <p class="last-connection">{{ node.translateKey_extraInfo | translate }}: {{ node.extraInfo }}</p>
+                </span>
+              }
+            </a>
+          }
+        </div>
+        <ul [hidden]="!nestedTreeControl.isExpanded(node)">
+          <ng-container matTreeNodeOutlet></ng-container>
+        </ul>
+      </mat-nested-tree-node>
+    </mat-tree>
+
+    <!-- ARROW MENU-->
+    <span class="arrow" [ngClass]="{ 'arrow-closed': sidebarClosed, 'arrow-opened': !sidebarClosed }">
+      <i
+        [ngClass]="{ 'arrow-closed': sidebarClosed, 'arrow-opened': !sidebarClosed }"
+        class="material-icons"
+        matTooltip="{{ sidebarClosed ? ('EXPAND_NAVIGATION' | translate) : null }}"
+        [matTooltipPosition]="'right'"
+        >keyboard_arrow_right</i
+      >
+
+      @if (!sidebarClosed) {
+        <span class="arrow-child"> {{ 'COLLAPSE_NAVIGATION' | translate }}</span>
+      }
+    </span>
+  </div>
+</nav>

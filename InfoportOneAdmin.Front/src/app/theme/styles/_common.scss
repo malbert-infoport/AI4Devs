@@ -1,0 +1,60 @@
+@use 'mixings';
+
+html {
+  height: 100%;
+  margin: 0;
+  @include mixings.scrollbars(0.4em, slategray, transparent);
+
+  body {
+    line-height: 1.42857;
+  }
+}
+
+a,
+button {
+  cursor: pointer;
+  outline: none !important;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+li {
+  &:focus {
+    outline: none !important;
+  }
+}
+
+textarea {
+  resize: none;
+}
+
+/*
+ * Common classes 
+ */
+
+.align-bottom {
+  vertical-align: bottom;
+}
+
+.combo-loading-container {
+  display: flex;
+  align-items: center;
+
+  & > span {
+    flex: 1;
+  }
+}
+
+//
+// App component
+// --------------------------------------------------
+body {
+  height: 100%;
+  transition: all 0.3s;
+
+  .fill-space {
+    flex: 1 1 auto;
+  }
+}

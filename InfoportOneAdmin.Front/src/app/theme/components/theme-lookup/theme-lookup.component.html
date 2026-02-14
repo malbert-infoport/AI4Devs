@@ -1,0 +1,11 @@
+@if (showLookupButton) {
+  <cl-button
+    [text]="text | translate"
+    [tooltipText]="tooltipText | translate"
+    [icon]="{ name: 'ph ph-magnifying-glass' }"
+    [disabled]="disabled"
+    (clicked)="openModal()"
+    [theme]="theme"
+  >
+  </cl-button>
+}

@@ -1,0 +1,131 @@
+@use '@angular/material' as mat;
+
+@font-face {
+  font-family: 'Roboto Medium';
+  src: url('../../../../assets/fonts/Roboto/Roboto-Medium-webfont.woff') format('ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('../../../../assets/fonts/Inter-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TitilliumWeb';
+  src: url('../../../../assets/fonts/TitilliumWeb/TitilliumWeb-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+$helix-font-family:
+  'Roboto',
+  'Roboto Medium',
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  'Helvetica Neue',
+  Arial,
+  sans-serif,
+  'Apple Color Emoji',
+  'Segoe UI Emoji',
+  'Segoe UI Symbol',
+  'Noto Color Emoji';
+
+$helix-font-family-titillium: 'TitilliumWeb';
+$helix-font-family-inter: 'Inter';
+
+$helix-heading-1: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 500,
+  $font-size: 20px,
+  $letter-spacing: -2.5%,
+  $line-height: 25px
+);
+
+$helix-heading-2: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 500,
+  $font-size: 16px,
+  $letter-spacing: -2%,
+  $line-height: 20px
+);
+$helix-heading-3: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 500,
+  $font-size: 14px,
+  $letter-spacing: -1.5%,
+  $line-height: 18px
+);
+$helix-heading-4: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 600,
+  $font-size: 18px,
+  $letter-spacing: normal
+);
+$helix-heading-5: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 600,
+  $font-size: 16px,
+  $letter-spacing: normal
+);
+
+$helix-heading-6: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 600,
+  $font-size: 14px,
+  $letter-spacing: normal
+);
+
+$helix-subtitle-1: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 600,
+  $font-size: 16px,
+  $line-height: 18px,
+  $letter-spacing: normal
+);
+$helix-subtitle-2: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 600,
+  $font-size: 14px,
+  $line-height: 24px,
+  $letter-spacing: normal
+);
+$helix-body-1: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 400,
+  $font-size: 14px,
+  $line-height: 16px,
+  $letter-spacing: normal
+);
+$helix-body-2: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 400,
+  $font-size: 12px,
+  $line-height: 18px,
+  $letter-spacing: normal
+);
+$helix-button: mat.m2-define-typography-level(
+  $font-family: $helix-font-family-inter,
+  $font-weight: 400,
+  $font-size: 14px,
+  $line-height: 18px,
+  $letter-spacing: normal
+);
+$helix-custom-typography-config: mat.m2-define-typography-config(
+  $font-family: $helix-font-family-inter,
+  $headline-1: $helix-heading-1,
+  $headline-2: $helix-heading-2,
+  $headline-3: $helix-heading-3,
+  $headline-4: $helix-heading-4,
+  $headline-5: $helix-heading-5,
+  $headline-6: $helix-heading-6,
+  $subtitle-1: $helix-subtitle-1,
+  $subtitle-2: $helix-subtitle-2,
+  $body-1: $helix-body-1,
+  $body-2: $helix-body-2,
+  $button: $helix-button
+);

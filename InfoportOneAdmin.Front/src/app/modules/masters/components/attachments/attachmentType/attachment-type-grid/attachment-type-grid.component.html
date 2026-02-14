@@ -1,0 +1,4 @@
+@if (dataGridRemote.data) {
+  <cl-grid [data]="dataGridRemote" [config]="gridConfigRemote" (dataStateChangeEvent)="callApi($event); state = $event">
+  </cl-grid>
+}

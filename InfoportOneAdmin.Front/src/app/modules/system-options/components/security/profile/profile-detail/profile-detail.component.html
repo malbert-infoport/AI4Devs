@@ -1,0 +1,58 @@
+<div class="container-fluid">
+  <h1 mat-dialog-title>{{ data.inputs.title | translate }}</h1>
+  <form novalidate="false" #form="ngForm" (ngSubmit)="onSubmit(form)">
+    <mat-dialog-content class="mat-typography">
+      @if (model) {
+        <div class="card-body">
+          <div class="row">
+            <mat-form-field class="col-md-12 col-lg-12 col-xl-6">
+              <mat-label>{{ 'DESCRIPTION' | translate }}</mat-label>
+
+              <input matInput name="description" [(ngModel)]="model.description" required [disabled]="!modificacionPerfiles" />
+            </mat-form-field>
+
+            <mat-form-field class="col-md-12 col-lg-12 col-xl-6">
+              <mat-label>{{ 'ROLE' | translate }}</mat-label>
+
+              <input matInput name="rol" [(ngModel)]="model.rol" required [disabled]="!modificacionPerfiles" />
+            </mat-form-field>
+          </div>
+
+          @for (sm of model.securityModule; track $index) {
+            <mat-accordion>
+              <mat-expansion-panel
+                class="mb-3"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                [disabled]="!modificacionPerfiles"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title>{{ sm.description }} </mat-panel-title>
+                </mat-expansion-panel-header>
+                @for (sao of sm.securityAccessOption; track $index) {
+                  <div>
+                    <mat-checkbox
+                      [color]="'primary'"
+                      name="{{ sao.id }} - {{ sao.description }}"
+                      [(ngModel)]="sao.includedInProfile"
+                    >
+                      {{ sao.description }}
+                    </mat-checkbox>
+                  </div>
+                }
+              </mat-expansion-panel>
+            </mat-accordion>
+          }
+        </div>
+      } @else {
+        <theme-loading></theme-loading>
+      }
+    </mat-dialog-content>
+    <mat-dialog-actions [align]="'end'">
+      <button type="button" mat-raised-button (click)="cancel()" color="accent">{{ 'CANCEL' | translate }}</button>
+      <button type="submit" mat-raised-button [disabled]="!form.valid || !form.dirty" color="primary">
+        {{ 'ACCEPT' | translate }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

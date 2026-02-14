@@ -1,0 +1,62 @@
+@if (dataGrid.data) {
+  <div class="container-fluid bg-white">
+    <!--min-height-89-->
+    <form [formGroup]="lookupForm">
+      <div class="row align-content-center">
+        <!--min-height-89-->
+        <div class="row">
+          @for (input of lookUpConfig.clInputs; track input; let i = $index) {
+            <cl-input
+              class="col-12 col-md-3 col-lg-3"
+              #element
+              clGridExternalFilter
+              label="{{ input.label }}"
+              operator="{{ input.operator }}"
+              fieldName="{{ input.fieldName }}"
+              [element]="element"
+              [grid]="grid5"
+              formControlName="{{ input.fieldName }}"
+            ></cl-input>
+          }
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="container-fluid padding-16">
+    <div class="row">
+      <cl-grid
+        #grid5
+        [data]="dataGrid"
+        [config]="gridConfig"
+        (selectionChanged)="selectionChanged($event)"
+        (dataStateChangeEvent)="callApi($event); state = $event; updateSelectedItems()"
+      >
+      </cl-grid>
+    </div>
+  </div>
+}
+<ng-template #noRecordsTemplate>
+  <div
+    class="d-flex flex-column justify-content-center align-items-center"
+    style="height: 300px; margin-bottom: 14px; max-width: 1440px"
+  >
+    <h5>{{ 'THEME_LOOKUP.NO_RECORDS_TEMPLATE.TITLE' | translate }}</h5>
+    <p style="max-width: 375px">
+      {{ 'THEME_LOOKUP.NO_RECORDS_TEMPLATE.TEXT' | translate }}
+    </p>
+  </div>
+</ng-template>
+
+<ng-template #refreshGridTemplate>
+  <cl-button
+    class="mx-1"
+    [text]="'REFRESH' | translate"
+    [icon]="{ name: 'ph ph-arrow-clockwise', classes: 'fill' }"
+    [disabled]="false"
+    (clicked)="callApi(state)"
+    [tooltipText]="'REFRESH' | translate"
+    [theme]="'secondary'"
+  >
+  </cl-button>
+</ng-template>

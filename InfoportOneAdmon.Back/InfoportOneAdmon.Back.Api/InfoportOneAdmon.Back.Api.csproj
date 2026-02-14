@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>9726f8e6-ba2d-42d2-ae99-7710d08d8e02</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="HelixEntities.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="HelixEntities.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Helix6.Base" Version="2.3.1" />
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.1" />
+    <PackageReference Include="Helix6.Base.Utils" Version="2.3.1" />
+    <PackageReference Include="IdentityModel" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.3.0" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InfoportOneAdmon.Back.DataModel\InfoportOneAdmon.Back.DataModel.csproj" />
+    <ProjectReference Include="..\InfoportOneAdmon.Back.Data\InfoportOneAdmon.Back.Data.csproj" />
+    <ProjectReference Include="..\InfoportOneAdmon.Back.Entities\InfoportOneAdmon.Back.Entities.csproj" />
+    <ProjectReference Include="..\InfoportOneAdmon.Back.Services\InfoportOneAdmon.Back.Services.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\SharedResource.en-GB.resx">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResource.es-ES.resx">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Endpoints\Base\Generator\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+</Project>

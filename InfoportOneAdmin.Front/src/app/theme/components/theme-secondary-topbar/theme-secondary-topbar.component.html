@@ -1,0 +1,19 @@
+<mat-toolbar class="secondary-bar text-center text-primary">
+  @if (backArrow) {
+    <a mat-icon-button (click)="goBack()" class="back-arrow"> <mat-icon>arrow_back</mat-icon> </a>
+  }
+  <span class="title label">{{ label }}</span>
+  <ng-content></ng-content>
+
+  <span class="fill-space"></span>
+
+  @if (buttonText) {
+    <button type="button" mat-raised-button (click)="buttonAction()">
+      @if (!buttonLoading) {
+        <span>{{ buttonText | uppercase }}</span>
+      } @else {
+        <theme-loading></theme-loading>
+      }
+    </button>
+  }
+</mat-toolbar>

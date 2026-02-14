@@ -1,0 +1,6 @@
+<theme-secondary-topbar label="{{ 'MASTERS.ATTACHMENTS.TITLE' | translate }}"> </theme-secondary-topbar>
+<kendo-tabstrip #mastersTabStrip>
+  <kendo-tabstrip-tab title="{{ 'ATTACHMENTS.ATTACHMENTS_TYPE' | translate | uppercase }}" [selected]="true">
+    <ng-template kendoTabContent> <attachment-type-grid></attachment-type-grid> </ng-template>
+  </kendo-tabstrip-tab>
+</kendo-tabstrip>

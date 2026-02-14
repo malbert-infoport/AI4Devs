@@ -1,0 +1,42 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+@mixin version-theme($theme) {
+  // Get the color config from the theme.
+  $color-config: mat.m2-get-color-config($theme);
+
+  // Get the primary color pallete from the color-config
+  $primary-pallete: map.get($color-config, 'primary');
+  $accent-pallete: map.get($color-config, 'accent');
+  $warn-pallete: map.get($color-config, 'warn');
+
+  $is-dark-theme: map.get($color-config, 'is-dark');
+
+  // Get the typography config from the theme.
+  $typography-config: mat.m2-get-typography-config($theme);
+  $my-font-family: mat.m2-font-family($typography-config);
+
+  .version {
+    /* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
+    mat-card-header {
+      background-color: mat.m2-get-color-from-palette($accent-pallete, 'A200');
+      color: mat.m2-get-color-from-palette($accent-pallete, 'A200-contrast');
+      border-radius: 5px 5px 0 0;
+    }
+
+    h6.bg-version {
+      display: inline-block;
+      background-color: mat.m2-get-color-from-palette($accent-pallete, 'A200');
+      color: mat.m2-get-color-from-palette($accent-pallete, 'A200-contrast');
+    }
+  }
+}
+
+// Habilitar scroll para el componente de versión
+// Sobrescribir el overflow: hidden del layout global
+:host {
+  display: block !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}

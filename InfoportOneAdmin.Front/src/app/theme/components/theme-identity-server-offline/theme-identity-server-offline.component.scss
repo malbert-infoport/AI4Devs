@@ -1,0 +1,29 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@mixin identity-server-offline-theme($theme) {
+  // Get the color config from the theme.
+  $color-config: mat.m2-get-color-config($theme);
+
+  // Get the primary color pallete from the color-config
+  $primary-pallete: map.get($color-config, 'primary');
+  $accent-pallete: map.get($color-config, 'accent');
+  $warn-pallete: map.get($color-config, 'warn');
+
+  $is-dark-theme: map.get($color-config, 'is-dark');
+
+  // Get the typography config from the theme.
+  $typography-config: mat.m2-get-typography-config($theme);
+  $my-font-family: mat.m2-font-family($typography-config);
+  theme-identity-server-offline {
+    .content {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .error-button {
+      flex-grow: 0;
+    }
+  }
+}

@@ -1,0 +1,238 @@
+/**Para adaptar Helix 6 a la imagen coorporativa de la aplicación que se vaya a crear,
+sólo es necesario cambiar los colores de esta paleta. Se recomienda no actuar sobre las
+gamas neutras de gris (accent colors).
+*/
+
+/* * PALETAS ORIGINALES DE HELIX * */
+// LIGHT COLORS
+
+$dark-primary-text-light-theme: rgba(black, 0.87);
+$light-primary-text-light-theme: white;
+$light-box-shadow: rgba(0, 0, 0, 0.1);
+
+$dark-primary-text-dark-theme: rgba(#33484a, 1);
+$light-primary-text-dark-theme: white;
+
+// A200: background-color(botones)
+$helix-primary-light-color: (
+  50: #ebf5f5,
+  100: #c4e3e1,
+  200: #9dcfcd,
+  300: #76bdb8,
+  400: #4faaa4,
+  500: #3ba09a,
+  600: 48D87,
+  700: #317a75,
+  800: #24605c,
+  900: #18403d,
+  A100: #adfff8,
+  A200: #3ba09a,
+  A400: #47fff0,
+  A700: #2dffee,
+  VP500: #096c83,
+  VP100-rgba: rgba(#2196b3, 0.2),
+  CL-25: #f7fbfb,
+  CL-GENERAL-PRIMARY: #0a1a22,
+  contrast: (
+    50: $dark-primary-text-light-theme,
+    100: $dark-primary-text-light-theme,
+    200: $dark-primary-text-light-theme,
+    300: $dark-primary-text-light-theme,
+    400: $dark-primary-text-light-theme,
+    500: $light-primary-text-light-theme,
+    600: $light-primary-text-light-theme,
+    700: $light-primary-text-light-theme,
+    800: $light-primary-text-light-theme,
+    900: $light-primary-text-light-theme,
+    A100: $dark-primary-text-light-theme,
+    A200: $light-primary-text-light-theme,
+    A400: $light-primary-text-light-theme,
+    A700: $light-primary-text-light-theme
+  )
+);
+// Modificado: A200 | A100
+$helix-accent-light-color: (
+  white: #ffffff,
+  10: #f7f9fa,
+  25: #f7f9fa,
+  50: #f3f5f6,
+  100: #ebeef0,
+  200: #d6dde1,
+  300: #c2ccd1,
+  400: #adbbc2,
+  500: #8599a4,
+  600: #5c7785,
+  700: #335567,
+  800: #122833,
+  900: #131e26,
+  A100: #3ba09a,
+  A200: #335567,
+  A400: #1ca6ff,
+  A700: #029cff,
+  VP100: #dfe6e8,
+  VP500: #5c6b70,
+  VP700: #33484a,
+  VP800: #1d3437,
+  CL-WHITE: #ffffff,
+  CL-BLACK: #000000,
+  contrast: (
+    50: $dark-primary-text-light-theme,
+    100: $dark-primary-text-light-theme,
+    200: $dark-primary-text-light-theme,
+    300: $light-primary-text-light-theme,
+    400: $light-primary-text-light-theme,
+    500: $light-primary-text-light-theme,
+    600: $light-primary-text-light-theme,
+    700: $light-primary-text-light-theme,
+    800: $light-primary-text-light-theme,
+    900: $light-primary-text-light-theme,
+    A100: $dark-primary-text-light-theme,
+    A200: $light-primary-text-light-theme,
+    A400: $light-primary-text-light-theme,
+    A700: $light-primary-text-light-theme,
+    VP50: $light-box-shadow
+  )
+);
+$helix-warn-light-color: (
+  50: #f9eaec,
+  100: #ecbfc7,
+  200: #df94a2,
+  300: #d26a7e,
+  400: #c53f59,
+  500: #bf2a46,
+  600: #a9253d,
+  700: #922035,
+  800: #7b1b2d,
+  900: #641422,
+  A100: #ffcbd0,
+  A200: #ff98a2,
+  A400: #ff6574,
+  A700: #ff4c5d,
+  VP100: #ffdfdd,
+  VP200: #da2e22,
+  CL-25: #fdf7f8,
+  contrast: (
+    50: $dark-primary-text-light-theme,
+    100: $dark-primary-text-light-theme,
+    200: $dark-primary-text-light-theme,
+    300: $dark-primary-text-light-theme,
+    400: $dark-primary-text-light-theme,
+    500: $light-primary-text-light-theme,
+    600: $light-primary-text-light-theme,
+    700: $light-primary-text-light-theme,
+    800: $light-primary-text-light-theme,
+    900: $light-primary-text-light-theme,
+    A100: $dark-primary-text-light-theme,
+    A200: $dark-primary-text-light-theme,
+    A400: $dark-primary-text-light-theme,
+    A700: $dark-primary-text-light-theme
+  )
+);
+// 00716c
+// DARK COLORS
+$helix-primary-dark-color: (
+  50: #f0f9f9,
+  100: #def4f3,
+  200: #b5e3e1,
+  300: #87d5d1,
+  400: #50bfb8,
+  500: #3ba09a,
+  600: #348d88,
+  700: #2d7b76,
+  800: #00716c,
+  900: #276864,
+  A100: #adfff8,
+  A200: #3ba09a,
+  A400: #47fff0,
+  A700: #2dffee,
+  VP500: #096c83,
+  VP100-rgba: rgba(#2196b3, 0.2),
+  contrast: (
+    50: $dark-primary-text-dark-theme,
+    100: $dark-primary-text-dark-theme,
+    200: $dark-primary-text-dark-theme,
+    300: $light-primary-text-dark-theme,
+    400: $light-primary-text-dark-theme,
+    500: $light-primary-text-dark-theme,
+    600: $light-primary-text-dark-theme,
+    700: $light-primary-text-dark-theme,
+    800: $light-primary-text-dark-theme,
+    900: $light-primary-text-dark-theme,
+    A100: $dark-primary-text-dark-theme,
+    A200: $light-primary-text-dark-theme,
+    A400: $light-primary-text-dark-theme,
+    A700: $light-primary-text-dark-theme
+  )
+);
+$helix-accent-dark-color: (
+  10: #f8fafb,
+  25: #f1f4f6,
+  50: #e9eced,
+  100: #d5dde0,
+  200: #b0bdc2,
+  300: #8a9aa1,
+  400: #667f8a,
+  500: #3f5f6f,
+  600: #335567,
+  700: #294353,
+  800: #1f323f,
+  900: #131e26,
+  A100: #3ba09a,
+  A200: #2d8e88,
+  A400: #26847e,
+  A700: #19736c,
+  VP100: #dfe6e8,
+  VP500: #5c6b70,
+  VP700: #33484a,
+  VP800: #1d3437,
+  contrast: (
+    50: $dark-primary-text-dark-theme,
+    100: $dark-primary-text-dark-theme,
+    200: $dark-primary-text-dark-theme,
+    300: $dark-primary-text-dark-theme,
+    400: $dark-primary-text-dark-theme,
+    500: $dark-primary-text-dark-theme,
+    600: $light-primary-text-dark-theme,
+    700: $light-primary-text-dark-theme,
+    800: $light-primary-text-dark-theme,
+    900: $light-primary-text-dark-theme,
+    A100: $dark-primary-text-dark-theme,
+    A200: $dark-primary-text-dark-theme,
+    A400: $dark-primary-text-dark-theme,
+    A700: $dark-primary-text-dark-theme
+  )
+);
+$helix-warn-dark-color: (
+  50: #f9e5e7,
+  100: #f7cbd0,
+  200: #ed919c,
+  300: #e25f6f,
+  400: #e14554,
+  500: #bf2a46,
+  600: #972136,
+  700: #821c2f,
+  800: #6d1727,
+  900: #58131f,
+  A100: #ffcbd0,
+  A200: #ff98a2,
+  A400: #ff6574,
+  A700: #ff4c5d,
+  VP100: #ffdfdd,
+  VP200: #da2e22,
+  contrast: (
+    50: $dark-primary-text-dark-theme,
+    100: $dark-primary-text-dark-theme,
+    200: $dark-primary-text-dark-theme,
+    300: $dark-primary-text-dark-theme,
+    400: $dark-primary-text-dark-theme,
+    500: $light-primary-text-dark-theme,
+    600: $light-primary-text-dark-theme,
+    700: $light-primary-text-dark-theme,
+    800: $light-primary-text-dark-theme,
+    900: $light-primary-text-dark-theme,
+    A100: $dark-primary-text-dark-theme,
+    A200: $light-primary-text-dark-theme,
+    A400: $light-primary-text-dark-theme,
+    A700: $light-primary-text-dark-theme
+  )
+);

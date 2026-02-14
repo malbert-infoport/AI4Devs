@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 17.4.33213.308
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.DataModel", "InfoportOneAdmon.Back.DataModel\InfoportOneAdmon.Back.DataModel.csproj", "{170D4118-56EF-427C-A2C2-D167C3D4785C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Data", "InfoportOneAdmon.Back.Data\InfoportOneAdmon.Back.Data.csproj", "{38FBC63D-60C4-4FD3-A1D8-ED6979B710A5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Entities", "InfoportOneAdmon.Back.Entities\InfoportOneAdmon.Back.Entities.csproj", "{97FE039F-E457-4DDC-8031-FD8C1316D18B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Services", "InfoportOneAdmon.Back.Services\InfoportOneAdmon.Back.Services.csproj", "{D43EAB06-FF63-4754-85E7-5EBA374AD97C}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "InfoportOneAdmon.Back.DB", "InfoportOneAdmon.Back.DB\InfoportOneAdmon.Back.DB.sqlproj", "{77327918-3136-45C6-BAE5-900B010470A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Api", "InfoportOneAdmon.Back.Api\InfoportOneAdmon.Back.Api.csproj", "{AA9FD82B-5A4E-420A-98D2-054156919C67}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Data.Tests", "InfoportOneAdmon.Back.Data.Tests\InfoportOneAdmon.Back.Data.Tests.csproj", "{A53A456D-499D-4FE1-A4F6-83901E3643B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Services.Tests", "InfoportOneAdmon.Back.Services.Tests\InfoportOneAdmon.Back.Services.Tests.csproj", "{A8AA6CC4-F0AB-4DBF-8341-65FB42B77184}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helix6Docker", "Helix6Docker", "{C700154A-00F0-4C84-AA57-44EFAF546E93}"
+	ProjectSection(SolutionItems) = preProject
+		Helix6Docker\database.dev.env = Helix6Docker\database.dev.env
+		Helix6Docker\docker-compose.yml = Helix6Docker\docker-compose.yml
+		Helix6Docker\down.cmd = Helix6Docker\down.cmd
+		Helix6Docker\helix6-realm.json = Helix6Docker\helix6-realm.json
+		Helix6Docker\keycloak.dev.env = Helix6Docker\keycloak.dev.env
+		Helix6Docker\up.cmd = Helix6Docker\up.cmd
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{980EC107-74F5-4DDF-860D-5918EBE3D096}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{170D4118-56EF-427C-A2C2-D167C3D4785C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{170D4118-56EF-427C-A2C2-D167C3D4785C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{170D4118-56EF-427C-A2C2-D167C3D4785C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{170D4118-56EF-427C-A2C2-D167C3D4785C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38FBC63D-60C4-4FD3-A1D8-ED6979B710A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38FBC63D-60C4-4FD3-A1D8-ED6979B710A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38FBC63D-60C4-4FD3-A1D8-ED6979B710A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38FBC63D-60C4-4FD3-A1D8-ED6979B710A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97FE039F-E457-4DDC-8031-FD8C1316D18B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97FE039F-E457-4DDC-8031-FD8C1316D18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97FE039F-E457-4DDC-8031-FD8C1316D18B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97FE039F-E457-4DDC-8031-FD8C1316D18B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77327918-3136-45C6-BAE5-900B010470A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77327918-3136-45C6-BAE5-900B010470A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77327918-3136-45C6-BAE5-900B010470A6}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{77327918-3136-45C6-BAE5-900B010470A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77327918-3136-45C6-BAE5-900B010470A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77327918-3136-45C6-BAE5-900B010470A6}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A53A456D-499D-4FE1-A4F6-83901E3643B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A53A456D-499D-4FE1-A4F6-83901E3643B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A53A456D-499D-4FE1-A4F6-83901E3643B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A53A456D-499D-4FE1-A4F6-83901E3643B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8AA6CC4-F0AB-4DBF-8341-65FB42B77184}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8AA6CC4-F0AB-4DBF-8341-65FB42B77184}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8AA6CC4-F0AB-4DBF-8341-65FB42B77184}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8AA6CC4-F0AB-4DBF-8341-65FB42B77184}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {352562D6-4ABD-45B3-88F2-E9B6731B2E9B}
+	EndGlobalSection
+EndGlobal

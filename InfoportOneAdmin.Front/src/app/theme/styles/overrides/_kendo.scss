@@ -1,0 +1,22 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+@mixin overrides-kendo-theme($theme) {
+  // Get the color config from the theme.
+  $color-config: mat.m2-get-color-config($theme);
+
+  // Get the primary color pallete from the color-config
+  $primary-pallete: map.get($color-config, 'primary');
+  $accent-pallete: map.get($color-config, 'accent');
+  $warn-pallete: map.get($color-config, 'warn');
+
+  $is-dark-theme: map.get($color-config, 'is-dark');
+
+  // Get the typography config from the theme.
+  $typography-config: mat.m2-get-typography-config($theme);
+
+  // TODO: HASTA QUE USAMOS EL MODAL DE LA COMMON
+  kendo-dialog kendo-dialog-titlebar .k-button {
+    display: none;
+  }
+}

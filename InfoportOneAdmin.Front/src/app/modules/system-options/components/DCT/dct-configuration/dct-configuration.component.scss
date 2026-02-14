@@ -1,0 +1,34 @@
+kendo-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.header-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1rem 0;
+  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-scrollable {
+  overflow-y: auto;
+  max-height: calc(100vh - 150px);
+  padding-top: 1rem;
+}
+
+// Estilos por defecto para el contenido del editor
+kendo-editor ::ng-deep .ProseMirror {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+}
+
+.k-editor {
+  border-color: rgb(173, 187, 194);
+  border-radius: 8px;
+}
+
+.k-toolbar-solid {
+  border-radius: 8px 8px 0px 0px;
+}

@@ -1,0 +1,190 @@
+@use 'sass:map';
+@use './palette';
+
+/* Global variables to use in any component. Ex:background-color: var(--100-primary)*/
+:root {  
+
+    /* primary colors from custom theme light-mode*/
+    
+    --50-primary: #{map.get(palette.$helix-primary-light-color, 50)};
+    --100-primary: #{map.get(palette.$helix-primary-light-color, 100)};
+    --200-primary: #{map.get(palette.$helix-primary-light-color, 200)};
+    --300-primary: #{map.get(palette.$helix-primary-light-color,300)};
+    --400-primary: #{map.get(palette.$helix-primary-light-color,400)};
+    --500-primary: #{map.get(palette.$helix-primary-light-color,500)};
+    --600-primary: #{map.get(palette.$helix-primary-light-color,600)};
+    --700-primary: #{map.get(palette.$helix-primary-light-color,700)};
+    --800-primary: #{map.get(palette.$helix-primary-light-color,800)};
+    --600-primary: #{map.get(palette.$helix-primary-light-color,600)};
+    --A100-primary: #{map.get(palette.$helix-primary-light-color,'A100')};
+    --A200-primary: #{map.get(palette.$helix-primary-light-color,'A200')};
+    --A400-primary: #{map.get(palette.$helix-primary-light-color,'A400')};
+    --A700-primary: #{map.get(palette.$helix-primary-light-color,'A700')};  
+    --50-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 50)};
+    --100-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 100)};
+    --200-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 200)};
+    --300-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 300)};
+    --400-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 400)};
+    --500-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 500)};
+    --600-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 600)};
+    --700-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 700)};
+    --800-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 800)};
+    --900-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 900)};
+    --A100-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 'A100')};
+    --A200-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 'A200')};
+    --A400-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 'A400')};
+    --A700-primary-contrast: #{map.get(palette.$helix-primary-light-color, 'contrast', 'A700')};
+    
+    /* accent colors from custom theme light-mode*/
+    --50-accent: #{map.get(palette.$helix-accent-light-color,50)};
+    --100-accent: #{map.get(palette.$helix-accent-light-color,100)};
+    --200-accent: #{map.get(palette.$helix-accent-light-color,200)};
+    --300-accent: #{map.get(palette.$helix-accent-light-color,300)};
+    --400-accent: #{map.get(palette.$helix-accent-light-color,400)};
+    --500-accent: #{map.get(palette.$helix-accent-light-color,500)};
+    --600-accent: #{map.get(palette.$helix-accent-light-color,600)};
+    --700-accent: #{map.get(palette.$helix-accent-light-color,700)};
+    --800-accent: #{map.get(palette.$helix-accent-light-color,800)};
+    --600-accent: #{map.get(palette.$helix-accent-light-color,600)};
+    --A100-accent: #{map.get(palette.$helix-accent-light-color,'A100')};
+    --A200-accent: #{map.get(palette.$helix-accent-light-color,'A200')};
+    --A400-accent: #{map.get(palette.$helix-accent-light-color,'A400')};
+    --A700-accent: #{map.get(palette.$helix-accent-light-color,'A700')};  
+    --50-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 50)};
+    --100-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 100)};
+    --200-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 200)};
+    --300-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 300)};
+    --400-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 400)};
+    --500-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 500)};
+    --600-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 600)};
+    --700-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 700)};
+    --800-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 800)};
+    --900-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 900)};
+    --A100-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 'A100')};
+    --A200-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 'A200')};
+    --A400-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 'A400')};
+    --A700-accent-contrast: #{map.get(palette.$helix-accent-light-color, 'contrast', 'A700')};
+  
+    /* warn colors from custom theme light-mode*/
+    --50-warn: #{map.get(palette.$helix-warn-light-color,50)};
+    --100-warn: #{map.get(palette.$helix-warn-light-color,100)};
+    --200-warn: #{map.get(palette.$helix-warn-light-color,200)};
+    --300-warn: #{map.get(palette.$helix-warn-light-color,300)};
+    --400-warn: #{map.get(palette.$helix-warn-light-color,400)};
+    --500-warn: #{map.get(palette.$helix-warn-light-color,500)};
+    --600-warn: #{map.get(palette.$helix-warn-light-color,600)};
+    --700-warn: #{map.get(palette.$helix-warn-light-color,700)};
+    --800-warn: #{map.get(palette.$helix-warn-light-color,800)};
+    --600-warn: #{map.get(palette.$helix-warn-light-color,600)};
+    --A100-warn: #{map.get(palette.$helix-warn-light-color,'A100')};
+    --A200-warn: #{map.get(palette.$helix-warn-light-color,'A200')};
+    --A400-warn: #{map.get(palette.$helix-warn-light-color,'A400')};
+    --A700-warn: #{map.get(palette.$helix-warn-light-color,'A700')};  
+    --50-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 50)};
+    --100-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 100)};
+    --200-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 200)};
+    --300-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 300)};
+    --400-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 400)};
+    --500-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 500)};
+    --600-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 600)};
+    --700-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 700)};
+    --800-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 800)};
+    --900-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 900)};
+    --A100-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 'A100')};
+    --A200-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 'A200')};
+    --A400-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 'A400')};
+    --A700-warn-contrast: #{map.get(palette.$helix-warn-light-color, 'contrast', 'A700')};
+  }
+  
+  .HLXLibrary-dark-theme {
+  
+    /* primary colors from custom theme dark-mode */
+    --50-primary: #{map.get(palette.$helix-primary-dark-color,50)};
+    --100-primary: #{map.get(palette.$helix-primary-dark-color,100)};
+    --200-primary: #{map.get(palette.$helix-primary-dark-color,200)};
+    --300-primary: #{map.get(palette.$helix-primary-dark-color,300)};
+    --400-primary: #{map.get(palette.$helix-primary-dark-color,400)};
+    --500-primary: #{map.get(palette.$helix-primary-dark-color,500)};
+    --600-primary: #{map.get(palette.$helix-primary-dark-color,600)};
+    --700-primary: #{map.get(palette.$helix-primary-dark-color,700)};
+    --800-primary: #{map.get(palette.$helix-primary-dark-color,800)};
+    --600-primary: #{map.get(palette.$helix-primary-dark-color,600)};
+    --A100-primary: #{map.get(palette.$helix-primary-dark-color,'A100')};
+    --A200-primary: #{map.get(palette.$helix-primary-dark-color,'A200')};
+    --A400-primary: #{map.get(palette.$helix-primary-dark-color,'A400')};
+    --A700-primary: #{map.get(palette.$helix-primary-dark-color,'A700')};  
+    --50-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 50)};
+    --100-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 100)};
+    --200-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 200)};
+    --300-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 300)};
+    --400-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 400)};
+    --500-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 500)};
+    --600-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 600)};
+    --700-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 700)};
+    --800-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 800)};
+    --900-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 900)};
+    --A100-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 'A100')};
+    --A200-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 'A200')};
+    --A400-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 'A400')};
+    --A700-primary-contrast: #{map.get(palette.$helix-primary-dark-color, 'contrast', 'A700')};
+  
+    /* accent colors from custom theme dark-mode */
+    --50-accent: #{map.get(palette.$helix-accent-dark-color,50)};
+    --100-accent: #{map.get(palette.$helix-accent-dark-color,100)};
+    --200-accent: #{map.get(palette.$helix-accent-dark-color,200)};
+    --300-accent: #{map.get(palette.$helix-accent-dark-color,300)};
+    --400-accent: #{map.get(palette.$helix-accent-dark-color,400)};
+    --500-accent: #{map.get(palette.$helix-accent-dark-color,500)};
+    --600-accent: #{map.get(palette.$helix-accent-dark-color,600)};
+    --700-accent: #{map.get(palette.$helix-accent-dark-color,700)};
+    --800-accent: #{map.get(palette.$helix-accent-dark-color,800)};
+    --600-accent: #{map.get(palette.$helix-accent-dark-color,600)};
+    --A100-accent: #{map.get(palette.$helix-accent-dark-color,'A100')};
+    --A200-accent: #{map.get(palette.$helix-accent-dark-color,'A200')};
+    --A400-accent: #{map.get(palette.$helix-accent-dark-color,'A400')};
+    --A700-accent: #{map.get(palette.$helix-accent-dark-color,'A700')};  
+    --50-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 50)};
+    --100-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 100)};
+    --200-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 200)};
+    --300-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 300)};
+    --400-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 400)};
+    --500-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 500)};
+    --600-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 600)};
+    --700-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 700)};
+    --800-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 800)};
+    --900-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 900)};
+    --A100-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 'A100')};
+    --A200-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 'A200')};
+    --A400-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 'A400')};
+    --A700-accent-contrast: #{map.get(palette.$helix-accent-dark-color, 'contrast', 'A700')};
+  
+    /* warn colors from custom theme dark-mode */
+    --50-warn: #{map.get(palette.$helix-warn-dark-color,50)};
+    --100-warn: #{map.get(palette.$helix-warn-dark-color,100)};
+    --200-warn: #{map.get(palette.$helix-warn-dark-color,200)};
+    --300-warn: #{map.get(palette.$helix-warn-dark-color,300)};
+    --400-warn: #{map.get(palette.$helix-warn-dark-color,400)};
+    --500-warn: #{map.get(palette.$helix-warn-dark-color,500)};
+    --600-warn: #{map.get(palette.$helix-warn-dark-color,600)};
+    --700-warn: #{map.get(palette.$helix-warn-dark-color,700)};
+    --800-warn: #{map.get(palette.$helix-warn-dark-color,800)};
+    --600-warn: #{map.get(palette.$helix-warn-dark-color,600)};
+    --A100-warn: #{map.get(palette.$helix-warn-dark-color,'A100')};
+    --A200-warn: #{map.get(palette.$helix-warn-dark-color,'A200')};
+    --A400-warn: #{map.get(palette.$helix-warn-dark-color,'A400')};
+    --A700-warn: #{map.get(palette.$helix-warn-dark-color,'A700')};  
+    --50-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 50)};
+    --100-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 100)};
+    --200-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 200)};
+    --300-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 300)};
+    --400-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 400)};
+    --500-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 500)};
+    --600-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 600)};
+    --700-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 700)};
+    --800-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 800)};
+    --900-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 900)};
+    --A100-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 'A100')};
+    --A200-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 'A200')};
+    --A400-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 'A400')};
+    --A700-warn-contrast: #{map.get(palette.$helix-warn-dark-color, 'contrast', 'A700')};
+  }

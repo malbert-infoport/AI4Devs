@@ -1,0 +1,37 @@
+@if (dataGridRemote) {
+  <div class="container-fluid">
+    @if (dataGridRemote.data) {
+      <cl-grid
+        [data]="dataGridRemote"
+        [config]="gridConfigRemote"
+        (dataStateChangeEvent)="callApi($event); state = $event"
+        (rowSelected)="rowSelected($event)"
+        (selectionChanged)="selectionChanged($event)"
+      >
+      </cl-grid>
+    }
+  </div>
+}
+
+<ng-template #addButtonTemplate let-item>
+  <cl-button
+    [text]="'ATTACHMENTS.ACTIONS.ADD' | translate"
+    [icon]="{ name: 'ph ph-plus' }"
+    [disabled]="false"
+    (clicked)="addAction()"
+    [tooltipText]="'ATTACHMENTS.ACTIONS.ADD' | translate"
+    [theme]="'secondary'"
+  >
+  </cl-button>
+
+  <!-- TEMPORAL, HASTA QUE PEPAREN LA GRID, PARA PODER METER BOTONES ARRIBA -->
+  <cl-button
+    [icon]="{ name: 'ph ph-download-simple' }"
+    [text]="'ATTACHMENTS.ACTIONS.DOWNLOAD' | translate"
+    [disabled]="false"
+    (clicked)="download()"
+    [tooltipText]="'ATTACHMENTS.ACTIONS.DOWNLOAD' | translate"
+    [theme]="'secondary'"
+  >
+  </cl-button>
+</ng-template>

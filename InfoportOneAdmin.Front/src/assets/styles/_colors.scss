@@ -1,0 +1,10 @@
+@forward '@cl/common-library/assets/abstracts/colors';
+/**
+Si se quiere sobreescribir alguno de los colores de la librería, 
+es en este fichero donde debe hacerse. 
+Se haría de la siguiente forma:
+*/
+// @forward '@cl/common-library/assets/abstracts/colors' with (
+//   $cl-color-brand-mint-25: green,
+//   $cl-color-neutrals-black: pink
+// );

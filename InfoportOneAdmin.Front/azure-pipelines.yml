@@ -1,0 +1,42 @@
+name: _$(BuildID)_$(BuildDefinitionName)
+trigger:
+  branches:
+    include:
+    - fix/*
+    - dev/*
+    - refs/heads/main
+  paths:
+    exclude:
+    - pipelines/*
+parameters:
+- name: Flag_ForcePushImageToRegistry
+  displayName: Force push image to registry
+  type: boolean
+  default: false
+- name: BuildAgentPoolName
+  displayName: Pool agent name
+  default: 'UBNT-BUILDSERVER'
+resources:
+  repositories:
+  - repository: self
+    type: git
+  - repository: CI
+    type: git
+    name: ARQ DESIPV\IPV.CI
+    ref: 'refs/heads/main'
+variables:
+  - group: App
+
+stages:
+- template: templates/angular.ci.yml@CI
+  parameters:
+    Flag_ForcePushImageToRegistry: ${{ parameters.Flag_ForcePushImageToRegistry }}
+    BuildId: $(Build.BuildId)
+    BuildDefinitionName: $(Build.DefinitionName)
+    ImageName: $(ImageName)
+    ExtraTags: $(ExtraTags)
+    BuildAgentPoolName: ${{ parameters.BuildAgentPoolName }}
+    VariableGroups:
+      FeedAccess: 'CI-Feed-npm'
+      App: 'App'
+      Licences: 'Licences'

@@ -1,0 +1,34 @@
+<div class="container-fluid mt-2">
+  @if (dataGridRemote.data) {
+    <cl-grid
+      [data]="dataGridRemote"
+      [config]="gridConfigRemote"
+      (dataStateChangeEvent)="callApi($event); state = $event"
+      (selectionChanged)="selectionChanged($event)"
+    >
+    </cl-grid>
+  }
+</div>
+
+<ng-template #rightButtonsTemplate let-item>
+  <cl-button
+    class="mx-1"
+    [icon]="{ name: 'ph ph-download-simple' }"
+    [text]="'ATTACHMENTS.ACTIONS.DOWNLOAD' | translate"
+    [disabled]="false"
+    (clicked)="download(selectedKeys)"
+    [tooltipText]="'ATTACHMENTS.ACTIONS.DOWNLOAD' | translate"
+    [theme]="'secondary'"
+  >
+  </cl-button>
+
+  <cl-button
+    [text]="'REFRESH' | translate"
+    [icon]="{ name: 'ph ph-arrow-clockwise', classes: 'fill' }"
+    [disabled]="false"
+    (clicked)="callApi(state)"
+    [tooltipText]="'REFRESH' | translate"
+    [theme]="'secondary'"
+  >
+  </cl-button>
+</ng-template>

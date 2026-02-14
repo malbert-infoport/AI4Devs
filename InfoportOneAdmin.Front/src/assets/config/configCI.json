@@ -1,0 +1,14 @@
+{
+  "apiUrl": "${API_URL}",
+  "authority": "${AUTHORITY}",
+  "client_id": "${CLIENT_ID}",
+  "scope": "${SCOPE}",
+  "response_type": "code",
+  "redirect_uri": "${WEB_URL}/signin-callback",
+  "post_logout_redirect_uri": "${WEB_URL}/signout-callback",
+  "silent_redirect_uri": "${WEB_URL}/silent-callback.html",
+  "automaticSilentRenew": false,
+  "urlAuthorize": "${API_URL}/api/Security/GetPermissions",
+  "environment": "${ENVIRONMENT}",
+  "color_environment": "${COLOR_ENVIRONMENT}"
+}

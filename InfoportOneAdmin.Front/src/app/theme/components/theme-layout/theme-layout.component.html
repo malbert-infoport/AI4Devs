@@ -1,0 +1,42 @@
+@if ((user && user.name) || (user && user.login)) {
+  <div class="wrapper">
+    <!-- VISIBLE ONLY ON XL "class="d-none d-xl-block" -->
+    <theme-left-sidebar
+      class="d-none d-xl-block"
+      [titleInput]="themeLeftSidebarService.getTitle()"
+      [menuInput]="themeLeftSidebarService.getMenu()"
+      [usermenuInput]="themeLeftSidebarService.getUserMenu(user)"
+      [contactinfoInput]="themeLeftSidebarService.getContactInfo()"
+    >
+    </theme-left-sidebar>
+
+    <mat-sidenav-container class="w-100 h-100" (backdropClick)="sidenav.close()">
+      <mat-sidenav #sidenav (keydown.escape)="sidenav.close()" disableClose>
+        <!-- HIDE ONLY ON XL  "class="d-xl-none""-->
+        <theme-left-sidebar
+          class="d-xl-none"
+          [titleInput]="themeLeftSidebarService.getTitle()"
+          [menuInput]="themeLeftSidebarService.getMenu()"
+          [usermenuInput]="themeLeftSidebarService.getUserMenu(user)"
+          [contactinfoInput]="themeLeftSidebarService.getContactInfo()"
+        >
+        </theme-left-sidebar>
+      </mat-sidenav>
+
+      <mat-sidenav-content class="w-100 h-100">
+        <theme-topbar
+          [userNameTopInput]="themeTopBarService.getUser(user && user.name ? user.name : user.login)"
+          [topMenuInput]="themeTopBarService.getTopMenu()"
+          [environment]="envConfigurationService.readConfig().environment"
+          [colorEnvironment]="envConfigurationService.readConfig().color_environment"
+        >
+        </theme-topbar>
+        <div class="wrapper-content h-100">
+          <router-outlet></router-outlet>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </div>
+} @else {
+  <theme-loading></theme-loading>
+}

@@ -1,0 +1,84 @@
+<mat-toolbar class="topbar">
+  <!-- Boton del Menú la clase d-xl-none hace que no se vea en pantalla grande-->
+  <button type="button" mat-button class="d-fixed d-xl-none" (click)="highlightedService.toggleSidenav.emit()">
+    <mat-icon>dehaze</mat-icon>
+  </button>
+
+  <span class="mat-body-2 ps-2">{{ 'USER' | translate }}: {{ name }}</span>
+  @if (environmentTopbar) {
+    <span class="badge rounded-pill mat-caption ms-2 ps-3 pe-3" [ngStyle]="{ 'background-color': [colorEnvironmentTopbar] }">{{
+      environmentTopbar | titlecase
+    }}</span>
+  }
+  <span class="fill-space"></span>
+
+  <!-- REVISAR (D A C) -->
+  <!-- @if (delegacionService.delegacionesInactivas().length > 0) {
+    <button mat-button [matMenuTriggerFor]="delegaciones">{{ delegacionService.delegacionActiva()?.name }}</button>
+    <mat-menu #delegaciones="matMenu">
+      @for (delegacion of delegacionService.delegacionesInactivas(); track delegacion.name) {
+        <button (click)="onDelegacionChange(delegacion)" mat-menu-item>{{ delegacion.name }}</button>
+      }
+    </mat-menu>
+  } @else {
+    <button mat-button>{{ delegacionService.delegacionActiva()?.name }}</button>
+  } -->
+
+  @for (menu of topMenu; track menu.identifier; let idx = $index) {
+    @if (!menu.hasChildren && !menu.hidden) {
+      <button
+        class="theme-topbar"
+        type="button"
+        mat-icon-button
+        #{{menu.identifier}}
+        matTooltip="{{ menu.toolTip | translate }}"
+        [routerLink]="[menu.url]"
+        disabled="{{ menu.disabled }}"
+      >
+        <mat-icon ngClass="{{ menu.class }}">{{ menu.iconName }}</mat-icon>
+      </button>
+    }
+
+    @if (menu.hasChildren) {
+      @if (!menu.hidden) {
+        <button
+          class="theme-topbar"
+          type="button"
+          mat-icon-button
+          #{{menu.identifier}}
+          matTooltip="{{ menu.toolTip | translate }}"
+          disabled="{{ menu.disabled }}"
+          [matMenuTriggerFor]="idx"
+        >
+          <mat-icon ngClass="{{ menu.class }}">{{ menu.iconName }}</mat-icon>
+        </button>
+      }
+      <mat-menu
+        #idx="matMenu"
+        [overlapTrigger]="menu.overlapTrigger"
+        [xPosition]="menu.xPosition ? menu.xPosition : 'before'"
+        [yPosition]="menu.yPosition ? menu.yPosition : 'above'"
+      >
+        @for (children of menu.children; track $index) {
+          @if (!children.hidden) {
+            <button
+              type="button"
+              mat-menu-item
+              name="{{ children.title }}"
+              [routerLink]="children.url"
+              disabled="{{ children.disabled }}"
+            >
+              @if (children.title !== 'LAST_CONNECTION_DATE') {
+                <mat-icon ngClass="{{ children.class }}">{{ children.iconName }}</mat-icon>
+              }
+              <span> {{ children.title | translate }} {{ children.extraInfo }}</span>
+              @if (children.label) {
+                <span class="beta-label">{{ children.label }}</span>
+              }
+            </button>
+          }
+        }
+      </mat-menu>
+    }
+  }
+</mat-toolbar>

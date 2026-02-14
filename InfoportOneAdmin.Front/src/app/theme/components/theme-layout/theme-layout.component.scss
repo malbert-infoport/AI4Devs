@@ -1,0 +1,93 @@
+@use '../../styles/variables';
+
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+@mixin layout-theme($theme) {
+  // Get the color config from the theme.
+  $color-config: mat.m2-get-color-config($theme);
+
+  // Get the primary color pallete from the color-config
+  $primary-pallete: map.get($color-config, 'primary');
+  $accent-pallete: map.get($color-config, 'accent');
+  $warn-pallete: map.get($color-config, 'warn');
+
+  $is-dark-theme: map.get($color-config, 'is-dark');
+
+  // Get the typography config from the theme.
+  $typography-config: mat.m2-get-typography-config($theme);
+  $my-font-family: mat.m2-font-family($typography-config);
+
+  .selected-content-menu {
+    background: mat.m2-get-color-from-palette($primary-pallete, 500);
+  }
+
+  theme-loading {
+    z-index: 3;
+  }
+
+
+
+  .cl-spinner {
+     z-index: 1;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+}
+
+  theme-layout {
+    background-color: mat.m2-get-color-from-palette($primary-pallete, 'CL-25');
+
+    .wrapper {
+      position: relative;
+      display: flex;
+      height: 100vh;
+
+      .wrapper-sidebar {
+        flex: 0 0 variables.$sidebar-menu-size-opened;
+        width: variables.$sidebar-menu-size-opened;
+        &.sidebar-closed {
+          flex: 0 0 variables.$sidebar-menu-size-closed;
+          width: variables.$sidebar-menu-size-closed;
+        }
+      }
+
+      mat-sidenav-container {
+        background-color: mat.m2-get-color-from-palette($accent-pallete, '300-contrast');
+        mat-sidenav {
+          background-color: mat.m2-get-color-from-palette($accent-pallete, '300-contrast');
+        }
+
+        mat-sidenav-content {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+
+          .wrapper-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: calc(100% - #{variables.$sidebar-menu-size-opened});
+            width: 100%;
+            background-color: mat.m2-get-color-from-palette($primary-pallete, 'CL-25');
+            overflow: hidden;
+
+            & > :last-child {
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              & > :last-child {
+                height: 100%;
+                background-color: mat.m2-get-color-from-palette($primary-pallete, 'CL-25');
+                // overflow-y: auto;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

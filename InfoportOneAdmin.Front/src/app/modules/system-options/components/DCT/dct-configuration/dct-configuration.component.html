@@ -1,0 +1,109 @@
+<theme-loading [showSpinner]="showSpinner"></theme-loading>
+
+@if (DCTForm) {
+  <!-- {{ DCTForm.getRawValue() | json }} -->
+
+  <form [formGroup]="DCTForm" (onSubmit)="onSubmit()">
+    <div class="row p-0 m-0 header-fixed bg-white" style="min-height: 50px">
+      <div class="col d-flex align-items-center">
+        <cl-breadcrumb [items]="breadcrumbItems" [maxItems]="maxBreadcrumbItems"></cl-breadcrumb>
+        <theme-attachments [attachmentsConfiguration]="attachmentsConfiguration"></theme-attachments>
+      </div>
+
+      <div class="col-auto d-flex justify-content-end align-items-center">
+        <cl-button
+          class="ms-auto"
+          [text]="'SAVE' | translate"
+          [icon]="{ name: 'ph ph-floppy-disk' }"
+          [disabled]="!this.accessService.maestroViajesModificacion() || DCTForm.invalid || showSpinner"
+          (clicked)="onSubmit()"
+          [theme]="'primary'"
+        ></cl-button>
+      </div>
+    </div>
+    <div class="container-fluid content-scrollable">
+      <div class="row mt-2">
+        <div class="k-form-field-checkbox-wrap col-12 col-sm-6 col-md-3 col-lg-2 mb-3 mb-md-0">
+          <cl-checkbox
+            formControlName="mostrarLogo"
+            [label]="'SYSTEM_OPTIONS.DCT.MOSTRAR_LOGO' | translate"
+            [indeterminate]="false"
+            [tooltipErrors]="false"
+          ></cl-checkbox>
+        </div>
+        <div class="k-form-field-checkbox-wrap col-12 col-sm-6 col-md-3 col-lg-2 mb-3 mb-md-0">
+          <cl-checkbox
+            formControlName="mostrarDireccion"
+            [label]="'SYSTEM_OPTIONS.DCT.MOSTRAR_DIRECCION' | translate"
+            [indeterminate]="false"
+            [tooltipErrors]="false"
+          ></cl-checkbox>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-sm-12">
+          <kendo-label text="{{ 'SYSTEM_OPTIONS.DCT.OBSERVACIONES' | translate }}"></kendo-label>
+
+          <kendo-editor formControlName="observaciones" style="height: 350px">
+            <kendo-toolbar>
+              <kendo-toolbar-buttongroup>
+                <kendo-toolbar-button kendoEditorBoldButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorItalicButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorUnderlineButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorStrikethroughButton></kendo-toolbar-button>
+              </kendo-toolbar-buttongroup>
+              <kendo-toolbar-buttongroup>
+                <kendo-toolbar-button kendoEditorSubscriptButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorSuperscriptButton></kendo-toolbar-button>
+              </kendo-toolbar-buttongroup>
+              <kendo-toolbar-dropdownlist kendoEditorFontFamily [data]="fontFamilyOptions"></kendo-toolbar-dropdownlist>
+              <kendo-toolbar-dropdownlist kendoEditorFontSize></kendo-toolbar-dropdownlist>
+              <kendo-toolbar-colorpicker kendoEditorForeColor></kendo-toolbar-colorpicker>
+              <kendo-toolbar-colorpicker kendoEditorBackColor></kendo-toolbar-colorpicker>
+              <kendo-toolbar-buttongroup>
+                <kendo-toolbar-button kendoEditorAlignLeftButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorAlignCenterButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorAlignRightButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorAlignJustifyButton></kendo-toolbar-button>
+              </kendo-toolbar-buttongroup>
+              <kendo-toolbar-buttongroup>
+                <kendo-toolbar-button kendoEditorInsertUnorderedListButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorInsertOrderedListButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorIndentButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorOutdentButton></kendo-toolbar-button>
+              </kendo-toolbar-buttongroup>
+              <kendo-toolbar-buttongroup>
+                <kendo-toolbar-button kendoEditorCreateLinkButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorUnlinkButton></kendo-toolbar-button>
+              </kendo-toolbar-buttongroup>
+              <kendo-editor-insert-table-button></kendo-editor-insert-table-button>
+              <kendo-toolbar-buttongroup>
+                <kendo-toolbar-button kendoEditorUndoButton></kendo-toolbar-button>
+                <kendo-toolbar-button kendoEditorRedoButton></kendo-toolbar-button>
+              </kendo-toolbar-buttongroup>
+              <kendo-toolbar-button kendoEditorViewSourceButton></kendo-toolbar-button>
+              <kendo-toolbar-button kendoEditorCleanFormattingButton></kendo-toolbar-button>
+            </kendo-toolbar>
+          </kendo-editor>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-sm-12">
+          <cl-input-text-area [label]="'SYSTEM_OPTIONS.DCT.PIE_INFORME' | translate" formControlName="pieDeInforme" [rows]="8">
+          </cl-input-text-area>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-sm-12">
+          <cl-input-text-area
+            [label]="'SYSTEM_OPTIONS.DCT.PIE_PAGINA' | translate"
+            formControlName="pieDePagina"
+            [rows]="2"
+            [maxLength]="500"
+          >
+          </cl-input-text-area>
+        </div>
+      </div>
+    </div>
+  </form>
+}

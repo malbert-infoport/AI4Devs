@@ -1,0 +1,11 @@
+<Project>
+	<PropertyGroup>
+		<Authors>Infoport</Authors>
+		<Company>Infoport</Company>
+		<Copyright>Infoport 2023</Copyright>
+		<RepositoryUrl>https://infoport.es</RepositoryUrl>
+		<AssemblyVersion>1.0.0</AssemblyVersion>
+		<FileVersion>1.0.0</FileVersion>
+		<Version>1.0.0-rc01</Version>
+	</PropertyGroup>
+</Project>

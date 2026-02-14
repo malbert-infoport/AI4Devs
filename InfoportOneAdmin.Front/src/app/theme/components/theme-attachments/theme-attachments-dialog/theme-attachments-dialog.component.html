@@ -1,0 +1,75 @@
+@if (attachmentsForm) {
+  @if (loading) {
+    <theme-loading></theme-loading>
+  }
+  <div class="container-fluid">
+    <form [formGroup]="attachmentsForm">
+      <!-- <pre>attachmentsForm: {{ attachmentsForm.value | json }} </pre> -->
+      <div class="row mb-4">
+        <cl-input
+          class="col-12 col-sm-4 col-md-4 col-lg-2"
+          formControlName="fileName"
+          [label]="'ATTACHMENTS.FILE_NAME' | translate"
+          [tooltipErrors]="false"
+        ></cl-input>
+
+        <cl-input
+          class="col-12 col-sm-2 col-md-4 col-lg-2"
+          formControlName="fileExtension"
+          [label]="'ATTACHMENTS.FILE_EXTENSION' | translate"
+          [tooltipErrors]="false"
+        ></cl-input>
+
+        <cl-input
+          class="col-12 col-sm-2 col-md-4 col-lg-2"
+          formControlName="fileSizeKb"
+          [label]="'ATTACHMENTS.FILE_SIZE' | translate"
+          [tooltipErrors]="false"
+        ></cl-input>
+
+        <cl-combo-box
+          class="col-12 col-sm-6 col-md-3"
+          [items]="attachmentTypeList$ | async"
+          [textField]="'description'"
+          [valueField]="'id'"
+          [label]="'ATTACHMENTS.TYPE' | translate"
+          [tooltipErrors]="false"
+          formControlName="attachmentType"
+        ></cl-combo-box>
+      </div>
+
+      <div class="row mt-2">
+        <div class="col-sm-12">
+          <cl-input-text-area
+            [label]="'ATTACHMENTS.DESCRIPTION' | translate"
+            formControlName="attachmentDescription"
+            [rows]="2"
+          >
+          </cl-input-text-area>
+        </div>
+      </div>
+
+      <div class="row mt-2">
+        <cl-button
+          [tooltipText]="'ATTACHMENTS.ACTIONS.DOWNLOAD' | translate"
+          [text]="'ATTACHMENTS.ACTIONS.DOWNLOAD' | translate"
+          [disabled]="this.isNew || disableDownload"
+          (clicked)="downloadFile()"
+          [icon]="{ name: 'ph ph-file-arrow-down' }"
+          [theme]="'secondary'"
+          [type]="'button'"
+        >
+        </cl-button>
+
+        <input #fileInput id="file-input" type="file" (change)="uploadFile($event)" style="display: none" />
+        <cl-button
+          [text]="'ATTACHMENTS.ACTIONS.UPLOAD' | translate"
+          [icon]="{ name: 'ph ph-file-arrow-up' }"
+          [theme]="'secondary'"
+          (clicked)="fileInput.click()"
+          [type]="'button'"
+        ></cl-button>
+      </div>
+    </form>
+  </div>
+}

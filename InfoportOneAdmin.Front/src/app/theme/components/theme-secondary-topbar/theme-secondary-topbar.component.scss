@@ -1,0 +1,62 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+@mixin secondary-topbar-theme($theme) {
+  // Get the color config from the theme.
+  $color-config: mat.m2-get-color-config($theme);
+
+  // Get the primary color pallete from the color-config
+  $primary-pallete: map.get($color-config, 'primary');
+  $accent-pallete: map.get($color-config, 'accent');
+  $warn-pallete: map.get($color-config, 'warn');
+
+  $is-dark-theme: map.get($color-config, 'is-dark');
+
+  // Get the typography config from the theme.
+  $typography-config: mat.m2-get-typography-config($theme);
+  $my-font-family: mat.m2-font-family($typography-config);
+
+  theme-secondary-topbar {
+    mat-toolbar.mat-toolbar.mat-toolbar-single-row {
+      height: 50px;
+    }
+
+    & .secondary-bar {
+      &.mat-toolbar {
+        background-color: mat.m2-get-color-from-palette($accent-pallete, '300-contrast');
+
+        .title.label {
+          color: mat.m2-get-color-from-palette($primary-pallete, 'CL-GENERAL-PRIMARY');
+          font-size: 20px;
+          font-weight: 500;
+          line-height: 25px;
+        }
+
+        .back-arrow {
+          margin: 12px 24px 12px 0px;
+          color: mat.m2-get-color-from-palette($accent-pallete, 'A200');
+        }
+
+        .mat-mdc-raised-button {
+          height: 40px;
+          width: 141px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: mat.m2-get-color-from-palette($accent-pallete, A200);
+          color: mat.m2-get-color-from-palette($accent-pallete, 'A200-contrast');
+
+          &:disabled {
+            color: mat.m2-get-color-from-palette($primary-pallete, 200);
+            background-color: mat.m2-get-color-from-palette($accent-pallete, 10);
+            border: 1px solid mat.m2-get-color-from-palette($primary-pallete, 800);
+          }
+        }
+      }
+    }
+
+    mat-toolbar.secondary-bar.text-center.text-accent.mat-toolbar.mat-toolbar-single-row {
+      padding: 5px 15px;
+    }
+  }
+}

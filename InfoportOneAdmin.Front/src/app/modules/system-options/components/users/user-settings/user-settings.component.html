@@ -1,0 +1,17 @@
+@if (userSettingsForm) {
+  <div class="container-fluid">
+    <form [formGroup]="userSettingsForm">
+      <cl-combo-box
+        class="col-12 col-sm-6 col-md-3"
+        [items]="translateConfigService.languagePreferences"
+        [textField]="'culture'"
+        [valueField]="'description'"
+        [label]="'CORE_LANGUAGE' | translate"
+        [tooltipErrors]="false"
+        formControlName="language"
+      ></cl-combo-box>
+    </form>
+  </div>
+} @else {
+  <theme-loading></theme-loading>
+}

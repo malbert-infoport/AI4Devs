@@ -1,0 +1,58 @@
+@use 'sass:meta';
+@use '@angular/material' as mat;
+@use './palette';
+@use './typography';
+
+// Importa tus mixins personalizados
+@use '../_components.scss' as components;
+@use '../_overrides.scss' as overrides;
+
+@include mat.all-component-typographies(typography.$helix-custom-typography-config);
+@include mat.elevation-classes();
+@include mat.app-background();
+
+// LIGHT PALETTE
+$helix-primary-light-palette: mat.m2-define-palette(palette.$helix-primary-light-color, A200);
+$helix-accent-light-palette: mat.m2-define-palette(palette.$helix-accent-light-color, 10, A100, A400);
+$helix-warn-light-palette: mat.m2-define-palette(palette.$helix-warn-light-color);
+
+// DARK PALETTE
+$helix-primary-dark-palette: mat.m2-define-palette(palette.$helix-primary-dark-color, A200);
+$helix-accent-dark-palette: mat.m2-define-palette(palette.$helix-accent-dark-color, A200, A100, A400);
+$helix-warn-dark-palette: mat.m2-define-palette(palette.$helix-warn-dark-color);
+
+// THEMES
+$helix-light-theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $helix-primary-light-palette,
+      accent: $helix-accent-light-palette,
+      warn: $helix-warn-light-palette
+    ),
+    typography: typography.$helix-custom-typography-config
+  )
+);
+$helix-dark-theme: mat.m2-define-dark-theme(
+  (
+    color: (
+      primary: $helix-primary-dark-palette,
+      accent: $helix-accent-dark-palette,
+      warn: $helix-warn-dark-palette
+    ),
+    typography: typography.$helix-custom-typography-config,
+    density: 0
+  )
+);
+// import mat-theme color variables
+@include meta.load-css('_variables.scss');
+// APILICAR NUESTRO TEMA
+.HLXLibrary-light-theme {
+  @include mat.all-component-themes($helix-light-theme);
+  @include components.components-theme($helix-light-theme);
+  @include overrides.overrides-theme($helix-light-theme);
+}
+.HLXLibrary-dark-theme {
+  @include mat.all-component-themes($helix-dark-theme);
+  @include components.components-theme($helix-dark-theme);
+  @include overrides.overrides-theme($helix-dark-theme);
+}

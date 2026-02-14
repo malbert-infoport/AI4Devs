@@ -1,0 +1,7 @@
+﻿@use 'overrides/angular-material';
+@use 'overrides/kendo';
+
+@mixin overrides-theme($theme) {
+  @include kendo.overrides-kendo-theme($theme);
+  @include angular-material.overrides-angular-material-theme($theme);
+}
