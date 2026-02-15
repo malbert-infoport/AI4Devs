@@ -5,7 +5,17 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="DatabaseStructure.sql" />
     <None Remove="DataModel\Base\EntityModelBase.cs~RFf57cc9.TMP" />
+    <None Remove="Scripts\01020001_StructureHelix.sql" />
+    <None Remove="Scripts\01020002_StructureInfoportOneAdmon.sql" />
+    <None Remove="Scripts\01020003_SecurityData.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DatabaseStructure.sql" />
+    <EmbeddedResource Include="Scripts\01020001_StructureHelix.sql" />
+    <EmbeddedResource Include="Scripts\01020002_StructureInfoportOneAdmon.sql" />
+    <EmbeddedResource Include="Scripts\01020003_SecurityData.sql" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Helix6.Base" Version="2.3.1" />

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using InfoportOneAdmon.Back.DataModel;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,7 +51,7 @@ public partial class EntityModel : DbContext
         // Configuración de entidades InfoportOneAdmon
         // ====================================================================
 
-        modelBuilder.HasDefaultSchema("infoportone");
+        modelBuilder.HasDefaultSchema("Admon");
 
         ConfigureOrganizationGroup(modelBuilder);
         ConfigureOrganization(modelBuilder);
@@ -65,6 +66,29 @@ public partial class EntityModel : DbContext
 
         // Configuración de vistas
         ConfigureViews(modelBuilder);
+
+        // ----------------------------------------------------------------
+        // Forzar tipo SQL para propiedades DateTime/DateTime?
+        // Motivo: algunas entidades o herramientas de scaffolding (p. ej. cuando
+        // se migra desde SQL Server) pueden dejar anotaciones con
+        // `.HasColumnType("datetime")` o generar migraciones con
+        // `type: "datetime"`. PostgreSQL no conoce ese tipo y falla al aplicar
+        // migraciones. Para evitar tener que editar manualmente cada migración,
+        // forzamos aquí que todas las propiedades `DateTime`/`DateTime?` se
+        // mapearán al tipo PostgreSQL `timestamp` al generar futuras
+        // migraciones.
+        // Si prefieres incluir zona horaria, cambia a "timestamp with time zone".
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var clrType = entityType.ClrType;
+            if (clrType == null) continue;
+            var dateProps = entityType.GetProperties()
+                .Where(p => p.ClrType == typeof(DateTime) || p.ClrType == typeof(DateTime?));
+            foreach (var p in dateProps)
+            {
+                modelBuilder.Entity(clrType).Property(p.Name).HasColumnType("timestamp");
+            }
+        }
     }
 
     // ====================================================================

@@ -5,7 +5,7 @@ using Helix6.Base.Domain.BaseInterfaces;
 
 namespace InfoportOneAdmon.Back.DataModel
 {
-    [Table("ApplicationRole", Schema = "admon")]
+    [Table("ApplicationRole", Schema = "Admon")]
     public partial class ApplicationRole : IEntityBase
     {
         [Key]

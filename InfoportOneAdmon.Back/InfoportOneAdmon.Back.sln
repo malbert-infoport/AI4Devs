@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Entit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Services", "InfoportOneAdmon.Back.Services\InfoportOneAdmon.Back.Services.csproj", "{D43EAB06-FF63-4754-85E7-5EBA374AD97C}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "InfoportOneAdmon.Back.DB", "InfoportOneAdmon.Back.DB\InfoportOneAdmon.Back.DB.sqlproj", "{77327918-3136-45C6-BAE5-900B010470A6}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Api", "InfoportOneAdmon.Back.Api\InfoportOneAdmon.Back.Api.csproj", "{AA9FD82B-5A4E-420A-98D2-054156919C67}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Data.Tests", "InfoportOneAdmon.Back.Data.Tests\InfoportOneAdmon.Back.Data.Tests.csproj", "{A53A456D-499D-4FE1-A4F6-83901E3643B1}"
@@ -56,12 +54,6 @@ Global
 		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D43EAB06-FF63-4754-85E7-5EBA374AD97C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77327918-3136-45C6-BAE5-900B010470A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77327918-3136-45C6-BAE5-900B010470A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77327918-3136-45C6-BAE5-900B010470A6}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{77327918-3136-45C6-BAE5-900B010470A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77327918-3136-45C6-BAE5-900B010470A6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77327918-3136-45C6-BAE5-900B010470A6}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA9FD82B-5A4E-420A-98D2-054156919C67}.Release|Any CPU.ActiveCfg = Release|Any CPU

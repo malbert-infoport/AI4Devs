@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO;
 using System.Text.Json.Serialization;
 using Helix6.Base.Domain.Configuration;
 using Helix6.Base.Middleware;
@@ -9,6 +10,9 @@ using InfoportOneAdmon.Back.Api.Extensions;
 using InfoportOneAdmon.Back.Data.DataModel;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Npgsql;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -57,8 +61,8 @@ if (defaultConnection != null)
     //Inyecto el contexto como scope
     builder.Services.AddDbContext<EntityModel>(options =>
         options.UseNpgsql(defaultConnection, npgsqlOptions =>
-            // Usar la tabla de historial de migraciones en el esquema 'admon'
-            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "admon")
+            // Usar la tabla de historial de migraciones en el esquema 'Admon'
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Admon")
         )
     );
 }
@@ -116,5 +120,12 @@ app.UseSwaggerUI(c =>
     c.InjectStylesheet("/css/swagger-custom.css");
     c.DocExpansion(DocExpansion.None);
 });
+
+//Runtime policy: to apply migrations on startup (optional), use a minimal scope like:
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<EntityModel>();
+    db.Database.Migrate();
+}
 
 app.Run();

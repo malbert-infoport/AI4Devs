@@ -24,7 +24,7 @@ namespace InfoportOneAdmon.Back.Api.Attachments
             }
             else
             {
-                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, Services.ServiceConsts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND);
+                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, InfoportOneAdmon.Back.Services.ServiceConsts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND);
             }
             return Task.CompletedTask;
         }
@@ -40,7 +40,7 @@ namespace InfoportOneAdmon.Back.Api.Attachments
             }
             else
             {
-                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, Services.ServiceConsts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND, $"File path: {filePath}");
+                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, InfoportOneAdmon.Back.Services.ServiceConsts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND, $"File path: {filePath}");
             }
             return attachment;
         }

@@ -5,7 +5,7 @@ using Helix6.Base.Domain.BaseInterfaces;
 
 namespace InfoportOneAdmon.Back.DataModel
 {
-    [Table("EventHash", Schema = "admon")]
+    [Table("EventHash", Schema = "Admon")]
     public partial class EventHash : IEntityBase
     {
         [Key]
