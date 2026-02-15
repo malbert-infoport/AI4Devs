@@ -1,4 +1,4 @@
-#### ORG-003: Dar de alta / baja organización manualmente (toggle manual)
+##### ORG-003: Dar de alta / baja organización manualmente (toggle manual)
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
 **Rol:** SecurityManager
