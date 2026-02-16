@@ -15,7 +15,7 @@
 Acción de baja/alta manual de organizaciones: columna "papelera" en grid, modal de confirmación y botones en ficha. Llamada al endpoint genérico Helix6 `DeleteUndeleteLogicById`.
 
 ## OBJETIVO
-Permitir a usuarios con permisos de seguridad (SecurityManager) activar o desactivar organizaciones desde la grid y desde la vista detalle, reutilizando el endpoint genérico del backend y garantizando trazabilidad (`X-Correlation-Id`) y UX coherente (confirmación, mensajes y refresco de vistas).
+Permitir a usuarios con rol `Organization Manager` activar o desactivar organizaciones desde la grid y desde la vista detalle, reutilizando el endpoint genérico del backend y garantizando trazabilidad (`X-Correlation-Id`) y UX coherente (confirmación, mensajes y refresco de vistas).
 
 ## DESCRIPCIÓN DETALLADA
 - Grid de organizaciones:
@@ -34,8 +34,8 @@ Permitir a usuarios con permisos de seguridad (SecurityManager) activar o desact
 - Proyecto: `SintraportV4.Front` — integrar servicios existentes de `OrganizationClient` o crear wrapper en `organization.service.ts`.
 
 ## ROLES Y PERMISOS
-- Acción visible/ejecutable solo para rol/permiso `SecurityManager`.
-- Validación UI: usar `AccessService.hasAccess(Access['SecurityManager'])` o el permiso concreto definido por seguridad. Si no existe, añadir permiso en el enum `Access` (por ejemplo `Organization delete/undelete`).
+- Acción visible/ejecutable solo para rol `Organization Manager`.
+- Validación UI: usar `AccessService.hasAccess(Access['Organization Manager'])` o el permiso concreto definido por seguridad (p. ej. `Organization delete/undelete`). Si no existe, añadir la clave de permiso en el enum `Access` y coordinar con backend para su existencia.
 
 ## CONTRATO BACKEND (API)
 - Endpoint: `DELETE /api/Organization/DeleteUndeleteLogicById` (query param `id`)

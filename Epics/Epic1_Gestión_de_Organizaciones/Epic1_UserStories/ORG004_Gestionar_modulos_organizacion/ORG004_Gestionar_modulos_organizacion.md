@@ -1,7 +1,7 @@
 #### ORG-004: Gestionar módulos y permisos de una organización
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
-**Roles:** ApplicationManager, Organization Administrator
+**Roles:** Application Manager, Organization Manager
 **Prioridad:** Alta | **Estimación:** 8 Story Points
 
 **Historia:**

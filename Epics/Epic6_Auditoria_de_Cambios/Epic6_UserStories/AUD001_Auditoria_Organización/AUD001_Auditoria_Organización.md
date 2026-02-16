@@ -1,7 +1,7 @@
 #### AUD001: Auditoría — Organización
 
 **Épica:** Auditoría de Cambios Críticos
-**Rol:** SecurityManager / OrganizationManager
+**Rol:** Organization Manager
 **Prioridad:** Alta | **Estimación:** 3 Story Points
 
 **Historia:**

@@ -1,12 +1,12 @@
 ##### ORG-003: Dar de alta / baja organización manualmente (toggle manual)
 
 **Épica:** Gestión del Portfolio de Organizaciones Clientes
-**Rol:** SecurityManager
+**Rol:** Organization Manager
 **Prioridad:** Alta | **Estimación:** 2 Story Points
 
 **Historia:**
 ```
-Como SecurityManager, quiero poder dar de baja o dar de alta manualmente una organización cliente usando el mismo API genérico de Helix6, para bloquear o restaurar su acceso a las aplicaciones del ecosistema con trazabilidad y auditoría.
+Como Organization Manager, quiero poder dar de baja o dar de alta manualmente una organización cliente usando el mismo API genérico de Helix6, para bloquear o restaurar su acceso a las aplicaciones del ecosistema con trazabilidad y auditoría.
 
 ```
 
