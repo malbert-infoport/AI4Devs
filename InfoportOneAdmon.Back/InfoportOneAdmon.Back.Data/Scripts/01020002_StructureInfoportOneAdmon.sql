@@ -543,7 +543,7 @@ SELECT
     am."Id" AS "ApplicationModuleId",
     am."Name" AS "ApplicationModuleName",
     oam."AuditCreationUser",
-    oam."AuditCreationDate" AS "AccessGrantedDate",
+    oam."AuditCreationDate",
     oam."AuditModificationUser",
     oam."AuditModificationDate",
     oam."AuditDeletionDate"
