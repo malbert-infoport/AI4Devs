@@ -21,6 +21,10 @@
 .PARAMETER ConnectionString
     Cadena de conexión personalizada. Si no se especifica, se lee de appsettings.Development.json.
 
+.PARAMETER Schemas
+    Schemas de la base de datos a incluir en el scaffolding, separados por comas (ej: "public" o "public,audit").
+    Si no se especifica, se solicita al usuario de forma interactiva.
+
 .EXAMPLE
     .\Update-DataModel.ps1
     Ejecuta el proceso completo con detección automática del proyecto.
@@ -28,6 +32,10 @@
 .EXAMPLE
     .\Update-DataModel.ps1 -ProjectName "InfoportOneAdmon" -SkipFix
     Ejecuta sin aplicar correcciones automáticas.
+
+.EXAMPLE
+    .\Update-DataModel.ps1 -Schemas "public"
+    Ejecuta incluyendo solo el schema public.
 
 .NOTES
     Requiere: .NET CLI, EF Core Tools, Npgsql.EntityFrameworkCore.PostgreSQL
@@ -47,7 +55,10 @@ param(
     [switch]$SkipFix,
     
     [Parameter(Mandatory=$false)]
-    [string]$ConnectionString
+    [string]$ConnectionString,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$Schemas
 )
 
 # Configuración de colores para salida
@@ -194,17 +205,51 @@ function Get-ConnectionString {
     return $connString
 }
 
+function Get-SchemasToInclude {
+    Write-Step "Solicitando schemas a incluir en el scaffolding..."
+    
+    if ($Schemas) {
+        Write-Host "`nSchemas especificados: $Schemas" -ForegroundColor Gray
+        return $Schemas
+    }
+    
+    Write-Host "`n¿Qué schemas de la base de datos desea incluir en el scaffolding?" -ForegroundColor $script:InfoColor
+    Write-Host "  Nota: Los schemas Helix6_Internal y Helix6_Security ya están en el framework base" -ForegroundColor Gray
+    Write-Host "  Ingrese los schemas separados por comas (ej: public o public,audit)" -ForegroundColor Gray
+    Write-Host "  [Valor por defecto: public]" -ForegroundColor DarkGray
+    
+    $userInput = Read-Host "`nSchemas"
+    
+    if ([string]::IsNullOrWhiteSpace($userInput)) {
+        $userInput = "public"
+        Write-Host "Usando valor por defecto: public" -ForegroundColor DarkGray
+    }
+    
+    Write-Host "`nSchemas a incluir: $userInput" -ForegroundColor $script:InfoColor
+    return $userInput
+}
+
 function Execute-Scaffolding {
     param(
         [string]$ConnectionString,
         [string]$DataProject,
-        [string]$ProjectName
+        [string]$ProjectName,
+        [string]$SchemasToInclude
     )
     
     Write-Step "Ejecutando scaffolding de Entity Framework..."
     Write-Warning-Message "Este proceso puede tardar varios minutos..."
     
     try {
+        # Convertir schemas separados por comas a múltiples parámetros --schema
+        $schemaParams = ""
+        if ($SchemasToInclude) {
+            $schemaList = $SchemasToInclude -split ',' | ForEach-Object { $_.Trim() }
+            foreach ($schema in $schemaList) {
+                $schemaParams += "--schema $schema "
+            }
+        }
+        
         $command = "dotnet ef dbcontext scaffold " +
                    "--namespace `"$ProjectName.Back.DataModel`" " +
                    "--no-pluralize " +
@@ -218,8 +263,7 @@ function Execute-Scaffolding {
                    "--data-annotations " +
                    "--no-onconfiguring " +
                    "--no-build " +
-                   "--schema-exclude `"Helix6_Internal`" " +
-                   "--schema-exclude `"Helix6_Security`" " +
+                   $schemaParams +
                    "--project `"$DataProject`""
         
         Write-Host "`nEjecutando comando:" -ForegroundColor Gray
@@ -237,6 +281,44 @@ function Execute-Scaffolding {
         
     } catch {
         Write-Error-Message "Error al ejecutar scaffolding: $_"
+        return $false
+    }
+}
+
+function Fix-EntityModelNamespace {
+    param(
+        [string]$DataProjectDir,
+        [string]$ProjectName
+    )
+    
+    Write-Step "Corrigiendo namespace de EntityModel.cs..."
+    
+    $entityModelPath = Join-Path $DataProjectDir "DataModel\EntityModel.cs"
+    
+    if (-not (Test-Path $entityModelPath)) {
+        Write-Warning-Message "No se encontró EntityModel.cs en $entityModelPath"
+        return $false
+    }
+    
+    try {
+        $content = Get-Content $entityModelPath -Raw
+        
+        # Reemplazar namespace incorrecto por el correcto
+        $wrongNamespace = "namespace $ProjectName.Back.DataModel"
+        $correctNamespace = "namespace $ProjectName.Back.Data.DataModel"
+        
+        if ($content -match [regex]::Escape($wrongNamespace)) {
+            $content = $content -replace [regex]::Escape($wrongNamespace), $correctNamespace
+            Set-Content -Path $entityModelPath -Value $content -NoNewline
+            Write-Success "Namespace corregido: $correctNamespace"
+            return $true
+        } else {
+            Write-Host "  El namespace ya es correcto o no se encontró el patrón esperado" -ForegroundColor $script:InfoColor
+            return $true
+        }
+        
+    } catch {
+        Write-Error-Message "Error al corregir namespace de EntityModel: $_"
         return $false
     }
 }
@@ -272,12 +354,7 @@ function Move-EntityClasses {
         try {
             $destPath = Join-Path $DataModelProjectDir $file.Name
             
-            # Si el archivo ya existe, hacer backup
-            if (Test-Path $destPath) {
-                $backupPath = "$destPath.backup"
-                Move-Item -Path $destPath -Destination $backupPath -Force
-            }
-            
+            # Sobrescribir sin crear backup (los cambios están en Git)
             Move-Item -Path $file.FullName -Destination $destPath -Force
             Write-Host "  ✓ $($file.Name)" -ForegroundColor $script:SuccessColor
             $movedCount++
@@ -316,13 +393,34 @@ function Fix-NetStandardCompatibility {
             $originalContent = $content
             $fileFixes = 0
             
-            # 1. Comentar atributos [Index]
-            if ($content -match '\[Index\(') {
-                $content = $content -replace '(\s*)(\[Index\([^\]]+\]\])', '$1// $2'
+            # 1. Comentar TODOS los atributos [Index(...)] - pueden ser multilínea
+            $indexMatches = [regex]::Matches($content, '\[Index\([^\]]*\)\]', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+            foreach ($match in $indexMatches | Sort-Object -Property Index -Descending) {
+                $beforeMatch = $content.Substring(0, $match.Index)
+                $lastNewLine = $beforeMatch.LastIndexOf("`n")
+                $indent = ""
+                if ($lastNewLine -ge 0) {
+                    $lineStart = $lastNewLine + 1
+                    $indentText = $beforeMatch.Substring($lineStart)
+                    if ($indentText -match '^(\s+)') {
+                        $indent = $matches[1]
+                    }
+                }
+                
+                $replacement = "// " + $match.Value
+                $content = $content.Substring(0, $match.Index) + $replacement + $content.Substring($match.Index + $match.Length)
                 $fileFixes++
             }
             
-            # 2. Eliminar usar de Entity Framework (excepto DataAnnotations)
+            # 2. Comentar TODOS los atributos [Keyless]
+            $keylessMatches = [regex]::Matches($content, '\[Keyless\]', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+            foreach ($match in $keylessMatches | Sort-Object -Property Index -Descending) {
+                $replacement =  "// " + $match.Value
+                $content = $content.Substring(0, $match.Index) + $replacement + $content.Substring($match.Index + $match.Length)
+                $fileFixes++
+            }
+            
+            # 3. Eliminar using Microsoft.EntityFrameworkCore (excepto DataAnnotations) línea por línea
             $lines = $content -split "`r?`n"
             $newLines = @()
             foreach ($line in $lines) {
@@ -336,26 +434,36 @@ function Fix-NetStandardCompatibility {
             }
             $content = $newLines -join "`n"
             
-            # 3. Eliminar nullable en strings
-            $stringNullablePattern = 'public\s+string\?\s+(\w+)\s*{\s*get;\s*set;\s*}'
-            if ($content -match $stringNullablePattern) {
-                $content = $content -replace $stringNullablePattern, 'public string $1 { get; set; } = string.Empty;'
+            # 4. Remover IEntityFramework de vistas (Vta*) - no tienen propiedades de auditoría
+            if ($file.Name -match '^Vta[A-Z]') {
+                if ($content -match ':\s*IEntityFramework') {
+                    # Remover la implementación de la interfaz
+                    $content = $content -replace ':\s*IEntityFramework\s*', ''
+                    $fileFixes++
+                    Write-Host "  ⚠ Vista $($file.Name): removida interfaz IEntityFramework" -ForegroundColor $script:WarningColor
+                }
+            }
+            
+            # 5. Eliminar TODOS los nullable en strings
+            while ($content -match 'public\s+string\?\s+(\w+)\s*{\s*get;\s*set;\s*}') {
+                $content = $content -replace 'public\s+string\?\s+(\w+)\s*{\s*get;\s*set;\s*}', 'public string $1 { get; set; } = string.Empty;'
                 $fileFixes++
             }
             
-            # 4. Eliminar nullable en propiedades Id
-            $idNullablePattern = 'public\s+int\?\s+Id\s*{\s*get;\s*set;\s*}'
-            if ($content -match $idNullablePattern) {
-                $content = $content -replace $idNullablePattern, 'public int Id { get; set; }'
+            # 6. Eliminar TODOS los nullable en propiedades Id (solo si es clave primaria)
+            while ($content -match 'public\s+int\?\s+Id\s*{\s*get;\s*set;\s*}') {
+                $content = $content -replace 'public\s+int\?\s+Id\s*{\s*get;\s*set;\s*}', 'public int Id { get; set; }'
                 $fileFixes++
             }
             
             # Solo guardar si hubo cambios
             if ($content -ne $originalContent) {
-                Set-Content -Path $file.FullName -Value $content -Encoding UTF8
-                Write-Host "  ✓ $($file.Name) - $fileFixes correcciones" -ForegroundColor $script:SuccessColor
-                $fixedCount++
-                $totalFixes += $fileFixes
+                Set-Content -Path $file.FullName -Value $content -Encoding UTF8 -NoNewline
+                if ($fileFixes -gt 0) {
+                    Write-Host "  ✓ $($file.Name) - $fileFixes correcciones" -ForegroundColor $script:SuccessColor
+                    $fixedCount++
+                    $totalFixes += $fileFixes
+                }
             } else {
                 Write-Host "  - $($file.Name) - sin cambios" -ForegroundColor Gray
             }
@@ -394,6 +502,98 @@ function Build-DataModelProject {
     }
 }
 
+function Show-DataModelChanges {
+    param([string]$DataModelProjectDir)
+    
+    Write-Step "Enumerando cambios en el DataModel..."
+    
+    try {
+        # Verificar si estamos en un repositorio Git
+        $gitCheck = git rev-parse --git-dir 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning-Message "No se detectó repositorio Git. Omitiendo enumeración de cambios."
+            return
+        }
+        
+        # Obtener el estado de Git para los archivos del DataModel
+        $gitStatus = git status --porcelain $DataModelProjectDir 2>&1
+        
+        if ([string]::IsNullOrWhiteSpace($gitStatus)) {
+            Write-Host "`nℹ No hay cambios en el DataModel" -ForegroundColor $script:InfoColor
+            return
+        }
+        
+        Write-Host "`nCambios en el DataModel:" -ForegroundColor $script:InfoColor
+        Write-Host "────────────────────────" -ForegroundColor $script:InfoColor
+        
+        $addedFiles = @()
+        $modifiedFiles = @()
+        $deletedFiles = @()
+        
+        # Parsear el output de git status
+        $gitStatus -split "`n" | ForEach-Object {
+            $line = $_.Trim()
+            if ($line) {
+                $status = $line.Substring(0, 2).Trim()
+                $file = $line.Substring(3).Trim()
+                $fileName = Split-Path $file -Leaf
+                
+                switch ($status) {
+                    "A" { $addedFiles += $fileName }
+                    "??" { $addedFiles += $fileName }
+                    "M" { $modifiedFiles += $fileName }
+                    "D" { $deletedFiles += $fileName }
+                }
+            }
+        }
+        
+        # Mostrar archivos nuevos
+        if ($addedFiles.Count -gt 0) {
+            Write-Host "`n📄 Archivos nuevos ($($addedFiles.Count)):" -ForegroundColor Green
+            foreach ($file in $addedFiles) {
+                Write-Host "  + $file" -ForegroundColor Green
+            }
+        }
+        
+        # Mostrar archivos modificados con detalles
+        if ($modifiedFiles.Count -gt 0) {
+            Write-Host "`n📝 Archivos modificados ($($modifiedFiles.Count)):" -ForegroundColor Yellow
+            foreach ($file in $modifiedFiles) {
+                $fullPath = Get-ChildItem $DataModelProjectDir -Filter $file -Recurse -File | Select-Object -First 1
+                if ($fullPath) {
+                    $diffStat = git diff --stat $fullPath.FullName 2>&1
+                    if ($diffStat) {
+                        $stats = $diffStat | Select-String "(\d+) insertion.*(\d+) deletion" 
+                        if ($stats) {
+                            Write-Host "  M $file" -ForegroundColor Yellow
+                            Write-Host "    $($stats.Line.Trim())" -ForegroundColor Gray
+                        } else {
+                            Write-Host "  M $file" -ForegroundColor Yellow
+                        }
+                    } else {
+                        Write-Host "  M $file" -ForegroundColor Yellow
+                    }
+                }
+            }
+        }
+        
+        # Mostrar archivos eliminados
+        if ($deletedFiles.Count -gt 0) {
+            Write-Host "`n🗑️  Archivos eliminados ($($deletedFiles.Count)):" -ForegroundColor Red
+            foreach ($file in $deletedFiles) {
+                Write-Host "  - $file" -ForegroundColor Red
+            }
+        }
+        
+        # Mostrar resumen total
+        $totalChanges = $addedFiles.Count + $modifiedFiles.Count + $deletedFiles.Count
+        Write-Host "`n📊 Total de archivos afectados: $totalChanges" -ForegroundColor $script:InfoColor
+        
+    } catch {
+        Write-Warning-Message "Error al enumerar cambios: $_"
+    }
+}
+
 # ============================================
 # MAIN EXECUTION
 # ============================================
@@ -424,17 +624,30 @@ try {
     # 5. Obtener cadena de conexión
     $connString = Get-ConnectionString -ApiProjectPath $apiProject
     
-    # 6. Ejecutar scaffolding
+    # 6. Obtener schemas a incluir
+    $schemasToInclude = Get-SchemasToInclude
+    
+    # 7. Ejecutar scaffolding
     $scaffoldSuccess = Execute-Scaffolding `
         -ConnectionString $connString `
         -DataProject $dataInfo.ProjectPath `
-        -ProjectName $ProjectName
+        -ProjectName $ProjectName `
+        -SchemasToInclude $schemasToInclude
     
     if (-not $scaffoldSuccess) {
         throw "El scaffolding falló"
     }
     
-    # 7. Mover clases de entidad
+    # 8. Corregir namespace de EntityModel.cs
+    $namespaceFixed = Fix-EntityModelNamespace `
+        -DataProjectDir $dataInfo.ProjectDir `
+        -ProjectName $ProjectName
+    
+    if (-not $namespaceFixed) {
+        Write-Warning-Message "No se pudo corregir el namespace de EntityModel.cs"
+    }
+    
+    # 9. Mover clases de entidad
     $movedCount = Move-EntityClasses `
         -DataProjectDir $dataInfo.ProjectDir `
         -DataModelProjectDir $dataModelInfo.ProjectDir
@@ -443,15 +656,20 @@ try {
         Write-Warning-Message "No se movieron archivos. Verifique el proceso de scaffolding."
     }
     
-    # 8. Aplicar correcciones para .NET Standard 2.0
+    # 10. Aplicar correcciones para .NET Standard 2.0
     if (-not $SkipFix) {
         Fix-NetStandardCompatibility -DataModelProjectDir $dataModelInfo.ProjectDir
     } else {
         Write-Warning-Message "Correcciones automáticas omitidas (--SkipFix)"
     }
     
-    # 9. Compilar proyecto DataModel
+    # 11. Compilar proyecto DataModel
     $buildSuccess = Build-DataModelProject -DataModelProject $dataModelInfo.ProjectPath
+    
+    # 12. Mostrar cambios en el DataModel
+    if ($buildSuccess) {
+        Show-DataModelChanges -DataModelProjectDir $dataModelInfo.ProjectDir
+    }
     
     if ($buildSuccess) {
         Write-Host "`n========================================" -ForegroundColor $script:SuccessColor

@@ -3,53 +3,55 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
+// using Microsoft.EntityFrameworkCore;
 
-namespace InfoportOneAdmon.Back.DataModel
+namespace InfoportOneAdmon.Back.DataModel {
+
+/// <summary>
+/// Módulos funcionales de aplicaciones. Permiten ventas granulares por funcionalidad
+/// </summary>
+[Table("ApplicationModule", Schema = "Admon")]
+// [Index("ApplicationId", Name = "idx_applicationmodule_applicationid")]
+// [Index("AuditDeletionDate", Name = "idx_applicationmodule_auditdeletiondate")]
+// [Index("ApplicationId", "Name", Name = "uq_applicationmodule_application_name", IsUnique = true)]
+public partial class ApplicationModule : IEntityBase
 {
-    [Table("ApplicationModule", Schema = "Admon")]
-    public partial class ApplicationModule : IEntityBase
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        // Foreign Key a Application
-        [ForeignKey(nameof(Application))]
-        public int ApplicationId { get; set; }
+    public int ApplicationId { get; set; }
 
-        [Required]
-        [StringLength(200)]
-        [Column(TypeName = "citext")]
-        public string Name { get; set; } = string.Empty;
+    /// <summary>
+    /// Nombre del módulo siguiendo nomenclatura: M + Acronym + _ + nombre funcional
+    /// </summary>
+    [Column(TypeName = "citext")]
+    public string Name { get; set; }
 
-        [StringLength(1000)]
-        [Column(TypeName = "citext")]
-        public string Description { get; set; }
+    [Column(TypeName = "citext")]
+    public string Description { get; set; }
 
-        // Propiedad de navegación
-        public virtual Application Application { get; set; }
+    [Column(TypeName = "citext")]
+    public string AuditCreationUser { get; set; }
 
-        // Relación inversa con OrganizationApplicationModule
-        [InverseProperty(nameof(OrganizationApplicationModule.ApplicationModule))]
-        public virtual ICollection<OrganizationApplicationModule> OrganizationApplicationModules { get; set; }
+    [Column(TypeName = "timestamp without time zone")]
+    public DateTime? AuditCreationDate { get; set; }
 
-        // Campos de auditoría Helix6 (OBLIGATORIOS en IEntityBase)
-        [Required]
-        [StringLength(255)]
-        [Column(TypeName = "citext")]
-        public string AuditCreationUser { get; set; } = string.Empty;
+    [Column(TypeName = "citext")]
+    public string AuditModificationUser { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime? AuditCreationDate { get; set; }
+    [Column(TypeName = "timestamp without time zone")]
+    public DateTime? AuditModificationDate { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        [Column(TypeName = "citext")]
-        public string AuditModificationUser { get; set; } = string.Empty;
+    /// <summary>
+    /// Fecha de baja lógica del módulo
+    /// </summary>
+    [Column(TypeName = "timestamp without time zone")]
+    public DateTime? AuditDeletionDate { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime? AuditModificationDate { get; set; }
+    [ForeignKey("ApplicationId")]
+    [InverseProperty("ApplicationModule")]
+    public virtual Application Application { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime? AuditDeletionDate { get; set; }
-    }
-}
+    [InverseProperty("ApplicationModule")]
+    public virtual ICollection<OrganizationApplicationModule> OrganizationApplicationModule { get; } = new List<OrganizationApplicationModule>();
+}}

@@ -1,50 +1,54 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
+// using Microsoft.EntityFrameworkCore;
 
-namespace InfoportOneAdmon.Back.DataModel
+namespace InfoportOneAdmon.Back.DataModel {
+
+/// <summary>
+/// Catálogo maestro de roles de cada aplicación. Garantiza coherencia en nomenclatura
+/// </summary>
+[Table("ApplicationRole", Schema = "Admon")]
+// [Index("ApplicationId", Name = "idx_applicationrole_applicationid")]
+// [Index("AuditDeletionDate", Name = "idx_applicationrole_auditdeletiondate")]
+// [Index("ApplicationId", "Name", Name = "uq_applicationrole_application_name", IsUnique = true)]
+public partial class ApplicationRole : IEntityBase
 {
-    [Table("ApplicationRole", Schema = "Admon")]
-    public partial class ApplicationRole : IEntityBase
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        // Foreign Key a Application
-        [ForeignKey(nameof(Application))]
-        public int ApplicationId { get; set; }
+    public int ApplicationId { get; set; }
 
-        [Required]
-        [StringLength(200)]
-        [Column(TypeName = "citext")]
-        public string Name { get; set; } = string.Empty;
+    /// <summary>
+    /// Nombre del rol siguiendo nomenclatura: Acronym + _ + nombre funcional (ej: STP_Supervisor)
+    /// </summary>
+    [Column(TypeName = "citext")]
+    public string Name { get; set; }
 
-        [StringLength(1000)]
-        [Column(TypeName = "citext")]
-        public string Description { get; set; }
+    [Column(TypeName = "citext")]
+    public string Description { get; set; }
 
-        // Propiedad de navegación
-        public virtual Application Application { get; set; }
+    [Column(TypeName = "citext")]
+    public string AuditCreationUser { get; set; }
 
-        // Campos de auditoría Helix6 (OBLIGATORIOS en IEntityBase)
-        [Required]
-        [StringLength(255)]
-        [Column(TypeName = "citext")]
-        public string AuditCreationUser { get; set; } = string.Empty;
+    [Column(TypeName = "timestamp without time zone")]
+    public DateTime? AuditCreationDate { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime? AuditCreationDate { get; set; }
+    [Column(TypeName = "citext")]
+    public string AuditModificationUser { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        [Column(TypeName = "citext")]
-        public string AuditModificationUser { get; set; } = string.Empty;
+    [Column(TypeName = "timestamp without time zone")]
+    public DateTime? AuditModificationDate { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime? AuditModificationDate { get; set; }
+    /// <summary>
+    /// Fecha de baja lógica. Roles dados de baja no se asignan a nuevos usuarios
+    /// </summary>
+    [Column(TypeName = "timestamp without time zone")]
+    public DateTime? AuditDeletionDate { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime? AuditDeletionDate { get; set; }
-    }
-}
+    [ForeignKey("ApplicationId")]
+    [InverseProperty("ApplicationRole")]
+    public virtual Application Application { get; set; }
+}}

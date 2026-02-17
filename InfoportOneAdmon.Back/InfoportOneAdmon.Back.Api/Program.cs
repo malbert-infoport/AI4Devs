@@ -64,6 +64,12 @@ if (defaultConnection != null)
             // Usar la tabla de historial de migraciones en el esquema 'Admon'
             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Admon")
         )
+        // Suprimir advertencia de cambios pendientes en el modelo
+        // Esto es necesario cuando se usa scaffolding (Database-First) junto con migraciones (Code-First)
+        // Los scripts SQL embebidos son la fuente de verdad
+        .ConfigureWarnings(warnings => 
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)
+        )
     );
 }
 

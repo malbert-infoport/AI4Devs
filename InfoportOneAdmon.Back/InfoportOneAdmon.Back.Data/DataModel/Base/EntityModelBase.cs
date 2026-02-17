@@ -38,7 +38,7 @@ public partial class EntityModel : DbContext
 
     public virtual DbSet<SecurityVersion> SecurityVersion { get; set; }
 
-    protected static void OnModelCreatingPartial(ModelBuilder modelBuilder)
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Attachment>(entity =>
         {
