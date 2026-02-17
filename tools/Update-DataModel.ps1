@@ -368,6 +368,88 @@ function Move-EntityClasses {
     return $movedCount
 }
 
+function Add-VersionValidityInterfaces {
+    param([string]$DataModelProjectDir)
+    
+    Write-Step "Detectando entidades con versionado/vigencia..."
+    
+    $entityFiles = Get-ChildItem -Path $DataModelProjectDir -Filter "*.cs" | Where-Object {
+        $_.Name -ne "AssemblyInfo.cs" -and $_.Name -notmatch '^VTA_'
+    }
+    
+    if ($entityFiles.Count -eq 0) {
+        Write-Warning-Message "No se encontraron archivos de entidades para analizar"
+        return
+    }
+    
+    Write-Host "`nArchivos a analizar: $($entityFiles.Count)" -ForegroundColor $script:InfoColor
+    
+    $versionEntitiesCount = 0
+    $validityEntitiesCount = 0
+    
+    foreach ($file in $entityFiles) {
+        try {
+            $content = Get-Content -Path $file.FullName -Raw
+            $originalContent = $content
+            
+            # Buscar propiedades requeridas (tipos más flexibles para capturar List<int>, int?, etc.)
+            $hasVersionKey = $content -match 'public\s+[\w<>]+\s+VersionKey\s*{'
+            $hasVersionNumber = $content -match 'public\s+[\w<>]+\s+VersionNumber\s*{'
+            $hasValidityFrom = $content -match 'public\s+DateTime\??\s+ValidityFrom\s*{'
+            $hasValidityTo = $content -match 'public\s+DateTime\??\s+ValidityTo\s*{'
+            
+            $interfaceToAdd = ""
+            $entityType = ""
+            
+            # Criterio 1: ValidityEntity (tiene los 4 campos)
+            if ($hasVersionKey -and $hasVersionNumber -and $hasValidityFrom -and $hasValidityTo) {
+                $interfaceToAdd = "IValidityEntity"
+                $entityType = "ValidityEntity"
+                $validityEntitiesCount++
+            }
+            # Criterio 2: VersionEntity (solo tiene VersionKey y VersionNumber)
+            elseif ($hasVersionKey -and $hasVersionNumber) {
+                $interfaceToAdd = "IVersionEntity"
+                $entityType = "VersionEntity"
+                $versionEntitiesCount++
+            }
+            
+            if ($interfaceToAdd -ne "") {
+                # Verificar si ya tiene la interfaz
+                if ($content -match ":\s*IEntityBase\s*,\s*$interfaceToAdd") {
+                    Write-Host "  ℹ $($file.Name) ya implementa $interfaceToAdd" -ForegroundColor Gray
+                    continue
+                }
+                
+                # Añadir la interfaz después de IEntityBase
+                if ($content -match '(class\s+\w+\s*:\s*IEntityBase)') {
+                    $content = $content -replace '(class\s+\w+\s*:\s*IEntityBase)', "`$1, $interfaceToAdd"
+                    Set-Content -Path $file.FullName -Value $content -NoNewline
+                    Write-Host "  ✓ $($file.Name) → $entityType" -ForegroundColor $script:SuccessColor
+                }
+                else {
+                    Write-Warning-Message "$($file.Name): No se encontró patrón 'class X : IEntityBase'"
+                }
+            }
+            
+        } catch {
+            Write-Error-Message "Error al procesar $($file.Name): $_"
+        }
+    }
+    
+    if ($versionEntitiesCount -gt 0 -or $validityEntitiesCount -gt 0) {
+        Write-Host ""
+        if ($versionEntitiesCount -gt 0) {
+            Write-Host "  ✓ $versionEntitiesCount entidades marcadas como IVersionEntity" -ForegroundColor $script:SuccessColor
+        }
+        if ($validityEntitiesCount -gt 0) {
+            Write-Host "  ✓ $validityEntitiesCount entidades marcadas como IValidityEntity" -ForegroundColor $script:SuccessColor
+        }
+    } else {
+        Write-Host "  ℹ No se detectaron entidades con versionado/vigencia" -ForegroundColor Gray
+    }
+}
+
 function Fix-NetStandardCompatibility {
     param([string]$DataModelProjectDir)
     
@@ -663,10 +745,13 @@ try {
         Write-Warning-Message "Correcciones automáticas omitidas (--SkipFix)"
     }
     
-    # 11. Compilar proyecto DataModel
+    # 11. Detectar y añadir interfaces IVersionEntity / IValidityEntity
+    Add-VersionValidityInterfaces -DataModelProjectDir $dataModelInfo.ProjectDir
+    
+    # 12. Compilar proyecto DataModel
     $buildSuccess = Build-DataModelProject -DataModelProject $dataModelInfo.ProjectPath
     
-    # 12. Mostrar cambios en el DataModel
+    # 13. Mostrar cambios en el DataModel
     if ($buildSuccess) {
         Show-DataModelChanges -DataModelProjectDir $dataModelInfo.ProjectDir
     }
