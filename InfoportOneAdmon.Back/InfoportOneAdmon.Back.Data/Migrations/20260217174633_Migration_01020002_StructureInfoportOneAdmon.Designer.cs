@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InfoportOneAdmon.Back.Data.Migrations
 {
     [DbContext(typeof(EntityModel))]
-    [Migration("20260215192054_01020001_StructureHelix")]
-    partial class Migration_01020001_StructureHelix
+    [Migration("20260217174633_Migration_01020002_StructureInfoportOneAdmon")]
+    partial class Migration_01020002_StructureInfoportOneAdmon
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
