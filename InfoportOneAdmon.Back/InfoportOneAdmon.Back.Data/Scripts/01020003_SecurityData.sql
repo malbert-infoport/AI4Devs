@@ -275,19 +275,3 @@ ON CONFLICT ("Id") DO UPDATE SET
 	"AuditDeletionDate" = EXCLUDED."AuditDeletionDate";
 
 
--- Ensure unique index for SecurityModule exists idempotently
-DO $$
-BEGIN
-	IF NOT EXISTS (
-		SELECT 1
-		FROM pg_class c
-		JOIN pg_namespace n ON n.oid = c.relnamespace
-		WHERE c.relname = 'UK_SecurityModule'
-		  AND n.nspname = 'Helix6_Security'
-	) THEN
-		CREATE UNIQUE INDEX "UK_SecurityModule" ON "Helix6_Security"."SecurityModule" ("Description");
-	END IF;
-END
-$$;
-
-
