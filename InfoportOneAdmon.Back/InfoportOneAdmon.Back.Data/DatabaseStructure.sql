@@ -1,2 +1,0 @@
--- DatabaseStructure placeholder
--- This file is required as an embedded resource by the project but is intentionally empty for migration scripting.

@@ -14,44 +14,35 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(VTA_WorkerViewMetadata))]
-    public partial class VTA_WorkerView : IViewBase
+	[MetadataType(typeof(ApplicationViewMetadata))]
+	public partial class ApplicationView : IViewBase
 	{
 		public Int32 Id { get; set; }
 
-		[HelixStringLength(1000)]
+		public Int32 ApplicationId { get; set; }
+
 		public String Name { get; set; }
 
-		[HelixStringLength(1000)]
-		public String Surnames { get; set; }
+		public String Acronym { get; set; }
 
-		[Column(TypeName = "datetime")]
-		public DateTime BirthDate { get; set; }
+		public String Description { get; set; }
 
-		public Boolean IsTrainee { get; set; }
-
-		[HelixStringLength(200)]
-		public String WorkerType { get; set; }
-
-		public Int32? Age { get; set; }
-
-		[Column(TypeName = "decimal(4, 2)")]
-		public Decimal? Height { get; set; }
-
-		[HelixStringLength(70)]
 		public String AuditCreationUser { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[HelixStringLength(70)]
 		public String AuditModificationUser { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
+
+		public List<ApplicationModuleView> ApplicationModule { get; set; } = new List<ApplicationModuleView>();
+
+		public List<ApplicationRoleView> ApplicationRole { get; set; } = new List<ApplicationRoleView>();
+
+		public List<ApplicationSecurityView> ApplicationSecurity { get; set; } = new List<ApplicationSecurityView>();
+
 	}
 }
 

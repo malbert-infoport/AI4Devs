@@ -1,13 +1,14 @@
-﻿using InfoportOneAdmon.Back.Data;
-using InfoportOneAdmon.Back.DataModel.Base;
-using InfoportOneAdmon.Back.Entities.View.Base;
-using InfoportOneAdmon.Back.Entities.Views.Base;
-using InfoportOneAdmon.Back.Entities.Views.Base.Metadata;
-using Helix6.Base.Application;
+﻿using Helix6.Base.Application;
 using Helix6.Base.Domain.Parameters;
 using Helix6.Base.Domain.Security;
 using Helix6.Base.Repository;
 using Helix6.Base.Service;
+using InfoportOneAdmon.Back.Data;
+using InfoportOneAdmon.Back.DataModel.Base;
+using InfoportOneAdmon.Back.Entities;
+using InfoportOneAdmon.Back.Entities.View.Base;
+using InfoportOneAdmon.Back.Entities.Views.Base;
+using InfoportOneAdmon.Back.Entities.Views.Base.Metadata;
 
 namespace InfoportOneAdmon.Back.Services.Base
 {
@@ -24,10 +25,10 @@ namespace InfoportOneAdmon.Back.Services.Base
         {
             var profileView = await base.GetById(id, queryParams);
 
-            if (profileView != null && queryParams.ConfigurationName == DataConsts.LoadingConfigurations.SecurityProfile.PROFILE_WITH_MODULES)
+            if (profileView != null && queryParams.ConfigurationName == Consts.LoadingConfigurations.SecurityProfile.PROFILE_WITH_MODULES)
             {
                 //Obtenemos el listado completo de módulos con sus opciones de acceso
-                var modules = await _securityModuleService.GetAll(DataConsts.LoadingConfigurations.SecurityModule.MODULE_WITH_SECURITYOPTIONS);
+                var modules = await _securityModuleService.GetAll(Consts.LoadingConfigurations.SecurityModule.MODULE_WITH_SECURITYOPTIONS);
                 if (modules != null)
                 {
                     foreach (var module in modules)
@@ -50,7 +51,7 @@ namespace InfoportOneAdmon.Back.Services.Base
 
         public override async Task<int> Insert(SecurityProfileView view, SetParamsService setParams)
         {
-            if (view != null && setParams.ConfigurationName == DataConsts.LoadingConfigurations.SecurityProfile.PROFILE_WITH_MODULES)
+            if (view != null && setParams.ConfigurationName == Consts.LoadingConfigurations.SecurityProfile.PROFILE_WITH_MODULES)
             {
                 if (view.SecurityModule != null)
                 {
@@ -79,7 +80,7 @@ namespace InfoportOneAdmon.Back.Services.Base
 
         public override async Task<bool> Update(SecurityProfileView view, SetParamsService setParams)
         {
-            if (view != null && setParams.ConfigurationName == DataConsts.LoadingConfigurations.SecurityProfile.PROFILE_WITH_MODULES)
+            if (view != null && setParams.ConfigurationName == Consts.LoadingConfigurations.SecurityProfile.PROFILE_WITH_MODULES)
             {
                 if (view.SecurityModule != null)
                 {
@@ -130,7 +131,7 @@ namespace InfoportOneAdmon.Back.Services.Base
                 SecurityCompanyId = UserContext.Applications[0].SecurityCompanyId,
                 Description = string.Empty,
                 Rol = string.Empty,
-                SecurityModule = await _securityModuleService.GetAll(DataConsts.LoadingConfigurations.SecurityModule.MODULE_WITH_SECURITYOPTIONS)
+                SecurityModule = await _securityModuleService.GetAll(Consts.LoadingConfigurations.SecurityModule.MODULE_WITH_SECURITYOPTIONS)
             };
             foreach (var module in result.SecurityModule)
             {

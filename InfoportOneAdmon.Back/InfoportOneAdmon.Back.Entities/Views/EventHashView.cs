@@ -14,38 +14,29 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(Worker_ProjectViewMetadata))]
-    public partial class Worker_ProjectView : IViewBase
+	[MetadataType(typeof(EventHashViewMetadata))]
+	public partial class EventHashView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		public Int32 WorkerId { get; set; }
+		public String EntityType { get; set; }
 
-		public Int32 ProjectId { get; set; }
+		public Int32 EntityId { get; set; }
 
-		[HelixStringLength(70)]
+		public String LastEventHash { get; set; }
+
+		public DateTime LastPublishedAt { get; set; }
+
 		public String AuditCreationUser { get; set; }
 
-		[HelixStringLength(70)]
-		public String AuditModificationUser { get; set; }
-
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
+		public String AuditModificationUser { get; set; }
+
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[ForeignKey("ProjectId")]
-		[InverseProperty("Worker_Project")]
-		public ProjectView Project { get; set; }
-
-		[ForeignKey("WorkerId")]
-		[InverseProperty("Worker_Project")]
-		public WorkerView Worker { get; set; }
 	}
 }
 

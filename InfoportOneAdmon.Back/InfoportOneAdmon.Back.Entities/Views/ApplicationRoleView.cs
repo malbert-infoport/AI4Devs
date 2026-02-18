@@ -14,32 +14,29 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(WorkerTypeViewMetadata))]
-    public partial class WorkerTypeView : IViewBase
+	[MetadataType(typeof(ApplicationRoleViewMetadata))]
+	public partial class ApplicationRoleView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		[HelixStringLength(200)]
+		public Int32 ApplicationId { get; set; }
+
+		public String Name { get; set; }
+
 		public String Description { get; set; }
 
-		[HelixStringLength(70)]
 		public String AuditCreationUser { get; set; }
 
-		[HelixStringLength(70)]
-		public String AuditModificationUser { get; set; }
-
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
+		public String AuditModificationUser { get; set; }
+
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[InverseProperty("WorkerType")]
-		public List<WorkerView> Worker { get; set; } = new List<WorkerView>();
+		public ApplicationView Application { get; set; }
+
 	}
 }
 

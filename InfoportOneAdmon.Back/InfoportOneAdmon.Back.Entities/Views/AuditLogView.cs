@@ -14,41 +14,31 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(WorkerAddressViewMetadata))]
-    public partial class WorkerAddressView : IViewBase
+	[MetadataType(typeof(AuditLogViewMetadata))]
+	public partial class AuditLogView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		public Int32 WorkerId { get; set; }
+		public String Action { get; set; }
 
-		[HelixStringLength(1000)]
-		public String Address { get; set; }
+		public String EntityType { get; set; }
 
-		public Int32 AddressTypeId { get; set; }
+		public Int32 EntityId { get; set; }
 
-		[HelixStringLength(70)]
+		public Int32? UserId { get; set; }
+
+		public DateTime Timestamp { get; set; }
+
 		public String AuditCreationUser { get; set; }
 
-		[HelixStringLength(70)]
-		public String AuditModificationUser { get; set; }
-
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
+		public String AuditModificationUser { get; set; }
+
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[ForeignKey("AddressTypeId")]
-		[InverseProperty("WorkerAddress")]
-		public AddressTypeView AddressType { get; set; }
-
-		[ForeignKey("WorkerId")]
-		[InverseProperty("WorkerAddress")]
-		public WorkerView Worker { get; set; }
 	}
 }
 

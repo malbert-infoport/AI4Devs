@@ -14,37 +14,31 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(ProjectViewMetadata))]
-    public partial class ProjectView : IViewBase, IVersionEntity
+	[MetadataType(typeof(ApplicationModuleViewMetadata))]
+	public partial class ApplicationModuleView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		[HelixStringLength(200)]
+		public Int32 ApplicationId { get; set; }
+
 		public String Name { get; set; }
 
-		[HelixStringLength(100)]
-		public String VersionKey { get; set; }
+		public String Description { get; set; }
 
-		public Int32 VersionNumber { get; set; }
-
-		[HelixStringLength(70)]
 		public String AuditCreationUser { get; set; }
 
-		[HelixStringLength(70)]
-		public String AuditModificationUser { get; set; }
-
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
+		public String AuditModificationUser { get; set; }
+
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[InverseProperty("Project")]
-		public List<Worker_ProjectView> Worker_Project { get; set; } = new List<Worker_ProjectView>();
+		public ApplicationView Application { get; set; }
+
+		public List<OrganizationApplicationModuleView> OrganizationApplicationModule { get; set; } = new List<OrganizationApplicationModuleView>();
+
 	}
 }
 

@@ -14,43 +14,25 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(CourseViewMetadata))]
-    public partial class CourseView : IViewBase, IValidityEntity
+	[MetadataType(typeof(OrganizationGroupViewMetadata))]
+	public partial class OrganizationGroupView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		[HelixStringLength(200)]
 		public String Name { get; set; }
 
-		[HelixStringLength(100)]
-		public String VersionKey { get; set; }
-
-		public Int32 VersionNumber { get; set; }
-
-		[Column(TypeName = "datetime")]
-		public DateTime ValidityFrom { get; set; }
-
-		[Column(TypeName = "datetime")]
-		public DateTime? ValidityTo { get; set; }
-
-		[HelixStringLength(70)]
 		public String AuditCreationUser { get; set; }
 
-		[HelixStringLength(70)]
-		public String AuditModificationUser { get; set; }
-
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
+		public String AuditModificationUser { get; set; }
+
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[InverseProperty("Course")]
-		public List<Worker_CourseView> Worker_Course { get; set; } = new List<Worker_CourseView>();
+		public List<OrganizationView> Organization { get; set; } = new List<OrganizationView>();
+
 	}
 }
 

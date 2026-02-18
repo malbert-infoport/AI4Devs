@@ -1,11 +1,12 @@
-﻿using InfoportOneAdmon.Back.Data;
-using InfoportOneAdmon.Back.Data.Repository.Base.Interfaces;
-using InfoportOneAdmon.Back.DataModel.Base;
-using InfoportOneAdmon.Back.Entities.Views.Base;
-using InfoportOneAdmon.Back.Entities.Views.Base.Metadata;
-using Helix6.Base.Application;
+﻿using Helix6.Base.Application;
 using Helix6.Base.Domain.Security;
 using Helix6.Base.Service;
+using InfoportOneAdmon.Back.Data;
+using InfoportOneAdmon.Back.Data.Repository.Base.Interfaces;
+using InfoportOneAdmon.Back.DataModel.Base;
+using InfoportOneAdmon.Back.Entities;
+using InfoportOneAdmon.Back.Entities.Views.Base;
+using InfoportOneAdmon.Back.Entities.Views.Base.Metadata;
 
 namespace InfoportOneAdmon.Back.Services.Base
 {
@@ -28,13 +29,13 @@ namespace InfoportOneAdmon.Back.Services.Base
         {
             DateTime? lastConnectionDate = null;
             var securityUserInRequest = GetSecurityUserViewFromUserContext(UserContext);
-            var securityUser = await GetSecurityUser(DataConsts.LoadingConfigurations.SecurityUser.USER_WITH_CONFIGURATION);
+            var securityUser = await GetSecurityUser(Consts.LoadingConfigurations.SecurityUser.USER_WITH_CONFIGURATION);
             if (securityUser == null)
             {
                 securityUser = securityUserInRequest;
                 //Creamos un nuevo usuario con una configuración por defecto a partir del usuario de la request
                 securityUser.SecurityUserConfiguration = GetDefaultSecurityUserConfiguration();
-                await Insert(securityUser, DataConsts.LoadingConfigurations.SecurityUser.USER_WITH_CONFIGURATION);
+                await Insert(securityUser, Consts.LoadingConfigurations.SecurityUser.USER_WITH_CONFIGURATION);
             }
             else
             {
@@ -45,7 +46,7 @@ namespace InfoportOneAdmon.Back.Services.Base
                 }
                 lastConnectionDate = securityUser.SecurityUserConfiguration.LastConnectionDate;
                 securityUser.SecurityUserConfiguration.LastConnectionDate = DateTime.UtcNow;
-                await Update(securityUser, DataConsts.LoadingConfigurations.SecurityUser.USER_WITH_CONFIGURATION);
+                await Update(securityUser, Consts.LoadingConfigurations.SecurityUser.USER_WITH_CONFIGURATION);
             }
             //Con el usaurio devolvemos la ultima fecha de conexión establecida, no la actualizada en este momento
             securityUser.SecurityUserConfiguration.LastConnectionDate = lastConnectionDate;

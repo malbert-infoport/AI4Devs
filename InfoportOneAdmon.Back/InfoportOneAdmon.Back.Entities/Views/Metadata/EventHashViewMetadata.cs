@@ -3,7 +3,8 @@ using Helix6.Base.Domain.Validations.ModelValidations;
 
 namespace InfoportOneAdmon.Back.Entities.Views.Metadata
 {
-    public class VTA_WorkerViewMetadata : IViewBaseMetadata
-    {
-    }
+	public class EventHashViewMetadata : IViewBaseMetadata
+	{
+	}
 }
+

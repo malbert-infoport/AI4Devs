@@ -14,32 +14,45 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(AddressTypeViewMetadata))]
-    public partial class AddressTypeView : IViewBase
+	[MetadataType(typeof(OrganizationViewMetadata))]
+	public partial class OrganizationView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		[HelixStringLength(200)]
-		public String Description { get; set; }
+		public Int32 SecurityCompanyId { get; set; }
 
-		[HelixStringLength(70)]
+		public String Name { get; set; }
+
+		public String Acronym { get; set; }
+
+		public String TaxId { get; set; }
+
+		public String Address { get; set; }
+
+		public String City { get; set; }
+
+		public String Country { get; set; }
+
+		public String ContactEmail { get; set; }
+
+		public String ContactPhone { get; set; }
+
+		public Int32? GroupId { get; set; }
+
 		public String AuditCreationUser { get; set; }
 
-		[HelixStringLength(70)]
-		public String AuditModificationUser { get; set; }
-
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
+		public String AuditModificationUser { get; set; }
+
 		public DateTime? AuditModificationDate { get; set; }
 
-		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[InverseProperty("AddressType")]
-		public List<WorkerAddressView> WorkerAddress { get; set; } = new List<WorkerAddressView>();
+		public OrganizationGroupView Group { get; set; }
+
+		public List<OrganizationApplicationModuleView> OrganizationApplicationModule { get; set; } = new List<OrganizationApplicationModuleView>();
+
 	}
 }
 
