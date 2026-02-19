@@ -7,6 +7,7 @@ using InfoportOneAdmon.Back.Api.Endpoints;
 using InfoportOneAdmon.Back.Api.Endpoints.Base;
 using InfoportOneAdmon.Back.Api.Endpoints.Base.Generator;
 using InfoportOneAdmon.Back.Api.Extensions;
+using InfoportOneAdmon.Back.Api.Infrastructure;
 using InfoportOneAdmon.Back.Data.DataModel;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -67,7 +68,7 @@ if (defaultConnection != null)
         // Suprimir advertencia de cambios pendientes en el modelo
         // Esto es necesario cuando se usa scaffolding (Database-First) junto con migraciones (Code-First)
         // Los scripts SQL embebidos son la fuente de verdad
-        .ConfigureWarnings(warnings => 
+        .ConfigureWarnings(warnings =>
             warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)
         )
     );
@@ -127,11 +128,7 @@ app.UseSwaggerUI(c =>
     c.DocExpansion(DocExpansion.None);
 });
 
-//Runtime policy: to apply migrations on startup (optional), use a minimal scope like:
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<EntityModel>();
-    db.Database.Migrate();
-}
+// Runtime policy: apply migrations on startup via DbUp runner
+DbUpRunner.Run(builder, app, appSettings);
 
 app.Run();

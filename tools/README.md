@@ -1,21 +1,8 @@
 # Scripts PowerShell - Helix6 Database Management
 
-Esta carpeta contiene scripts de automatización para la gestión de migraciones y DataModel en proyectos Helix6.
+Esta carpeta contiene scripts de automatización para la gestión del DataModel y el despliegue de scripts SQL (DbUp) en proyectos Helix6.
 
 ## Scripts Disponibles
-
-### 🔄 Update-Database.ps1
-Actualiza la base de datos aplicando migraciones de Entity Framework. Genera automáticamente migraciones faltantes desde scripts SQL.
-
-```powershell
-# Uso básico
-.\Update-Database.ps1
-
-# Sin confirmaciones
-.\Update-Database.ps1 -SkipConfirmation
-```
-
-**Ver**: [Documentación completa del agente](../.github/agents/Helix6Back.Database.agent.md#funcionalidad-1-updatedatabase)
 
 ---
 
@@ -63,6 +50,22 @@ Antes de ejecutar estos scripts, asegúrate de tener:
 - ✅ **Npgsql** provider instalado en el proyecto Data
 - ✅ Acceso a la base de datos PostgreSQL
 
+## DbUp — despliegue de scripts SQL
+
+DbUp es el runner usado para aplicar los scripts SQL embebidos (`[Proyecto].Back.Data/Scripts`) durante el despliegue. En este repositorio el runner puede ejecutarse automáticamente al arrancar la API.
+
+Ejemplos para ejecutar localmente (Windows PowerShell):
+
+```powershell
+# Permitir crear la base de datos si no existe (opcional y 'opt-in')
+$env:HELIX6_ALLOW_CREATE_DB = 'true'
+# Cambiar entorno si es necesario
+$env:ASPNETCORE_ENVIRONMENT = 'Staging'
+dotnet run --project "c:\Ai4Devs\AI4Devs\InfoportOneAdmon.Back\InfoportOneAdmon.Back.Api\InfoportOneAdmon.Back.Api.csproj"
+```
+
+Si prefieres ejecutar sólo las migraciones (modo CLI), revisa la implementación del runner o ejecuta el proyecto migrator si existe.
+
 ## Permisos de Ejecución
 
 Si recibes un error de política de ejecución en PowerShell, ejecuta:
@@ -75,8 +78,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### Escenario 1: Nueva base de datos desde scripts SQL
 1. Crear scripts SQL en `[Proyecto].Back.Data/Scripts/`
-2. Ejecutar `.\Update-Database.ps1 -SkipConfirmation`
-3. ✅ Base de datos actualizada con todas las migraciones
+2. Aplicar scripts SQL mediante el proceso de despliegue (DbUp)
+3. ✅ Base de datos verificada con la estructura esperada
 
 ### Escenario 2: Sincronizar DataModel desde cambios en BD
 1. Aplicar cambios DDL en PostgreSQL
@@ -93,7 +96,6 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Todos los scripts incluyen documentación integrada. Para ver ayuda detallada:
 
 ```powershell
-Get-Help .\Update-Database.ps1 -Full
 Get-Help .\Update-DataModel.ps1 -Full
 Get-Help .\Fix-DataModelNetStandard.ps1 -Full
 ```

@@ -643,17 +643,35 @@ function Show-DataModelChanges {
             foreach ($file in $modifiedFiles) {
                 $fullPath = Get-ChildItem $DataModelProjectDir -Filter $file -Recurse -File | Select-Object -First 1
                 if ($fullPath) {
-                    $diffStat = git diff --stat $fullPath.FullName 2>&1
-                    if ($diffStat) {
-                        $stats = $diffStat | Select-String "(\d+) insertion.*(\d+) deletion" 
-                        if ($stats) {
-                            Write-Host "  M $file" -ForegroundColor Yellow
-                            Write-Host "    $($stats.Line.Trim())" -ForegroundColor Gray
-                        } else {
-                            Write-Host "  M $file" -ForegroundColor Yellow
+                    Write-Host "  M $file" -ForegroundColor Yellow
+                    
+                    # Obtener diff detallado
+                    $diff = git diff $fullPath.FullName 2>&1
+                    if ($diff) {
+                        $diff -split "`n" | ForEach-Object {
+                            $line = $_
+                            if ($line -match "^-(?!--)(.*)") {
+                                # Línea eliminada (roja)
+                                Write-Host "    $line" -ForegroundColor Red
+                            }
+                            elseif ($line -match "^\+(?!\+\+)(.*)") {
+                                # Línea añadida (verde)
+                                Write-Host "    $line" -ForegroundColor Green
+                            }
+                            elseif ($line -match "^@@") {
+                                # Cabecera de sección (cyan)
+                                Write-Host "    $line" -ForegroundColor Cyan
+                            }
+                            elseif ($line -match "^(diff|index|---|\+\+\+)") {
+                                # Metadata del diff (gris)
+                                Write-Host "    $line" -ForegroundColor DarkGray
+                            }
+                            else {
+                                # Líneas de contexto
+                                Write-Host "    $line" -ForegroundColor Gray
+                            }
                         }
-                    } else {
-                        Write-Host "  M $file" -ForegroundColor Yellow
+                        Write-Host "" # Línea en blanco entre archivos
                     }
                 }
             }
@@ -762,7 +780,7 @@ try {
         Write-Host "========================================`n" -ForegroundColor $script:SuccessColor
         
         Write-Host "Siguiente paso recomendado:" -ForegroundColor $script:InfoColor
-        Write-Host "  Ejecutar Helix Generator para regenerar Views y Endpoints" -ForegroundColor Gray
+        Write-Host "  Ejecutar /UpdateViews para sincronizar Views con el DataModel actualizado" -ForegroundColor Gray
         
         exit 0
     } else {
