@@ -6,9 +6,7 @@ public static class Consts
     {
         public struct Organization
         {
-            public const string ORGANIZATION_COMPLETE = "OrganizationComplete";
-            public const string ORGANIZATION_LITE = "OrganizationLite";
-        }
+            public const string ORGANIZATION_COMPLETE = "OrganizationComplete";}
         public struct SecurityProfile
         {
             public const string PROFILE_WITH_MODULES = "ProfileWithModules";

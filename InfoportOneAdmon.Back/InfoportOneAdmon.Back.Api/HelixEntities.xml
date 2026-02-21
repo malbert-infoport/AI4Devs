@@ -625,8 +625,14 @@
         <Order>Ascending</Order>
       </Orders>
     </Configurations>
+    <Endpoints>
+    </Endpoints>
     <Configurations>
       <ConfigurationName>OrganizationComplete</ConfigurationName>
+      <Includes>
+        <EntityBase>OrganizationGroup</EntityBase>
+        <ReadOnly>true</ReadOnly>
+      </Includes>
       <Includes>
         <EntityBase>OrganizationApplicationModule</EntityBase>
         <ReadOnly>false</ReadOnly>
@@ -635,28 +641,12 @@
           <ReadOnly>true</ReadOnly>
         </Includes>
       </Includes>
-      <Includes>
-        <EntityBase>OrganizationGroup</EntityBase>
-        <ReadOnly>true</ReadOnly>
-      </Includes>
       <Orders>
         <Field>Id</Field>
         <Order>Ascending</Order>
       </Orders>
+      <Endpoints />
     </Configurations>
-    <Configurations>
-      <ConfigurationName>OrganizationLite</ConfigurationName>
-      <Includes>
-        <EntityBase>OrganizationGroup</EntityBase>
-        <ReadOnly>true</ReadOnly>
-      </Includes>
-      <Orders>
-        <Field>Name</Field>
-        <Order>Ascending</Order>
-      </Orders>
-    </Configurations>
-    <Endpoints>
-    </Endpoints>
   </Entities>
   <Entities>
     <EntityName>OrganizationApplicationModule</EntityName>

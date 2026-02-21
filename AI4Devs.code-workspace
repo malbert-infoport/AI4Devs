@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "InfoportOneAdmin.Front"
+		},
+		{
+			"path": "../../Git/Helix6/Helix6Generator/Helix6.Generator"
 		}
 	],
 	"settings": {}

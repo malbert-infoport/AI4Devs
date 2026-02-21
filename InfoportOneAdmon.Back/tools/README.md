@@ -21,7 +21,85 @@ Regenera el DataModel de Entity Framework desde la base de datos mediante scaffo
 
 ---
 
-### 🔧 Fix-DataModelNetStandard.ps1
+### � Update-Views.ps1
+Sincroniza las Views (DTOs) con los cambios detectados en el DataModel.
+
+```powershell
+# Actualizar Views (requiere confirmación)
+.\Update-Views.ps1
+
+# Forzar sobrescritura sin confirmación
+.\Update-Views.ps1 -Force
+```
+
+---
+
+### 🗂️ Update-HelixEntities.ps1
+Sincroniza el archivo HelixEntities.xml con las entidades del DataModel.
+
+```powershell
+# Sincronizar XML
+.\Update-HelixEntities.ps1
+```
+
+**Ver**: [Documentación completa del agente](../.github/agents/Helix6Back.HelixEntities.agent.md#funcionalidad-1-updatehelixentities)
+
+---
+
+### 📋 List-Configuration.ps1
+Lista todas las configuraciones de carga definidas para una entidad específica.
+
+```powershell
+# Listar configuraciones de Organization
+.\List-Configuration.ps1 -EntityName "Organization"
+```
+
+---
+
+### 👁️ View-Configuration.ps1
+Visualiza una configuración de carga específica con formato jerárquico y colores.
+
+```powershell
+# Ver configuración específica
+.\View-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationComplete"
+```
+
+---
+
+### ➕ Create-Configuration.ps1
+Crea una nueva configuración de carga de forma interactiva.
+
+```powershell
+# Crear configuración mostrando 3 niveles
+.\Create-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationFull" -Levels 3
+
+# Crear con 2 niveles (por defecto)
+.\Create-Configuration.ps1 -EntityName "Application" -ConfigurationName "ApplicationComplete"
+```
+
+---
+
+### ✏️ Update-Configuration.ps1
+Modifica una configuración de carga existente, mostrando valores actuales.
+
+```powershell
+# Actualizar configuración mostrando 3 niveles
+.\Update-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationComplete" -Levels 3
+```
+
+---
+
+### 🗑️ Delete-Configuration.ps1
+Elimina una configuración de carga específica del sistema.
+
+```powershell
+# Eliminar configuración
+.\Delete-Configuration.ps1 -Entity Name "Organization" -ConfigurationName "OrganizationComplete"
+```
+
+---
+
+### �🔧 Fix-DataModelNetStandard.ps1
 Aplica correcciones de compatibilidad con .NET Standard 2.0 en clases de entidad.
 
 ```powershell
@@ -84,19 +162,51 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Escenario 2: Sincronizar DataModel desde cambios en BD
 1. Aplicar cambios DDL en PostgreSQL
 2. Ejecutar `.\Update-DataModel.ps1`
-3. ✅ Clases de entidad regeneradas y compiladas
+3. Ejecutar `.\Update-Views.ps1 -Force`
+4. Ejecutar `.\Update-HelixEntities.ps1` (opcional, si hay nuevas entidades)
+5. ✅ Clases de entidad, Views y XML sincronizados
 
-### Escenario 3: Corrección manual de entidades
+### Escenario 3: Crear configuración de carga personalizada
+1. Ejecutar `.\List-Configuration.ps1 -EntityName "Organization"` (ver configuraciones existentes)
+2. Ejecutar `.\Create-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationFull" -Levels 3`
+3. Seleccionar entidades relacionadas de forma interactiva (1.1 L, 1.2 E, 2.1 L)
+4. ✅ Configuración creada y sincronizada en DataConsts.cs
+
+### Escenario 4: Modificar configuración existente
+1. Ejecutar `.\View-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationComplete"` (ver estructura actual)
+2. Ejecutar `.\Update-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationComplete" -Levels 3`
+3. Modificar selecciones (muestra valores actuales pre-rellenos)
+4. ✅ Configuración actualizada
+
+### Escenario 5: Eliminar configuración obsoleta
+1. Ejecutar `.\Delete-Configuration.ps1 -EntityName "Organization" -ConfigurationName "OrganizationOld"`
+2. Confirmar eliminación
+3. ✅ Configuración eliminada del XML y DataConsts.cs
+
+### Escenario 6: Corrección manual de entidades
 1. Regenerar DataModel con `.\Update-DataModel.ps1 -SkipFix`
 2. Ejecutar `.\Fix-DataModelNetStandard.ps1 -DataModelPath "..." -WhatIf` (previsualizar)
 3. Ejecutar `.\Fix-DataModelNetStandard.ps1 -DataModelPath "..." -Backup` (aplicar con backup)
+4. ✅ Entidades corregidas para .NET Standard 2.0
 
 ## Obtener Ayuda
 
 Todos los scripts incluyen documentación integrada. Para ver ayuda detallada:
 
 ```powershell
+# Scripts de sincronización
 Get-Help .\Update-DataModel.ps1 -Full
+Get-Help .\Update-Views.ps1 -Full
+Get-Help .\Update-HelixEntities.ps1 -Full
+
+# Scripts de configuración
+Get-Help .\List-Configuration.ps1 -Full
+Get-Help .\View-Configuration.ps1 -Full
+Get-Help .\Create-Configuration.ps1 -Full
+Get-Help .\Update-Configuration.ps1 -Full
+Get-Help .\Delete-Configuration.ps1 -Full
+
+# Scripts de corrección
 Get-Help .\Fix-DataModelNetStandard.ps1 -Full
 ```
 
@@ -128,10 +238,11 @@ Todos los scripts incluyen:
 
 ## Documentación Completa
 
-Para documentación detallada del agente y los procesos, consulta:
+Para documentación detallada de los agentes y los procesos, consulta:
 - [Helix6Back.Database.agent.md](../.github/agents/Helix6Back.Database.agent.md)
+- [Helix6Back.HelixEntities.agent.md](../.github/agents/Helix6Back.HelixEntities.agent.md)
 
 ---
 
-**Framework**: Helix6 v1.0  
-**Última actualización**: 17/02/2026
+**Framework**: Helix6 v2.0  
+**Última actualización**: 20/02/2026
