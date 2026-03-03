@@ -35,10 +35,11 @@ Implementar la estructura completa de base de datos necesaria para soportar el C
 - **Prefijos de Aplicación**: El campo `RolePrefix` en APPLICATION se usa para nomenclatura de roles y módulos
 - **Índices Únicos**: Para garantizar unicidad de nombres, TaxId, SecurityCompanyId, etc.
 
-**Migración con Entity Framework Core**:
-- Se creará una migración inicial (`AddOrganizationInfrastructure`) que contenga todas las tablas
-- Se configurarán todas las relaciones, constraints, índices y defaults
-- Se incluirán scripts de seed data opcionales para datos de prueba
+**Despliegue con DBUp (scripts embebidos)**:
+- Se creará un script SQL embebido en `InfoportOneAdmon.Back.DB/Scripts` con el nombre `01020004_OrganizationInfrastructure.sql`
+- El script debe registrarse como `EmbeddedResource` en el `.csproj` del proyecto `Back.DB`
+- DBUp aplicará el script automáticamente en orden numérico en el siguiente despliegue
+- Se incluirá un segundo script opcional `01020005_OrganizationSeedData.sql` para datos de prueba
 
 ## ESQUEMA DE TABLAS
 
@@ -93,6 +94,7 @@ CREATE TABLE "ORGANIZATIONGROUP" (
 | SecurityCompanyId | INTEGER | UNIQUE, NOT NULL | Identificador de negocio inmutable (usado en JWT claim c_ids) |
 | GroupId | INTEGER | FK → ORGANIZATIONGROUP(Id), NULL | Referencia opcional al grupo |
 | Name | VARCHAR(200) | UNIQUE, NOT NULL | Nombre comercial de la organización |
+| Acronym | VARCHAR(50) | NULL | Siglas o acrónimo de la organización (ej: ACME, IPO) |
 | TaxId | VARCHAR(50) | UNIQUE, NOT NULL | Identificador fiscal (NIF/CIF/RFC) |
 | Address | VARCHAR(300) | NULL | Dirección postal |
 | City | VARCHAR(100) | NULL | Ciudad |
@@ -124,6 +126,7 @@ CREATE TABLE "ORGANIZATION" (
     "SecurityCompanyId" INTEGER NOT NULL DEFAULT nextval('"ORGANIZATION_SecurityCompanyId_seq"'),
     "GroupId" INTEGER,
     "Name" VARCHAR(200) NOT NULL,
+    "Acronym" VARCHAR(50),
     "TaxId" VARCHAR(50) NOT NULL,
     "Address" VARCHAR(300),
     "City" VARCHAR(100),
@@ -339,180 +342,58 @@ CREATE INDEX "IX_AuditLog_UserId" ON "AUDITLOG"("UserId");
 
 **Nota importante**: Esta tabla es **append-only** (solo INSERT, no UPDATE ni DELETE). El campo `AuditDeletionDate` no se usa.
 
-## MIGRACIONES DE ENTITY FRAMEWORK CORE
+## SCRIPTS DBUP (DESPLIEGUE DE BASE DE DATOS)
 
-### Comandos de Migración
+> ⚠️ **Este proyecto NO usa EF Core Migrations**. Todos los cambios de esquema se gestionan mediante **DBUp** con scripts SQL embebidos en el proyecto `InfoportOneAdmon.Back.DB`.
 
-Para implementar esta estructura en PostgreSQL utilizando Entity Framework Core, ejecutar los siguientes comandos desde la carpeta del proyecto Api:
+### Script 1 — Estructura (obligatorio)
 
-**1. Crear la migración inicial**:
-```powershell
-dotnet ef migrations add AddOrganizationInfrastructure `
-    --project InfoportOneAdmon.Data `
-    --startup-project InfoportOneAdmon.Api `
-    --context EntityModel `
-    --output-dir Migrations
+**Archivo**: `InfoportOneAdmon.Back.DB/Scripts/01020004_OrganizationInfrastructure.sql`
+
+**Registro en `.csproj`** (añadir al `InfoportOneAdmon.Back.DB.csproj`):
+```xml
+<EmbeddedResource Include="Scripts\01020004_OrganizationInfrastructure.sql" />
 ```
 
-**2. Verificar script SQL generado** (opcional):
-```powershell
-dotnet ef migrations script `
-    --project InfoportOneAdmon.Data `
-    --startup-project InfoportOneAdmon.Api `
-    --context EntityModel `
-    --output "Migrations/AddOrganizationInfrastructure.sql"
+**Contenido**: el DDL completo de la sección "Script SQL Completo" de este ticket. El script debe ser **idempotente** usando bloques `DO $$ ... $$` o `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS` según sea necesario para PostgreSQL.
+
+**Convención de nombre**: `NNNNNNNN_NombreDescriptivoPascalCase.sql` donde `NNNNNNNN` es el número de secuencia de 8 dígitos. DBUp aplica los scripts en orden alfanumérico estricto.
+
+### Script 2 — Seed data (opcional)
+
+**Archivo**: `InfoportOneAdmon.Back.DB/Scripts/01020005_OrganizationSeedData.sql`
+
+**Registro en `.csproj`**:
+```xml
+<EmbeddedResource Include="Scripts\01020005_OrganizationSeedData.sql" />
 ```
 
-**3. Aplicar migración a la base de datos**:
+**Contenido**: los `INSERT` de la sección "DATOS DE PRUEBA" de este ticket. Usar `INSERT ... ON CONFLICT DO NOTHING` para garantizar idempotencia.
+
+### Verificación post-despliegue
+
+DBUp aplica los scripts al iniciar la API. Para verificar manualmente:
+
 ```powershell
-dotnet ef database update `
-    --project InfoportOneAdmon.Data `
-    --startup-project InfoportOneAdmon.Api `
-    --context EntityModel
+# Arrancar la API en local (DBUp se ejecuta durante el startup)
+dotnet run --project InfoportOneAdmon.Back.Api
 ```
 
-**4. Verificar estado de migraciones**:
-```powershell
-dotnet ef migrations list `
-    --project InfoportOneAdmon.Data `
-    --startup-project InfoportOneAdmon.Api `
-    --context EntityModel
-```
+O ejecutar las queries de verificación de la sección correspondiente de este ticket directamente contra la BD.
 
-### Estructura de la Migración (C#)
+### Rollback
 
-El archivo de migración generado (`YYYYMMDDHHMMSS_AddOrganizationInfrastructure.cs`) contendrá:
+DBUp no genera rollback automático. Para revertir:
+- Crear un nuevo script `01020006_RollbackOrganizationInfrastructure.sql` que elimine los objetos en orden inverso (respetando FKs):
 
-```csharp
-public partial class AddOrganizationInfrastructure : Migration
-{
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        // 1. Crear secuencia para SecurityCompanyId
-        migrationBuilder.CreateSequence<int>(
-            name: "ORGANIZATION_SecurityCompanyId_seq",
-            startValue: 1001L);
-        
-        // 2. Crear tabla ORGANIZATIONGROUP
-        migrationBuilder.CreateTable(
-            name: "ORGANIZATIONGROUP",
-            columns: table => new
-            {
-                Id = table.Column<int>(nullable: false)
-                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                GroupName = table.Column<string>(maxLength: 200, nullable: false),
-                Description = table.Column<string>(maxLength: 500, nullable: true),
-                AuditCreationUser = table.Column<string>(maxLength: 255, nullable: true),
-                AuditCreationDate = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                AuditModificationUser = table.Column<string>(maxLength: 255, nullable: true),
-                AuditModificationDate = table.Column<DateTime>(nullable: true),
-                AuditDeletionDate = table.Column<DateTime>(nullable: true)
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_ORGANIZATIONGROUP", x => x.Id);
-            });
-        
-        // 3. Crear tabla ORGANIZATION con FK a ORGANIZATIONGROUP
-        migrationBuilder.CreateTable(
-            name: "ORGANIZATION",
-            columns: table => new
-            {
-                Id = table.Column<int>(nullable: false)
-                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                SecurityCompanyId = table.Column<int>(nullable: false, defaultValueSql: "nextval('\"ORGANIZATION_SecurityCompanyId_seq\"')"),
-                GroupId = table.Column<int>(nullable: true),
-                Name = table.Column<string>(maxLength: 200, nullable: false),
-                TaxId = table.Column<string>(maxLength: 50, nullable: false),
-                Address = table.Column<string>(maxLength: 300, nullable: true),
-                City = table.Column<string>(maxLength: 100, nullable: true),
-                PostalCode = table.Column<string>(maxLength: 20, nullable: true),
-                Country = table.Column<string>(maxLength: 100, nullable: true),
-                ContactEmail = table.Column<string>(maxLength: 255, nullable: true),
-                ContactPhone = table.Column<string>(maxLength: 50, nullable: true),
-                AuditCreationUser = table.Column<string>(maxLength: 255, nullable: true),
-                AuditCreationDate = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                AuditModificationUser = table.Column<string>(maxLength: 255, nullable: true),
-                AuditModificationDate = table.Column<DateTime>(nullable: true),
-                AuditDeletionDate = table.Column<DateTime>(nullable: true)
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_ORGANIZATION", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_Organization_OrganizationGroup",
-                    column: x => x.GroupId,
-                    principalTable: "ORGANIZATIONGROUP",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.SetNull);
-            });
-        
-        // 4. Crear tabla APPLICATION
-        migrationBuilder.CreateTable(
-            name: "APPLICATION",
-            columns: table => new
-            {
-                Id = table.Column<int>(nullable: false)
-                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                AppName = table.Column<string>(maxLength: 100, nullable: false),
-                Description = table.Column<string>(maxLength: 500, nullable: true),
-                RolePrefix = table.Column<string>(maxLength: 10, nullable: false),
-                AuditCreationUser = table.Column<string>(maxLength: 255, nullable: true),
-                AuditCreationDate = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                AuditModificationUser = table.Column<string>(maxLength: 255, nullable: true),
-                AuditModificationDate = table.Column<DateTime>(nullable: true),
-                AuditDeletionDate = table.Column<DateTime>(nullable: true)
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_APPLICATION", x => x.Id);
-            });
-        
-        // 5. Crear tabla APPLICATIONMODULE
-        // 6. Crear tabla ORGANIZATION_APPLICATIONMODULE
-        // 7. Crear tabla AUDITLOG
-        
-        // 11. Crear índices únicos
-        migrationBuilder.CreateIndex(
-            name: "UX_OrganizationGroup_GroupName",
-            table: "ORGANIZATIONGROUP",
-            column: "GroupName",
-            unique: true);
-        
-        migrationBuilder.CreateIndex(
-            name: "UX_Organization_SecurityCompanyId",
-            table: "ORGANIZATION",
-            column: "SecurityCompanyId",
-            unique: true);
-        
-        migrationBuilder.CreateIndex(
-            name: "UX_Organization_Name",
-            table: "ORGANIZATION",
-            column: "Name",
-            unique: true);
-        
-        migrationBuilder.CreateIndex(
-            name: "UX_Organization_TaxId",
-            table: "ORGANIZATION",
-            column: "TaxId",
-            unique: true);
-        
-        // ... más índices
-    }
-    
-    protected override void Down(MigrationBuilder migrationBuilder)
-    {
-        // Eliminar tablas en orden inverso (respetando FKs)
-        migrationBuilder.DropTable(name: "ORGANIZATION_APPLICATIONMODULE");
-        migrationBuilder.DropTable(name: "APPLICATIONMODULE");
-        migrationBuilder.DropTable(name: "APPLICATION");
-        migrationBuilder.DropTable(name: "ORGANIZATION");
-        migrationBuilder.DropTable(name: "ORGANIZATIONGROUP");
-        migrationBuilder.DropTable(name: "AUDITLOG");
-        
-        migrationBuilder.DropSequence(name: "ORGANIZATION_SecurityCompanyId_seq");
-    }
-}
+```sql
+DROP TABLE IF EXISTS "ORGANIZATION_APPLICATIONMODULE";
+DROP TABLE IF EXISTS "AUDITLOG";
+DROP TABLE IF EXISTS "APPLICATIONMODULE";
+DROP TABLE IF EXISTS "APPLICATION";
+DROP TABLE IF EXISTS "ORGANIZATION";
+DROP TABLE IF EXISTS "ORGANIZATIONGROUP";
+DROP SEQUENCE IF EXISTS "ORGANIZATION_SecurityCompanyId_seq";
 ```
 
 ### Script SQL Completo (PostgreSQL)
@@ -547,6 +428,7 @@ CREATE TABLE "ORGANIZATION" (
     "SecurityCompanyId" INTEGER NOT NULL DEFAULT nextval('"ORGANIZATION_SecurityCompanyId_seq"'),
     "GroupId" INTEGER,
     "Name" VARCHAR(200) NOT NULL,
+    "Acronym" VARCHAR(50),
     "TaxId" VARCHAR(50) NOT NULL,
     "Address" VARCHAR(300),
     "City" VARCHAR(100),
@@ -705,7 +587,7 @@ VALUES
 -- Listar todas las tablas creadas
 SELECT table_name 
 FROM information_schema.tables 
-WHERE table_schema = 'public' 
+WHERE table_schema = 'Admon' 
     AND table_type = 'BASE TABLE'
 ORDER BY table_name;
 
@@ -715,7 +597,7 @@ SELECT
     tc.constraint_name, 
     tc.constraint_type
 FROM information_schema.table_constraints tc
-WHERE tc.table_schema = 'public'
+WHERE tc.table_schema = 'Admon'
 ORDER BY tc.table_name, tc.constraint_type;
 ```
 
@@ -728,7 +610,7 @@ SELECT
     indexname,
     indexdef
 FROM pg_indexes
-WHERE schemaname = 'public'
+WHERE schemaname = 'Admon'
 ORDER BY tablename, indexname;
 ```
 
@@ -748,7 +630,7 @@ JOIN information_schema.constraint_column_usage AS ccu
     ON ccu.constraint_name = tc.constraint_name
     AND ccu.table_schema = tc.table_schema
 WHERE tc.constraint_type = 'FOREIGN KEY'
-    AND tc.table_schema = 'public'
+    AND tc.table_schema = 'Admon'
 ORDER BY tc.table_name;
 ```
 
@@ -791,7 +673,8 @@ WHERE "TaxId" = 'B12345678';
 ## CRITERIOS DE ACEPTACIÓN
 
 - [ ] Todas las 7 tablas se crean correctamente en PostgreSQL
-- [ ] La migración de Entity Framework Core se ejecuta sin errores
+- [ ] El script `01020004_OrganizationInfrastructure.sql` está registrado como `EmbeddedResource` en `InfoportOneAdmon.Back.DB.csproj`
+- [ ] DBUp aplica el script correctamente al arrancar la API (sin errores en los logs de startup)
 - [ ] Todos los índices únicos (UK) están configurados correctamente
 - [ ] Todos los índices de búsqueda (IX) están creados
 - [ ] Todas las foreign keys (FK) están configuradas con el ON DELETE correcto
@@ -804,25 +687,26 @@ WHERE "TaxId" = 'B12345678';
 - [ ] Los datos de prueba (seed data) se insertan correctamente
 - [ ] Las queries de verificación retornan los resultados esperados
 - [ ] No hay errores de constraints al insertar datos relacionados
-- [ ] El script SQL completo puede ejecutarse múltiples veces de forma idempotente
+- [ ] El script SQL es idempotente (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, bloques `DO $$`)
 - [ ] La documentación de cada tabla está completa y clara
 - [ ] Los comentarios en el DDL explican decisiones de diseño importantes
 
 ## DEPENDENCIAS
 
 - **PostgreSQL 15+**: Base de datos instalada y ejecutándose
-- **.NET 8 SDK**: Para ejecutar comandos de Entity Framework Core
-- **Npgsql.EntityFrameworkCore.PostgreSQL** (9.0.2): Provider de EF Core para PostgreSQL
-- **Microsoft.EntityFrameworkCore.Tools** (9.0.2): Herramientas de migración
+- **.NET 8 SDK**: Para compilar y ejecutar el proyecto
+- **DBUp**: Librería de despliegue de scripts SQL (ya configurada en `InfoportOneAdmon.Back.DB`)
+- **Npgsql.EntityFrameworkCore.PostgreSQL** (9.0.2): Provider de EF Core para consultas/scaffolding (NO para migrations)
 - **Helix6.Base.Domain**: Para interfaces `IEntityBase` y atributos de auditoría
 - **Acceso a base de datos**: Usuario con permisos CREATE TABLE, CREATE SEQUENCE, CREATE INDEX
-- **DbContext configurado**: EntityModel.cs debe estar configurado con connection string de PostgreSQL
+- **DbContext configurado**: `EntityModel.cs` debe estar configurado con connection string de PostgreSQL
 
 ## RECURSOS
 
 - **Documentación de PostgreSQL**: https://www.postgresql.org/docs/15/index.html
-- **Entity Framework Core Migrations**: https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/
+- **DBUp (despliegue de scripts)**: https://dbup.readthedocs.io/en/latest/
 - **Npgsql Provider**: https://www.npgsql.org/efcore/
+- **Convenciones de scripts Back.DB**: ver `Helix6Back.Database.agent.md` sección "Convenciones del proyecto"
 - **Helix6 Backend Architecture**: [Helix6_Backend_Architecture.md](../../../Helix6_Backend_Architecture.md) - Sección 2.5 (DataModel)
 - **Product Documentation**: [readme.md](../../../readme.md) - Sección 3 (Modelo de Datos)
 - **User Story**: [ORG001_Gestion_Organizacion.md](../ORG001_Gestion_Organizacion.md)

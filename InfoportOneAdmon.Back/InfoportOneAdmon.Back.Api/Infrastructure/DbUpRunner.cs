@@ -2,6 +2,7 @@ using System;
 using DbUp;
 using DbUp.Engine.Output;
 using Helix6.Base.Domain.Configuration;
+using InfoportOneAdmon.Back.DB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -48,11 +49,11 @@ namespace InfoportOneAdmon.Back.Api.Infrastructure
 
             string envName = builder.Environment.EnvironmentName;
 
-            if (envName == "Development" || envName == "Local")
-            {
-                logger.LogInformation($"{databaseName}: No se aplican migraciones en entorno {envName}");
-                return;
-            }
+            //if (envName == "Development" || envName == "Local")
+            //{
+            //    logger.LogInformation($"{databaseName}: No se aplican migraciones en entorno {envName}");
+            //    return;
+            //}
 
             try
             {
@@ -133,7 +134,7 @@ namespace InfoportOneAdmon.Back.Api.Infrastructure
                         .PostgresqlDatabase(connectionString)
                         .JournalToPostgresqlTable(journalSchema, journalTable)
                         .WithScriptsEmbeddedInAssembly(
-                            typeof(InfoportOneAdmon.Back.DB.Migrations.Marker).Assembly,
+                            typeof(Marker).Assembly,
                             s => s.StartsWith("InfoportOneAdmon.Back.DB.Scripts"))
                         .LogTo(new DbUpLoggerAdapter(logger))
                         .Build();

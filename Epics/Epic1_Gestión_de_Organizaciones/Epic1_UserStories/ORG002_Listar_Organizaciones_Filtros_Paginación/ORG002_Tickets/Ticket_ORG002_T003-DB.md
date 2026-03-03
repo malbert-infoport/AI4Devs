@@ -1,4 +1,4 @@
-# ORG002-T003-DB: Crear vista `VW_ORGANIZATION` con campos calculados (AppCount, ModuleCount)
+# ORG002-T003-DB: Crear vista `VTA_ORGANIZATION` con campos calculados (AppCount, ModuleCount)
 
 =============================================================
 **TICKET ID:** ORG002-T003-DB
@@ -10,15 +10,16 @@
 =============================================================
 
 ## TÍTULO
-Crear la vista `VW_ORGANIZATION` que incluya los campos calculados `ModuleCount` y `AppCount` y que sea consumible por los endpoints de listado (GetAllKendoFilter).
+Crear la vista `VTA_ORGANIZATION` que incluya los campos calculados `ModuleCount` y `AppCount` y que sea consumible por los endpoints de listado (GetAllKendoFilter).
 
 ## OBJETIVO
 Proveer una vista optimizada que entregue, por cada organización, los contadores de módulos y aplicaciones asignadas, además de los campos estándar de `ORGANIZATION`, para facilitar listados y filtros server-side en frontend.
 
 ## DESCRIPCIÓN
-- Crear script SQL que genere la vista `VW_ORGANIZATION` basada en las tablas existentes (`ORGANIZATION`, `ORGANIZATION_APPLICATIONMODULE`, `APPLICATIONMODULE`, `APPLICATION`).
-- Generar migración EF Core que aplique el script desde el proyecto `InfoportOneAdmon.DataModel`.
-- (Opcional) Añadir una entidad EF `VwOrganization` para consultas en pruebas/integration tests y registrarla en el `DbContext` como `HasNoKey().ToView(...)`.
+- Crear script SQL idempotente (`CREATE OR REPLACE VIEW`) que genere la vista `VTA_ORGANIZATION` basada en las tablas existentes (`ORGANIZATION`, `ORGANIZATION_APPLICATIONMODULE`, `APPLICATIONMODULE`, `APPLICATION`).
+- Desplegar mediante **DBUp** como `EmbeddedResource` en `InfoportOneAdmon.Back.DB/Scripts` (script `01000004_VTA_Organization.sql`).
+- **No usar migraciones EF Core** — la gestión de esquema se hace exclusivamente con DBUp.
+- (Opcional) Añadir una entidad EF `VtaOrganization` sin clave para consultas read-only y registrarla en el `DbContext` como `HasNoKey().ToView(...)`.
 
 ## ALCANCE
 - Incluir en la vista todos los campos relevantes de `ORGANIZATION` (Id, SecurityCompanyId, Name, TaxId/CIF, Address, City, PostalCode, Country, ContactEmail, ContactPhone, GroupId, Audit* fields).
@@ -27,103 +28,118 @@ Proveer una vista optimizada que entregue, por cada organización, los contadore
   - `AppCount` : número de aplicaciones distintas asociadas (count distinct ApplicationId)
 - Incluir `AuditDeletionDate` en la vista para permitir filtros por estado (alta/baja).
 
-## DDL (SQL) - SUGERENCIA
-Archivo: `InfoportOneAdmon.DataModel/Migrations/Scripts/CreateView_VW_ORGANIZATION.sql`
+## DDL (SQL)
+Archivo: `InfoportOneAdmon.Back.DB/Scripts/01000004_VTA_Organization.sql`
+
+> Las columnas usan exactamente los nombres de `01000003_OrganizationInfrastructure.sql` (PascalCase con comillas dobles, schema `"Admon"`).
 
 ```sql
-CREATE OR REPLACE VIEW public.vw_organization AS
+CREATE OR REPLACE VIEW "Admon"."VTA_Organization" AS
 SELECT
-  o.id,
-  o.security_company_id,
-  o.name,
-  o.taxid AS cif,
-  o.address,
-  o.city,
-  o.postal_code,
-  o.country,
-  o.contact_email,
-  o.contact_phone,
-  o.group_id,
-  o.audit_creation_user,
-  o.audit_creation_date,
-  o.audit_modification_user,
-  o.audit_modification_date,
-  o.audit_deletion_date,
-  COALESCE(COUNT(DISTINCT oam.applicationmoduleid), 0) AS module_count,
-  COALESCE(COUNT(DISTINCT am.applicationid), 0) AS app_count
-FROM public.organization o
-LEFT JOIN public.organization_applicationmodule oam ON o.id = oam.organizationid AND oam.auditdeletiondate IS NULL
-LEFT JOIN public.applicationmodule am ON oam.applicationmoduleid = am.id AND am.auditdeletiondate IS NULL
+  o."Id",
+  o."SecurityCompanyId",
+  o."GroupId",
+  o."Name",
+  o."Acronym",
+  o."TaxId",
+  o."Address",
+  o."City",
+  o."PostalCode",
+  o."Country",
+  o."ContactEmail",
+  o."ContactPhone",
+  o."AuditCreationUser",
+  o."AuditCreationDate",
+  o."AuditModificationUser",
+  o."AuditModificationDate",
+  o."AuditDeletionDate",
+  COALESCE(COUNT(DISTINCT oam."ApplicationModuleId"), 0)::INTEGER AS "ModuleCount",
+  COALESCE(COUNT(DISTINCT am."ApplicationId"),        0)::INTEGER AS "AppCount"
+FROM "Admon"."Organization" o
+LEFT JOIN "Admon"."Organization_ApplicationModule" oam
+       ON o."Id" = oam."OrganizationId" AND oam."AuditDeletionDate" IS NULL
+LEFT JOIN "Admon"."ApplicationModule" am
+       ON oam."ApplicationModuleId" = am."Id" AND am."AuditDeletionDate" IS NULL
 GROUP BY
-  o.id,
-  o.security_company_id,
-  o.name,
-  o.taxid,
-  o.address,
-  o.city,
-  o.postal_code,
-  o.country,
-  o.contact_email,
-  o.contact_phone,
-  o.group_id,
-  o.audit_creation_user,
-  o.audit_creation_date,
-  o.audit_modification_user,
-  o.audit_modification_date,
-  o.audit_deletion_date;
+  o."Id",
+  o."SecurityCompanyId",
+  o."GroupId",
+  o."Name",
+  o."Acronym",
+  o."TaxId",
+  o."Address",
+  o."City",
+  o."PostalCode",
+  o."Country",
+  o."ContactEmail",
+  o."ContactPhone",
+  o."AuditCreationUser",
+  o."AuditCreationDate",
+  o."AuditModificationUser",
+  o."AuditModificationDate",
+  o."AuditDeletionDate";
 
-COMMENT ON VIEW public.vw_organization IS 'Vista de organizaciones con contadores de aplicaciones y módulos asignados';
+COMMENT ON VIEW "Admon"."VTA_Organization" IS 'Vista de organizaciones con contadores de aplicaciones y módulos asignados (AppCount, ModuleCount)';
 ```
 
 Notas:
-- Usamos `organization_applicationmodule` (nombre según `ORG001-T003-DB`) como tabla de relación N:M.
-- La vista filtra módulos y aplicaciones soft-deleted al computar los contadores.
+- `CREATE OR REPLACE VIEW` es idempotente; no requiere bloque `IF NOT EXISTS`.
+- Se filtran módulos y aplicaciones soft-deleted al computar los contadores.
+- Todos los nombres de columna respetan el casing PascalCase de las tablas del script `01020004`.
 
-## MIGRACIÓN EF CORE (sugerida)
-- Crear migración en `InfoportOneAdmon.DataModel` que ejecute el script SQL como en `Ticket_ORG001_T003-DB.md`.
-- Up: ejecutar contenido de `CreateView_VW_ORGANIZATION.sql`.
-- Down: `DROP VIEW IF EXISTS public.vw_organization;`.
+## SCRIPT DBUP
+Archivo a crear: `InfoportOneAdmon.Back.DB/Scripts/01000004_VTA_Organization.sql`
+Registrar en: `InfoportOneAdmon.Back.DB/InfoportOneAdmon.Back.DB.csproj` como `EmbeddedResource`.
 
-Comandos (ejemplo):
-```powershell
-dotnet ef migrations add CreateVwOrganization --project InfoportOneAdmon.DataModel --startup-project InfoportOneAdmon.Api --output-dir Migrations
-dotnet ef database update --project InfoportOneAdmon.DataModel --startup-project InfoportOneAdmon.Api
-```
+Flujo de despliegue:
+1. Crear el archivo SQL en `Scripts/`.
+2. Añadir la línea en el `.csproj`:
+   ```xml
+   <EmbeddedResource Include="Scripts\01000004_VTA_Organization.sql" />
+   ```
+3. Levantar la API → DBUp detecta el script nuevo y lo ejecuta automáticamente en orden.
+4. Validar en BD que `"Admon"."VTA_Organization"` existe con los campos correctos.
 
-## ENTIDAD EF (OPCIONAL)
-Archivo: `InfoportOneAdmon.DataModel/Entities/VwOrganization.cs`
+> No usar `dotnet ef migrations add` ni `dotnet ef database update` para cambios de esquema.
+
+## ENTIDAD EF (OPCIONAL — tras scaffolding inverso)
+Tras ejecutar `/UpdateDataModel`, el scaffolding inverso puede generar automáticamente la entidad `VtaOrganization`. Si se necesita configuración manual:
+
+Archivo: `InfoportOneAdmon.Back.DataModel/VtaOrganization.cs`
 
 ```csharp
-[Table("vw_organization")]
-public class VwOrganization
+[Table("VTA_Organization", Schema = "Admon")]
+public class VtaOrganization
 {
-  public int Id { get; set; }
-  public int SecurityCompanyId { get; set; }
-  public string Name { get; set; } = string.Empty;
-  public string? Cif { get; set; }
-  public string? Address { get; set; }
-  public string? City { get; set; }
-  public string? PostalCode { get; set; }
-  public string? Country { get; set; }
-  public string? ContactEmail { get; set; }
-  public string? ContactPhone { get; set; }
-  public int? GroupId { get; set; }
-  public string? AuditCreationUser { get; set; }
-  public DateTime? AuditCreationDate { get; set; }
-  public string? AuditModificationUser { get; set; }
-  public DateTime? AuditModificationDate { get; set; }
-  public DateTime? AuditDeletionDate { get; set; }
-
-  public int ModuleCount { get; set; }
-  public int AppCount { get; set; }
+    public int Id { get; set; }
+    public int SecurityCompanyId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Acronym { get; set; }
+    public string? TaxId { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? PostalCode { get; set; }
+    public string? Country { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+    public int? GroupId { get; set; }
+    public string? AuditCreationUser { get; set; }
+    public DateTimeOffset? AuditCreationDate { get; set; }
+    public string? AuditModificationUser { get; set; }
+    public DateTimeOffset? AuditModificationDate { get; set; }
+    public DateTimeOffset? AuditDeletionDate { get; set; }
+    public int ModuleCount { get; set; }
+    public int AppCount { get; set; }
 }
 ```
 
 Registrar en `OnModelCreating`:
 
 ```csharp
-modelBuilder.Entity<VwOrganization>().HasNoKey().ToView("vw_organization");
+modelBuilder.Entity<VtaOrganization>().HasNoKey().ToView("VTA_Organization", "Admon");
 ```
+
+> Los campos de fecha usan `DateTimeOffset` (mapea a `TIMESTAMPTZ`).
 
 ## TESTS (recomendado)
 - Unit/integration tests que validen:
@@ -132,23 +148,25 @@ modelBuilder.Entity<VwOrganization>().HasNoKey().ToView("vw_organization");
   - Filtros por `AuditDeletionDate` separan activas/inactivas.
 
 ## CRITERIOS DE ACEPTACIÓN
-- [ ] `vw_organization` creada y desplegada por migración EF Core.
+- [ ] Script `01000004_VTA_Organization.sql` creado y registrado como `EmbeddedResource`.
+- [ ] DBUp ejecuta el script correctamente al levantar la API.
+- [ ] Vista `"Admon"."VTA_Organization"` existe en BD con los campos correctos.
 - [ ] `ModuleCount` y `AppCount` calculados correctamente en tests de integración.
-- [ ] La vista contiene los campos necesarios para el grid (incluyendo `AuditDeletionDate`).
-- [ ] Los endpoints backend (GetAllKendoFilter) pueden consumir la vista sin transformaciones costosas.
+- [ ] La vista contiene todos los campos necesarios para el grid (incluyendo `AuditDeletionDate`).
+- [ ] Los endpoints backend (`GetAllKendoFilter`) pueden consumir la vista sin transformaciones costosas.
 
 ## DEPENDENCIAS
-- `ORGANIZATION` table must exist (see `Ticket_ORG001_T003-DB.md`).
-- `ORGANIZATION_APPLICATIONMODULE`, `APPLICATIONMODULE`, `APPLICATION` must exist and follow Helix6 audit conventions.
+- Script `01000003_OrganizationInfrastructure.sql` debe estar desplegado (tablas `"Admon"."Organization"`, `"Admon"."Organization_ApplicationModule"`, `"Admon"."ApplicationModule"`, `"Admon"."Application"`).
+- DBUp ejecuta los scripts en orden alfanumérico; `01000004` se ejecuta siempre después de `01000003`.
 
 ## RIESGOS / CONSIDERACIONES
 - Si la tabla de relación tiene otro nombre en la BD, ajustar el script.
 - Para conjuntos muy grandes considerar materialized view o usar pre-aggregated counters si el rendimiento lo requiere.
 
 ## ENTREGABLES
-- `CreateView_VW_ORGANIZATION.sql` (Scripts folder, embedded resource)
-- EF Migration `CreateVwOrganization` que ejecuta el script
-- (Opcional) `VwOrganization` entity y DbContext registration
+- `InfoportOneAdmon.Back.DB/Scripts/01000004_VTA_Organization.sql` (EmbeddedResource)
+- Entrada en `InfoportOneAdmon.Back.DB.csproj`
+- (Opcional) `VtaOrganization` entity y `DbContext` registration (post-scaffolding inverso)
 - Integration tests que validen los conteos
 
 =============================================================

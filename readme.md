@@ -2148,6 +2148,7 @@ erDiagram
         int SecurityCompanyId UK "NOT NULL, Identificador de negocio inmutable"
         int GroupId FK "NULL, Referencia a OrganizationGroup.Id"
         string Name UK "NOT NULL, Nombre de la organización"
+        string Acronym "NULL, Siglas o acrónimo de la organización (ej: ACME, IPO)"
         string TaxId UK "NOT NULL, NIF/CIF fiscal"
         string Address "Dirección postal"
         string City "Ciudad"
@@ -2422,6 +2423,7 @@ UK: GroupName
 | **SecurityCompanyId** | INT | UNIQUE, NOT NULL, AUTO_INCREMENT | Identificador de negocio inmutable. Es el pilar de la seguridad multi-tenant. Se incluye en el claim `c_ids` de los tokens JWT. |
 | **GroupId** | INT | FK → OrganizationGroup.Id, NULL | Referencia opcional al grupo al que pertenece. NULL si no pertenece a ningún grupo. |
 | **Name** | VARCHAR(200) | UNIQUE, NOT NULL | Nombre comercial de la organización. Debe ser único. |
+| **Acronym** | VARCHAR(50) | NULL | Siglas o acrónimo de la organización (ej: ACME, IPO). |
 | **TaxId** | VARCHAR(50) | UNIQUE, NOT NULL | Identificador fiscal (NIF/CIF/RFC). Debe ser único. |
 | **Address** | VARCHAR(300) | NULL | Dirección postal completa. |
 | **City** | VARCHAR(100) | NULL | Ciudad. |
@@ -2463,6 +2465,7 @@ Id: 1
 SecurityCompanyId: 12345
 GroupId: 10
 Name: "Transportes Rápidos S.L."
+Acronym: "TRS"
 TaxId: "B12345678"
 ContactEmail: "admin@transportesrapidos.com"
 AuditCreationUser: "admin@infoportone.com"

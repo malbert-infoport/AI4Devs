@@ -7,9 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\01020001_StructureHelix.sql" />
-    <EmbeddedResource Include="Scripts\01020002_StructureInfoportOneAdmon.sql" />
-    <EmbeddedResource Include="Scripts\01020003_SecurityData.sql" />
+    <EmbeddedResource Include="Scripts\01000001_StructureHelix.sql" />
+    <EmbeddedResource Include="Scripts\01000002_SecurityData.sql" />
+    <EmbeddedResource Include="Scripts\01000003_OrganizationInfrastructure.sql" />
+    <EmbeddedResource Include="Scripts\01000004_VTA_Organization.sql" />
+    <EmbeddedResource Include="Scripts\01000005_VTA_Organization_WithCounters.sql" />
   </ItemGroup>
 
 </Project>
