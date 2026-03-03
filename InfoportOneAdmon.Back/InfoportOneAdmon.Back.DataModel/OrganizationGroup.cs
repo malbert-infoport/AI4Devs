@@ -7,39 +7,29 @@ using Helix6.Base.Domain.BaseInterfaces;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
-/// <summary>
-/// Agrupaciones lógicas de organizaciones para facilitar gestión colectiva (holdings, consorcios)
-/// </summary>
 [Table("OrganizationGroup", Schema = "Admon")]
-// [Index("AuditDeletionDate", Name = "idx_organizationgroup_auditdeletiondate")]
-// [Index("Name", Name = "uq_organizationgroup_name", IsUnique = true)]
+// [Index("GroupName", Name = "UX_OrganizationGroup_GroupName", IsUnique = true)]
 public partial class OrganizationGroup : IEntityBase
 {
     [Key]
     public int Id { get; set; }
 
-    /// <summary>
-    /// Nombre del grupo de organizaciones
-    /// </summary>
-    [Column(TypeName = "citext")]
-    public string Name { get; set; }
+    [StringLength(200)]
+    public string GroupName { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(500)]
+    public string Description { get; set; }
+
+    [StringLength(255)]
     public string AuditCreationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditCreationDate { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(255)]
     public string AuditModificationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditModificationDate { get; set; }
 
-    /// <summary>
-    /// Fecha de baja lógica (soft delete). NULL = activo
-    /// </summary>
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
 
     [InverseProperty("Group")]

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// using Microsoft.EntityFrameworkCore;
+// // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
@@ -11,9 +11,9 @@ namespace InfoportOneAdmon.Back.DataModel {
 /// Catálogo maestro de roles de cada aplicación. Garantiza coherencia en nomenclatura
 /// </summary>
 [Table("ApplicationRole", Schema = "Admon")]
-// [Index("ApplicationId", Name = "idx_applicationrole_applicationid")]
-// [Index("AuditDeletionDate", Name = "idx_applicationrole_auditdeletiondate")]
-// [Index("ApplicationId", "Name", Name = "uq_applicationrole_application_name", IsUnique = true)]
+// // [Index("ApplicationId", Name = "idx_applicationrole_applicationid")]
+// // [Index("AuditDeletionDate", Name = "idx_applicationrole_auditdeletiondate")]
+// // [Index("ApplicationId", "Name", Name = "uq_applicationrole_application_name", IsUnique = true)]
 public partial class ApplicationRole : IEntityBase
 {
     [Key]

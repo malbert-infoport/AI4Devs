@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS "Admon"."OrganizationGroup" (
     "GroupName"             VARCHAR(200)    NOT NULL,
     "Description"           VARCHAR(500),
     "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditCreationDate"     TIMESTAMPTZ,
     "AuditModificationUser" VARCHAR(255),
     "AuditModificationDate" TIMESTAMPTZ,
     "AuditDeletionDate"     TIMESTAMPTZ
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS "Admon"."Organization" (
     "ContactEmail"          VARCHAR(255),
     "ContactPhone"          VARCHAR(50),
     "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditCreationDate"     TIMESTAMPTZ,
     "AuditModificationUser" VARCHAR(255),
     "AuditModificationDate" TIMESTAMPTZ,
     "AuditDeletionDate"     TIMESTAMPTZ
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS "Admon"."Application" (
     "Description"           VARCHAR(500),
     "RolePrefix"            VARCHAR(10)     NOT NULL,
     "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditCreationDate"     TIMESTAMPTZ,
     "AuditModificationUser" VARCHAR(255),
     "AuditModificationDate" TIMESTAMPTZ,
     "AuditDeletionDate"     TIMESTAMPTZ
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS "Admon"."ApplicationModule" (
     "Description"           VARCHAR(500),
     "DisplayOrder"          INTEGER         DEFAULT 0,
     "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditCreationDate"     TIMESTAMPTZ,
     "AuditModificationUser" VARCHAR(255),
     "AuditModificationDate" TIMESTAMPTZ,
     "AuditDeletionDate"     TIMESTAMPTZ
@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS "Admon"."Organization_ApplicationModule" (
     "ApplicationModuleId"   INTEGER         NOT NULL,
     "OrganizationId"        INTEGER         NOT NULL,
     "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditCreationDate"     TIMESTAMPTZ,
     "AuditModificationUser" VARCHAR(255),
     "AuditModificationDate" TIMESTAMPTZ,
     "AuditDeletionDate"     TIMESTAMPTZ
@@ -216,7 +216,7 @@ CREATE INDEX IF NOT EXISTS "IX_OrgAppModule_OrganizationId" ON "Admon"."Organiza
 --    AuditDeletionDate no se usa (tabla no soft-deleteable).
 -- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "Admon"."AuditLog" (
-    "Id"                    BIGSERIAL       PRIMARY KEY,
+    "Id"                    SERIAL          PRIMARY KEY,
     "EntityType"            VARCHAR(50)     NOT NULL,
     "EntityId"              VARCHAR(50)     NOT NULL,
     "Action"                VARCHAR(100)    NOT NULL,
@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS "Admon"."AuditLog" (
     "Timestamp"             TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "CorrelationId"         VARCHAR(100),
     "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "AuditCreationDate"     TIMESTAMPTZ,
     "AuditModificationUser" VARCHAR(255),
     "AuditModificationDate" TIMESTAMPTZ,
     "AuditDeletionDate"     TIMESTAMPTZ

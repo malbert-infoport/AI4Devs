@@ -19,13 +19,11 @@ namespace InfoportOneAdmon.Back.Entities.Views
 	{
 		public Int32 Id { get; set; }
 
-		public Int32 ApplicationId { get; set; }
-
-		public String Name { get; set; }
-
-		public String Acronym { get; set; }
+		public String AppName { get; set; }
 
 		public String Description { get; set; }
+
+		public String RolePrefix { get; set; }
 
 		public String AuditCreationUser { get; set; }
 
@@ -38,10 +36,6 @@ namespace InfoportOneAdmon.Back.Entities.Views
 		public DateTime? AuditDeletionDate { get; set; }
 
 		public List<ApplicationModuleView> ApplicationModule { get; set; } = new List<ApplicationModuleView>();
-
-		public List<ApplicationRoleView> ApplicationRole { get; set; } = new List<ApplicationRoleView>();
-
-		public List<ApplicationSecurityView> ApplicationSecurity { get; set; } = new List<ApplicationSecurityView>();
 
 	}
 }

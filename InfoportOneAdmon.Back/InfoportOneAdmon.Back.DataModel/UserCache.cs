@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// using Microsoft.EntityFrameworkCore;
+// // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
@@ -11,9 +11,9 @@ namespace InfoportOneAdmon.Back.DataModel {
 /// Caché de usuarios consolidados multi-organización. Optimiza procesamiento del Background Worker
 /// </summary>
 [Table("UserCache", Schema = "Admon")]
-// [Index("AuditDeletionDate", Name = "idx_usercache_auditdeletiondate")]
-// [Index("LastUpdated", Name = "idx_usercache_lastupdated", AllDescending = true)]
-// [Index("Email", Name = "uq_usercache_email", IsUnique = true)]
+// // [Index("AuditDeletionDate", Name = "idx_usercache_auditdeletiondate")]
+// // [Index("LastUpdated", Name = "idx_usercache_lastupdated", AllDescending = true)]
+// // [Index("Email", Name = "uq_usercache_email", IsUnique = true)]
 public partial class UserCache : IEntityBase
 {
     /// <summary>

@@ -19,15 +19,17 @@ namespace InfoportOneAdmon.Back.Entities.Views
 	{
 		public Int32 Id { get; set; }
 
-		public String Action { get; set; }
-
 		public String EntityType { get; set; }
 
-		public Int32 EntityId { get; set; }
+		public String EntityId { get; set; }
+
+		public String Action { get; set; }
 
 		public Int32? UserId { get; set; }
 
 		public DateTime Timestamp { get; set; }
+
+		public String CorrelationId { get; set; }
 
 		public String AuditCreationUser { get; set; }
 

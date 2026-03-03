@@ -7,56 +7,40 @@ using Helix6.Base.Domain.BaseInterfaces;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
-/// <summary>
-/// Auditoría selectiva de acciones críticas en seguridad y permisos (complementa auditoría automática Helix6)
-/// </summary>
 [Table("AuditLog", Schema = "Admon")]
-// [Index("AuditDeletionDate", Name = "idx_auditlog_auditdeletiondate")]
-// [Index("EntityType", "EntityId", Name = "idx_auditlog_entitytype_entityid")]
-// [Index("Timestamp", Name = "idx_auditlog_timestamp", AllDescending = true)]
-// [Index("UserId", Name = "idx_auditlog_userid")]
+// [Index("EntityType", "EntityId", Name = "IX_AuditLog_EntityType_EntityId")]
+// [Index("Timestamp", Name = "IX_AuditLog_Timestamp", AllDescending = true)]
+// [Index("UserId", Name = "IX_AuditLog_UserId")]
 public partial class AuditLog : IEntityBase
 {
     [Key]
     public int Id { get; set; }
 
-    /// <summary>
-    /// Acción auditada: ModuleAssigned, ModuleRemoved, OrganizationDeactivatedManual, OrganizationAutoDeactivated, OrganizationReactivatedManual, GroupChanged
-    /// </summary>
-    [Column(TypeName = "citext")]
-    public string Action { get; set; }
-
-    /// <summary>
-    /// Tipo de entidad afectada: Organization, ApplicationModule, OrganizationApplicationModule
-    /// </summary>
-    [Column(TypeName = "citext")]
+    [StringLength(50)]
     public string EntityType { get; set; }
 
-    /// <summary>
-    /// ID de la entidad afectada
-    /// </summary>
-    public int EntityId { get; set; }
+    [StringLength(50)]
+    public string EntityId { get; set; }
 
-    /// <summary>
-    /// ID del usuario que ejecutó la acción (NULL si fue acción automática del sistema)
-    /// </summary>
+    [StringLength(100)]
+    public string Action { get; set; }
+
     public int? UserId { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime Timestamp { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(100)]
+    public string CorrelationId { get; set; }
+
+    [StringLength(255)]
     public string AuditCreationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditCreationDate { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(255)]
     public string AuditModificationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditModificationDate { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
 }}

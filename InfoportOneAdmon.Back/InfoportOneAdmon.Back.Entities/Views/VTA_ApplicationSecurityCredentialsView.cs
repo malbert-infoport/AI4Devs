@@ -14,12 +14,22 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(OrganizationGroupViewMetadata))]
-	public partial class OrganizationGroupView : IViewBase
+	[MetadataType(typeof(VTA_ApplicationSecurityCredentialsViewMetadata))]
+	public partial class VTA_ApplicationSecurityCredentialsView : IViewBase
 	{
 		public Int32 Id { get; set; }
 
-		public String GroupName { get; set; }
+		public Int32? ApplicationId { get; set; }
+
+		public Int32? AppBusinessId { get; set; }
+
+		public String ApplicationName { get; set; }
+
+		public String ClientId { get; set; }
+
+		public String ClientType { get; set; }
+
+		public String CredentialType { get; set; }
 
 		public String Description { get; set; }
 
@@ -32,8 +42,6 @@ namespace InfoportOneAdmon.Back.Entities.Views
 		public DateTime? AuditModificationDate { get; set; }
 
 		public DateTime? AuditDeletionDate { get; set; }
-
-		public List<OrganizationView> Organization { get; set; } = new List<OrganizationView>();
 
 	}
 }

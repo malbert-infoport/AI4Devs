@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "../../Git/Helix6/Helix6Generator/Helix6.Generator"
+		},
+		{
+			"path": "../../Git/Helix6/Helix6Base"
 		}
 	],
 	"settings": {}

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// using Microsoft.EntityFrameworkCore;
+// // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
-// [Keyless]
+// // [Keyless]
 public partial class VTA_ApplicationSecurityCredentials : IEntityBase
 {
     public int Id { get; set; }

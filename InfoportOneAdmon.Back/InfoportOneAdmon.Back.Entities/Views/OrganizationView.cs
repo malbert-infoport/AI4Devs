@@ -21,6 +21,8 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public Int32 SecurityCompanyId { get; set; }
 
+		public Int32? GroupId { get; set; }
+
 		public String Name { get; set; }
 
 		public String Acronym { get; set; }
@@ -31,13 +33,13 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public String City { get; set; }
 
+		public String PostalCode { get; set; }
+
 		public String Country { get; set; }
 
 		public String ContactEmail { get; set; }
 
 		public String ContactPhone { get; set; }
-
-		public Int32? GroupId { get; set; }
 
 		public String AuditCreationUser { get; set; }
 
@@ -51,7 +53,7 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public OrganizationGroupView Group { get; set; }
 
-		public List<OrganizationApplicationModuleView> OrganizationApplicationModule { get; set; } = new List<OrganizationApplicationModuleView>();
+		public List<Organization_ApplicationModuleView> Organization_ApplicationModule { get; set; } = new List<Organization_ApplicationModuleView>();
 
 	}
 }

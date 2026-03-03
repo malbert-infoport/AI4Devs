@@ -3,55 +3,65 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // using Microsoft.EntityFrameworkCore;
+// using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
-// // [Keyless]
-public partial class VTA_ActiveOrganizations : IEntityBase
+// [Keyless]
+public partial class VTA_Organization : IEntityBase
 {
     public int Id { get; set; }
 
     public int? SecurityCompanyId { get; set; }
 
-    [Column(TypeName = "citext")]
-    public string Name { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string Acronym { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string TaxId { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string Address { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string City { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string Country { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string ContactEmail { get; set; }
-
-    [Column(TypeName = "citext")]
-    public string ContactPhone { get; set; }
-
     public int? GroupId { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(200)]
+    public string Name { get; set; }
+
+    [StringLength(50)]
+    public string Acronym { get; set; }
+
+    [StringLength(50)]
+    public string TaxId { get; set; }
+
+    [StringLength(300)]
+    public string Address { get; set; }
+
+    [StringLength(100)]
+    public string City { get; set; }
+
+    [StringLength(20)]
+    public string PostalCode { get; set; }
+
+    [StringLength(100)]
+    public string Country { get; set; }
+
+    [StringLength(255)]
+    public string ContactEmail { get; set; }
+
+    [StringLength(50)]
+    public string ContactPhone { get; set; }
+
+    [StringLength(255)]
     public string AuditCreationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditCreationDate { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(255)]
     public string AuditModificationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditModificationDate { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
+
+    /// <summary>
+    /// Número de módulos activos (AuditDeletionDate IS NULL) asignados a la organización.
+    /// </summary>
+    public int? ModuleCount { get; set; }
+
+    /// <summary>
+    /// Número de aplicaciones activas distintas cuyos módulos están asignados a la organización.
+    /// </summary>
+    public int? AppCount { get; set; }
 }}

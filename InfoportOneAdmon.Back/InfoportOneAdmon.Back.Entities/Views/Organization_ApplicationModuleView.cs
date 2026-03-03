@@ -14,14 +14,14 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(OrganizationGroupViewMetadata))]
-	public partial class OrganizationGroupView : IViewBase
+	[MetadataType(typeof(Organization_ApplicationModuleViewMetadata))]
+	public partial class Organization_ApplicationModuleView : IViewBase
 	{
 		public Int32 Id { get; set; }
 
-		public String GroupName { get; set; }
+		public Int32 ApplicationModuleId { get; set; }
 
-		public String Description { get; set; }
+		public Int32 OrganizationId { get; set; }
 
 		public String AuditCreationUser { get; set; }
 
@@ -33,7 +33,9 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public DateTime? AuditDeletionDate { get; set; }
 
-		public List<OrganizationView> Organization { get; set; } = new List<OrganizationView>();
+		public ApplicationModuleView ApplicationModule { get; set; }
+
+		public OrganizationView Organization { get; set; }
 
 	}
 }

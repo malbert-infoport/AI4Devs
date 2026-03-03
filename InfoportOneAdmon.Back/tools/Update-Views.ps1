@@ -169,8 +169,7 @@ function Get-EntityFiles {
     
     $entityFiles = Get-ChildItem -Path $DataModelDir -Filter "*.cs" | Where-Object {
         $_.Name -ne "AssemblyInfo.cs" -and 
-        $_.DirectoryName -notmatch '\\Base\\|\\bin\\|\\obj\\' -and
-        $_.Name -notmatch '^VTA_|^VT_'
+        $_.DirectoryName -notmatch '\\Base\\|\\bin\\|\\obj\\'
     }
     
     Write-Host "`nEntidades encontradas: $($entityFiles.Count)" -ForegroundColor $script:InfoColor

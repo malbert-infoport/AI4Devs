@@ -21,9 +21,11 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public Int32 ApplicationId { get; set; }
 
-		public String Name { get; set; }
+		public String ModuleName { get; set; }
 
 		public String Description { get; set; }
+
+		public Int32? DisplayOrder { get; set; }
 
 		public String AuditCreationUser { get; set; }
 
@@ -37,7 +39,7 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public ApplicationView Application { get; set; }
 
-		public List<OrganizationApplicationModuleView> OrganizationApplicationModule { get; set; } = new List<OrganizationApplicationModuleView>();
+		public List<Organization_ApplicationModuleView> Organization_ApplicationModule { get; set; } = new List<Organization_ApplicationModuleView>();
 
 	}
 }

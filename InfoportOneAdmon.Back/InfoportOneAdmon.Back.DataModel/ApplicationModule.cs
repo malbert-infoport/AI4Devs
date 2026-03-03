@@ -7,13 +7,9 @@ using Helix6.Base.Domain.BaseInterfaces;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
-/// <summary>
-/// Módulos funcionales de aplicaciones. Permiten ventas granulares por funcionalidad
-/// </summary>
 [Table("ApplicationModule", Schema = "Admon")]
-// [Index("ApplicationId", Name = "idx_applicationmodule_applicationid")]
-// [Index("AuditDeletionDate", Name = "idx_applicationmodule_auditdeletiondate")]
-// [Index("ApplicationId", "Name", Name = "uq_applicationmodule_application_name", IsUnique = true)]
+// [Index("ApplicationId", Name = "IX_ApplicationModule_ApplicationId")]
+// [Index("ApplicationId", "ModuleName", Name = "UX_ApplicationModule_AppId_ModuleName", IsUnique = true)]
 public partial class ApplicationModule : IEntityBase
 {
     [Key]
@@ -21,31 +17,24 @@ public partial class ApplicationModule : IEntityBase
 
     public int ApplicationId { get; set; }
 
-    /// <summary>
-    /// Nombre del módulo siguiendo nomenclatura: M + Acronym + _ + nombre funcional
-    /// </summary>
-    [Column(TypeName = "citext")]
-    public string Name { get; set; }
+    [StringLength(100)]
+    public string ModuleName { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(500)]
     public string Description { get; set; }
 
-    [Column(TypeName = "citext")]
+    public int? DisplayOrder { get; set; }
+
+    [StringLength(255)]
     public string AuditCreationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditCreationDate { get; set; }
 
-    [Column(TypeName = "citext")]
+    [StringLength(255)]
     public string AuditModificationUser { get; set; }
 
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditModificationDate { get; set; }
 
-    /// <summary>
-    /// Fecha de baja lógica del módulo
-    /// </summary>
-    [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
 
     [ForeignKey("ApplicationId")]
@@ -53,5 +42,5 @@ public partial class ApplicationModule : IEntityBase
     public virtual Application Application { get; set; }
 
     [InverseProperty("ApplicationModule")]
-    public virtual ICollection<OrganizationApplicationModule> OrganizationApplicationModule { get; } = new List<OrganizationApplicationModule>();
+    public virtual ICollection<Organization_ApplicationModule> Organization_ApplicationModule { get; } = new List<Organization_ApplicationModule>();
 }}
