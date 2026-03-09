@@ -47,8 +47,25 @@ export class AuthenticationService {
 
   private token = 'token';
   private $refresh = new BehaviorSubject('token');
+  private initPromise?: Promise<void>;
+
+  private ensureInitialized(): Promise<void> {
+    if (this.userManager) {
+      return Promise.resolve();
+    }
+
+    return this.init();
+  }
 
   init(): Promise<void> {
+    if (this.userManager) {
+      return Promise.resolve();
+    }
+
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
     /**
      * Usamos el servicio EnvConfigurationService, que lee del archivo de configuración
      * config.json (src\assets\config\config.json), esto se hace para el tema del despliegue
@@ -72,7 +89,8 @@ export class AuthenticationService {
       }
     });
 
-    return this.loadUser();
+    this.initPromise = this.loadUser();
+    return this.initPromise;
   }
 
   private loadUser(): Promise<void> {
@@ -93,37 +111,43 @@ export class AuthenticationService {
 
   /** OIDC-CLIENT-TS  */
   logout(): Promise<void> {
-    return this.userManager.signoutRedirect();
+    return this.ensureInitialized().then(() => this.userManager.signoutRedirect());
   }
 
   completeLogout() {
-    this.user = null;
-    this.loginChangedSubject.next(false);
-    return this.userManager.signoutRedirectCallback();
+    return this.ensureInitialized().then(() => {
+      this.user = null;
+      this.loginChangedSubject.next(false);
+      return this.userManager.signoutRedirectCallback();
+    });
   }
 
   login(): Promise<void> {
-    return this.userManager.signinRedirect();
+    return this.ensureInitialized().then(() => this.userManager.signinRedirect());
   }
 
   completeLogin() {
-    return this.userManager.signinRedirectCallback().then((user) => {
-      this.user = user;
-      this.addUserLoaded();
-      this.setUser(user, true);
+    return this.ensureInitialized().then(() =>
+      this.userManager.signinRedirectCallback().then((user) => {
+        this.user = user;
+        this.addUserLoaded();
+        this.setUser(user, true);
 
-      // emite true o false, dependiendo si el usuario está logueado o no
-      this.loginChangedSubject.next(!!user && !user.expired);
-      return user;
-    });
+        // emite true o false, dependiendo si el usuario está logueado o no
+        this.loginChangedSubject.next(!!user && !user.expired);
+        return user;
+      })
+    );
   }
 
   isLoggedIn(): Promise<boolean> {
-    return this.userManager.getUser().then((user) => {
-      const userCurrent = !!user && !user.expired;
-      this.user = user;
-      return userCurrent;
-    });
+    return this.ensureInitialized().then(() =>
+      this.userManager.getUser().then((user) => {
+        const userCurrent = !!user && !user.expired;
+        this.user = user;
+        return userCurrent;
+      })
+    );
   }
 
   getUserName(): string | null | undefined {
@@ -138,7 +162,7 @@ export class AuthenticationService {
   }
 
   refreshToken(): Promise<any> {
-    return this.userManager.signinSilent().then(() => this.loadUser());
+    return this.ensureInitialized().then(() => this.userManager.signinSilent().then(() => this.loadUser()));
   }
 
   /** ADAPTACIÓN CADUCIDAD TOKEN : USADO EN (OidcInterceptorService) */
@@ -226,7 +250,13 @@ export class AuthenticationService {
   localStoragePermissions(permissions: AuthApplication[], language: string) {
     // OBTENEMOS LOS PERMISOS DEL API
     // GetPermissions
-    const permission = permissions[0];
+    console.log('[AuthService] GetPermissions response:', permissions);
+    // Buscar los permisos de la aplicación actual; si no existe, usar el primero
+    const permission = Array.isArray(permissions)
+      ? permissions.find((p: any) => p.application === appName) || permissions[0]
+      : permissions[0];
+
+    console.log('[AuthService] Selected permission for appName=', appName, permission);
 
     // OBTENEMOS LOS PERMISOS ALMACENADOS EN EL LOCALSTORAGE
     const localStoragePermissions: AuthApplication[] = localStorage.getItem('permissions')
@@ -252,13 +282,33 @@ export class AuthenticationService {
     this.removeLocalStorageValues();
     this.setLocalStorageValues(localStoragePermissions, language);
 
-    // EMITIMOS EL OBSERVABLE
-    this.allPermissionsSubject.next(localStoragePermissions);
+    // EMITIMOS EL OBSERVABLE solo si ha cambiado para evitar emisiones repetidas
+    const current = this.allPermissionsSubject.value;
+    try {
+      if (JSON.stringify(current) !== JSON.stringify(localStoragePermissions)) {
+        this.allPermissionsSubject.next(localStoragePermissions);
+      } else {
+        console.log('[AuthService] Permissions unchanged, skipping emit');
+      }
+    } catch (e) {
+      // en caso de algún problema con stringify, emitir para no bloquear la app
+      this.allPermissionsSubject.next(localStoragePermissions);
+    }
   }
 
   hasPermissions(permissions: Array<Application>, acceso: Access) {
-    const findPermissions = permissions.find((item) => item.application === appName);
-    const hasPermission = findPermissions ? findPermissions.permissions.includes(acceso) : false;
+    // Buscar coincidencia exacta por application, si no, intentar case-insensitive, si no, fallback al primero
+    let findPermissions = permissions.find((item) => item.application === appName);
+    if (!findPermissions) {
+      findPermissions = permissions.find((item) =>
+        item.application && item.application.toString().toLowerCase() === (appName || '').toLowerCase()
+      );
+    }
+    if (!findPermissions && permissions.length > 0) {
+      findPermissions = permissions[0];
+    }
+    // Avoid noisy console logs here to prevent repeated spam during change-detection.
+    const hasPermission = findPermissions ? (findPermissions.permissions || []).includes(acceso as unknown as number) : false;
     return hasPermission;
   }
 

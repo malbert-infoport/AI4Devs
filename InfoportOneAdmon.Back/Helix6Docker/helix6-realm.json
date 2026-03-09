@@ -607,13 +607,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/Helix6/account/",
+      "baseUrl": "/realms/Sintraport/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/Helix6/account/*"
+        "/realms/Sintraport/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -648,13 +648,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/Helix6/account/",
+      "baseUrl": "/realms/Sintraport/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/Helix6/account/*"
+        "/realms/Sintraport/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,

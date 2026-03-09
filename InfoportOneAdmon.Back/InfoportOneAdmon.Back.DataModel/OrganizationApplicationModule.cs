@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // using Microsoft.EntityFrameworkCore;
+// // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
@@ -11,10 +11,10 @@ namespace InfoportOneAdmon.Back.DataModel {
 /// Permisos de acceso a módulos por organización. Habilita ventas granulares por funcionalidad
 /// </summary>
 [Table("OrganizationApplicationModule", Schema = "Admon")]
-// // [Index("ApplicationModuleId", Name = "idx_orgappmodule_ApplicationModuleId")]
-// // [Index("AuditDeletionDate", Name = "idx_orgappmodule_auditdeletiondate")]
-// // [Index("OrganizationId", Name = "idx_orgappmodule_organizationid")]
-// // [Index("OrganizationId", "ApplicationModuleId", Name = "uq_orgappmodule_org_module", IsUnique = true)]
+// // // [Index("ApplicationModuleId", Name = "idx_orgappmodule_ApplicationModuleId")]
+// // // [Index("AuditDeletionDate", Name = "idx_orgappmodule_auditdeletiondate")]
+// // // [Index("OrganizationId", Name = "idx_orgappmodule_organizationid")]
+// // // [Index("OrganizationId", "ApplicationModuleId", Name = "uq_orgappmodule_org_module", IsUnique = true)]
 public partial class OrganizationApplicationModule : IEntityBase
 {
     [Key]

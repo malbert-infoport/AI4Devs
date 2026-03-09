@@ -1,0 +1,4904 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "InfoportOneAdmon.Back.Api",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/Attachment/GetAttachmentContent": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Obtiene el contenido de un fichero adjunto en Base64 en base al identificador del adjunto.",
+        "parameters": [
+          {
+            "name": "attachmentId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/GetNewEntity": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.",
+        "description": "<H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/GetNewEntity</b> Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.<br>",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/GetById": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Obtiene una entidad en base a su identificador esté o no de baja lógica.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/GetById?id={identificador}</b> Obtiene una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/Attachment/GetById?id={identificador}&configurationName={configuration}</b> Obtiene una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/GetByIds": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Obtiene una lista de entidades en base a sus identificadores estén o no de baja lógica.",
+        "description": "<H3>Parametros:</H3><br><li>Ids: Lista de identificadores de las entidades a buscar<br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/GetByIds?ids={identificador1}&ids={identificador2}</b> Obtiene una lista de entidades a partir de sus identificadores con su configuración de carga por defecto.<br><li><b>/api/Attachment/GetByIds?ids={identificador1}&ids={identificador2}&configurationName={configuration}</b> Obtiene una lista de entidades a partir de sus identificadores para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentView"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/Insert": {
+      "post": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Inserta una nueva entidad. Devuelve la entidad insertada actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a insertar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez insertada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/Insert</b> Inserta una entidad con su configuración de carga por defecto.<br><li><b>/api/Attachment/Insert?configurationName={configuration}</b> Inserta una entidad con una configuración de carga específica.<br><li><b>/api/Attachment/Insert?reloadView=true</b> Inserta una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/Attachment/Insert?configurationName={configuration}&reloadView=true</b> Inserta una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/InsertMany": {
+      "post": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Inserta una lista de entidades. Devuelve la lista de entidades insertadas actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>ViewList: Lista de entidades a insertar. Esta lista se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto para cada entidad.<br><li>ReloadView: Indica si una vez insertada cada entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/InsertMany</b> Inserta una lista de entidades con su configuración de carga por defecto.<br><li><b>/api/Attachment/InsertMany?configurationName={configuration}</b> Inserta una lista de entidades con una configuración de carga específica.<br><li><b>/api/Attachment/InsertMany?reloadView=true</b> Inserta una lista de entidades con su configuración de carga por defecto y recarga cada entidad.<br><li><b>/api/Attachment/InsertMany?configurationName={configuration}&reloadView=true</b> Inserta una lista de entidades con una configuración de carga específica y recarga cada entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentView"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/Update": {
+      "put": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Actualiza una entidad. Devuelve la entidad actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a actualizar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez actualizada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/Update</b> Actualiza una entidad con su configuración de carga por defecto.<br><li><b>/api/Attachment/Update?configurationName={configuration}</b> Actualiza una entidad con una configuración de carga específica.<br><li><b>/api/Attachment/Update?reloadView=true</b> Actualiza una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/Attachment/Update?configurationName={configuration}&reloadView=true</b> Actualiza una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/UpdateMany": {
+      "put": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Actualiza una lista de entidades. Devuelve la lista de entidades actualizadas.",
+        "description": "<H3>Parametros:</H3><br><li>ViewList: Lista de entidades a actualizar. Esta lista se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto para cada entidad.<br><li>ReloadView: Indica si una vez actualizada cada entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/UpdateMany</b> Actualiza una lista de entidades con su configuración de carga por defecto.<br><li><b>/api/Attachment/UpdateMany?configurationName={configuration}</b> Actualiza una lista de entidades con una configuración de carga específica.<br><li><b>/api/Attachment/UpdateMany?reloadView=true</b> Actualiza una lista de entidades con su configuración de carga por defecto y recarga cada entidad.<br><li><b>/api/Attachment/UpdateMany?configurationName={configuration}&reloadView=true</b> Actualiza una lista de entidades con una configuración de carga específica y recarga cada entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AttachmentView"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentView"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/DeleteById": {
+      "delete": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Elimina una entidad en base a su identificador esté o no de baja lógica. Devuelve un booleano indicando si la actualización se ha realizado correctamente.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/DeleteById?id={identificador}</b> Elimina una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/Attachment/DeleteById?id={identificador}&configurationName={configuration}</b> Elimina una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/DeleteByIds": {
+      "delete": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Elimina una lista de entidades en base a sus identificadores estén o no de baja lógica. Devuelve el número de elementos eliminados.",
+        "description": "<H3>Parametros:</H3><br><li>Ids: Lista de identificadores de las entidades a eliminar<br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/DeleteByIds?ids={identificador1}&ids={identificador2}</b> Elimina una lista de entidades a partir de sus identificadores con su configuración de carga por defecto.<br><li><b>/api/Attachment/DeleteByIds?ids={identificador1}&ids={identificador2}&configurationName={configuration}</b> Elimina una lista de entidades a partir de sus identificadores para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/DeleteUndeleteLogicById": {
+      "delete": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Da de baja lógica o de alta una entidad en base a su identificador. Devuelve un booleano indicando si la baja lógica o el alta se ha realizado correctamente.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/DeleteUndeleteLogicById?id={identificador}</b> Da de baja o de alta una entidad en base a su identificador.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Attachment/DeleteUndeleteLogicByIds": {
+      "delete": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Da de baja lógica o de alta una lista de entidades en base a sus identificadores. Devuelve el número de elementos actualizados.",
+        "description": "<H3>Parametros:</H3><br><li>Ids: Lista de identificadores de las entidades a eliminar<br><H3>Ejemplos:</H3><br><br><li><b>/api/Attachment/DeleteUndeleteLogicByIds?ids={identificador1}&ids={identificador2}</b> Elimina una lista de entidades a partir de sus identificadores con su configuración de carga por defecto.",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/Update": {
+      "put": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Actualiza una entidad. Devuelve la entidad actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a actualizar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez actualizada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/AttachmentType/Update</b> Actualiza una entidad con su configuración de carga por defecto.<br><li><b>/api/AttachmentType/Update?configurationName={configuration}</b> Actualiza una entidad con una configuración de carga específica.<br><li><b>/api/AttachmentType/Update?reloadView=true</b> Actualiza una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/AttachmentType/Update?configurationName={configuration}&reloadView=true</b> Actualiza una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentTypeView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentTypeView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/DeleteById": {
+      "delete": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Elimina una entidad en base a su identificador esté o no de baja lógica. Devuelve un booleano indicando si la actualización se ha realizado correctamente.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/AttachmentType/DeleteById?id={identificador}</b> Elimina una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/AttachmentType/DeleteById?id={identificador}&configurationName={configuration}</b> Elimina una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/Insert": {
+      "post": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Inserta una nueva entidad. Devuelve la entidad insertada actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a insertar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez insertada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/AttachmentType/Insert</b> Inserta una entidad con su configuración de carga por defecto.<br><li><b>/api/AttachmentType/Insert?configurationName={configuration}</b> Inserta una entidad con una configuración de carga específica.<br><li><b>/api/AttachmentType/Insert?reloadView=true</b> Inserta una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/AttachmentType/Insert?configurationName={configuration}&reloadView=true</b> Inserta una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentTypeView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentTypeView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/GetAllKendoFilter": {
+      "put": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Obtiene la lista de todas las entidades aplicando un filtro complejo proporcionado por la grid de Kendo Telerik.",
+        "description": "<H3>Parametros:</H3><br><li>KendoGridFilter: Objeto de filtrado generado por la grid de Kendo Telerik. Este parámetro se recibe en el request payload.<br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br> <li>IncludeDeleted: Incluye o no los elementos de baja lógica. Si no se indica toma el valor false.<br><br><H3>Ejemplos:</H3><br><li><b>/api/AttachmentType/GetAllKendoFilter</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto sin incluir las entidades de baja.<br><li><b>/api/AttachmentType/GetAllKendoFilter?configurationName={configuration}</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta sin incluir las entidades de baja.<br><li><b>/api/AttachmentType/GetAllKendoFilter?includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto incluyendo las entidades de baja.<br><li><b>/api/AttachmentType/GetAllKendoFilter?configurationName={configuration}&includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta incluyendo las entidades de baja.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KendoGridFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagingResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/GetNewEntity": {
+      "get": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.",
+        "description": "<H3>Ejemplos:</H3><br><br><li><b>/api/AttachmentType/GetNewEntity</b> Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.<br>",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentTypeView"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/GetById": {
+      "get": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Obtiene una entidad en base a su identificador esté o no de baja lógica.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/AttachmentType/GetById?id={identificador}</b> Obtiene una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/AttachmentType/GetById?id={identificador}&configurationName={configuration}</b> Obtiene una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentTypeView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AttachmentType/GetAll": {
+      "get": {
+        "tags": [
+          "AttachmentType"
+        ],
+        "summary": "Obtiene la lista de todas las entidades.",
+        "description": "<H3>Parametros:</H3><br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>IncludeDeleted: Incluye o no los elementos de baja lógica. Si no se indica toma el valor false.<br><br><H3>Ejemplos:</H3><br><li><b>/api/AttachmentType/GetAll</b> Obtiene la lista de todas las entidades con su configuración de carga por defecto sin incluir las entidades de baja.<br><li><b>/api/AttachmentType/GetAll?configurationName={configuration}</b> Obtiene la lista de todas las entidades para una configuración de carga concreta sin incluir las entidades de baja.<br><li><b>/api/AttachmentType/GetAll?includeDeleted=true</b> Obtiene la lista de todas las entidades con su configuración de carga por defecto incluyendo las entidades de baja.<br><li><b>/api/AttachmentType/GetAll?configurationName={configuration}&includeDeleted=true</b> Obtiene la lista de todas las entidades para una configuración de carga concreta incluyendo las entidades de baja.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentTypeView"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Security/GetPermissions": {
+      "get": {
+        "tags": [
+          "Security"
+        ],
+        "summary": "Obtiene los permisos para autorizar al usuario.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserContext"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Security/CleanCache": {
+      "delete": {
+        "tags": [
+          "Security"
+        ],
+        "summary": "Elimina la cache de los ReferenceTokens activos y los permisos de usuario.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/SecurityCompany/GetById": {
+      "get": {
+        "tags": [
+          "SecurityCompany"
+        ],
+        "summary": "Obtiene una entidad en base a su identificador esté o no de baja lógica.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityCompany/GetById?id={identificador}</b> Obtiene una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/SecurityCompany/GetById?id={identificador}&configurationName={configuration}</b> Obtiene una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityCompanyView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityCompany/Update": {
+      "put": {
+        "tags": [
+          "SecurityCompany"
+        ],
+        "summary": "Actualiza una entidad. Devuelve la entidad actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a actualizar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez actualizada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityCompany/Update</b> Actualiza una entidad con su configuración de carga por defecto.<br><li><b>/api/SecurityCompany/Update?configurationName={configuration}</b> Actualiza una entidad con una configuración de carga específica.<br><li><b>/api/SecurityCompany/Update?reloadView=true</b> Actualiza una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/SecurityCompany/Update?configurationName={configuration}&reloadView=true</b> Actualiza una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityCompanyView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityCompanyView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityProfile/GetAllKendoFilter": {
+      "put": {
+        "tags": [
+          "SecurityProfile"
+        ],
+        "summary": "Obtiene la lista de todas las entidades aplicando un filtro complejo proporcionado por la grid de Kendo Telerik.",
+        "description": "<H3>Parametros:</H3><br><li>KendoGridFilter: Objeto de filtrado generado por la grid de Kendo Telerik. Este parámetro se recibe en el request payload.<br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br> <li>IncludeDeleted: Incluye o no los elementos de baja lógica. Si no se indica toma el valor false.<br><br><H3>Ejemplos:</H3><br><li><b>/api/SecurityProfile/GetAllKendoFilter</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto sin incluir las entidades de baja.<br><li><b>/api/SecurityProfile/GetAllKendoFilter?configurationName={configuration}</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta sin incluir las entidades de baja.<br><li><b>/api/SecurityProfile/GetAllKendoFilter?includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto incluyendo las entidades de baja.<br><li><b>/api/SecurityProfile/GetAllKendoFilter?configurationName={configuration}&includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta incluyendo las entidades de baja.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KendoGridFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagingResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityProfile/GetById": {
+      "get": {
+        "tags": [
+          "SecurityProfile"
+        ],
+        "summary": "Obtiene una entidad en base a su identificador esté o no de baja lógica.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityProfile/GetById?id={identificador}</b> Obtiene una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/SecurityProfile/GetById?id={identificador}&configurationName={configuration}</b> Obtiene una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityProfileView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityProfile/GetNewEntity": {
+      "get": {
+        "tags": [
+          "SecurityProfile"
+        ],
+        "summary": "Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.",
+        "description": "<H3>Ejemplos:</H3><br><br><li><b>/api/SecurityProfile/GetNewEntity</b> Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.<br>",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityProfileView"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityProfile/Insert": {
+      "post": {
+        "tags": [
+          "SecurityProfile"
+        ],
+        "summary": "Inserta una nueva entidad. Devuelve la entidad insertada actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a insertar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez insertada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityProfile/Insert</b> Inserta una entidad con su configuración de carga por defecto.<br><li><b>/api/SecurityProfile/Insert?configurationName={configuration}</b> Inserta una entidad con una configuración de carga específica.<br><li><b>/api/SecurityProfile/Insert?reloadView=true</b> Inserta una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/SecurityProfile/Insert?configurationName={configuration}&reloadView=true</b> Inserta una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityProfileView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityProfileView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityProfile/Update": {
+      "put": {
+        "tags": [
+          "SecurityProfile"
+        ],
+        "summary": "Actualiza una entidad. Devuelve la entidad actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a actualizar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez actualizada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityProfile/Update</b> Actualiza una entidad con su configuración de carga por defecto.<br><li><b>/api/SecurityProfile/Update?configurationName={configuration}</b> Actualiza una entidad con una configuración de carga específica.<br><li><b>/api/SecurityProfile/Update?reloadView=true</b> Actualiza una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/SecurityProfile/Update?configurationName={configuration}&reloadView=true</b> Actualiza una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityProfileView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityProfileView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityProfile/DeleteById": {
+      "delete": {
+        "tags": [
+          "SecurityProfile"
+        ],
+        "summary": "Elimina una entidad en base a su identificador esté o no de baja lógica. Devuelve un booleano indicando si la actualización se ha realizado correctamente.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityProfile/DeleteById?id={identificador}</b> Elimina una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/SecurityProfile/DeleteById?id={identificador}&configurationName={configuration}</b> Elimina una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserConfiguration/Update": {
+      "put": {
+        "tags": [
+          "SecurityUserConfiguration"
+        ],
+        "summary": "Actualiza una entidad. Devuelve la entidad actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a actualizar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez actualizada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityUserConfiguration/Update</b> Actualiza una entidad con su configuración de carga por defecto.<br><li><b>/api/SecurityUserConfiguration/Update?configurationName={configuration}</b> Actualiza una entidad con una configuración de carga específica.<br><li><b>/api/SecurityUserConfiguration/Update?reloadView=true</b> Actualiza una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/SecurityUserConfiguration/Update?configurationName={configuration}&reloadView=true</b> Actualiza una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityUserConfigurationView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityUserConfigurationView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserConfiguration/GetUserConfiguration": {
+      "get": {
+        "tags": [
+          "SecurityUserConfiguration"
+        ],
+        "summary": "Obtiene la configuración del usuario.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityUserConfigurationView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserGridConfiguration/GetNewEntity": {
+      "get": {
+        "tags": [
+          "SecurityUserGridConfiguration"
+        ],
+        "summary": "Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.",
+        "description": "<H3>Ejemplos:</H3><br><br><li><b>/api/SecurityUserGridConfiguration/GetNewEntity</b> Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.<br>",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserGridConfiguration/Insert": {
+      "post": {
+        "tags": [
+          "SecurityUserGridConfiguration"
+        ],
+        "summary": "Inserta una nueva entidad. Devuelve la entidad insertada actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a insertar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez insertada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityUserGridConfiguration/Insert</b> Inserta una entidad con su configuración de carga por defecto.<br><li><b>/api/SecurityUserGridConfiguration/Insert?configurationName={configuration}</b> Inserta una entidad con una configuración de carga específica.<br><li><b>/api/SecurityUserGridConfiguration/Insert?reloadView=true</b> Inserta una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/SecurityUserGridConfiguration/Insert?configurationName={configuration}&reloadView=true</b> Inserta una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserGridConfiguration/Update": {
+      "put": {
+        "tags": [
+          "SecurityUserGridConfiguration"
+        ],
+        "summary": "Actualiza una entidad. Devuelve la entidad actualizada.",
+        "description": "<H3>Parametros:</H3><br><li>View: Entidad a actualizar. Esta se recibe en el request payload.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>ReloadView: Indica si una vez actualizada la entidad esta debe recargarse. Esto se utiliza para actualizar todos los ids de entidades relacionadas si se utilizan configuraciones de carga.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityUserGridConfiguration/Update</b> Actualiza una entidad con su configuración de carga por defecto.<br><li><b>/api/SecurityUserGridConfiguration/Update?configurationName={configuration}</b> Actualiza una entidad con una configuración de carga específica.<br><li><b>/api/SecurityUserGridConfiguration/Update?reloadView=true</b> Actualiza una entidad con su configuración de carga por defecto y recarga la entidad.<br><li><b>/api/SecurityUserGridConfiguration/Update?configurationName={configuration}&reloadView=true</b> Actualiza una entidad con una configuración de carga específica y recarga la entidad.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reloadView",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserGridConfiguration/DeleteById": {
+      "delete": {
+        "tags": [
+          "SecurityUserGridConfiguration"
+        ],
+        "summary": "Elimina una entidad en base a su identificador esté o no de baja lógica. Devuelve un booleano indicando si la actualización se ha realizado correctamente.",
+        "description": "<H3>Parametros:</H3><br><li>Id: Identificador de la entidad.<br> <li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><br><H3>Ejemplos:</H3><br><br><li><b>/api/SecurityUserGridConfiguration/DeleteById?id={identificador}</b> Elimina una entidad a partir de su identificador con su configuración de carga por defecto.<br><li><b>/api/SecurityUserGridConfiguration/DeleteById?id={identificador}&configurationName={configuration}</b> Elimina una entidad a partir de su identificador para una configuración de carga concreta.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityUserGridConfiguration/GetUserGridConfigurations": {
+      "get": {
+        "tags": [
+          "SecurityUserGridConfiguration"
+        ],
+        "summary": "Obtiene la lista de configuraciones de grid para una entidad del usuario.",
+        "parameters": [
+          {
+            "name": "entityName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SecurityVersion/GetAll": {
+      "get": {
+        "tags": [
+          "SecurityVersion"
+        ],
+        "summary": "Obtiene la lista de todas las entidades.",
+        "description": "<H3>Parametros:</H3><br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br><li>IncludeDeleted: Incluye o no los elementos de baja lógica. Si no se indica toma el valor false.<br><br><H3>Ejemplos:</H3><br><li><b>/api/SecurityVersion/GetAll</b> Obtiene la lista de todas las entidades con su configuración de carga por defecto sin incluir las entidades de baja.<br><li><b>/api/SecurityVersion/GetAll?configurationName={configuration}</b> Obtiene la lista de todas las entidades para una configuración de carga concreta sin incluir las entidades de baja.<br><li><b>/api/SecurityVersion/GetAll?includeDeleted=true</b> Obtiene la lista de todas las entidades con su configuración de carga por defecto incluyendo las entidades de baja.<br><li><b>/api/SecurityVersion/GetAll?configurationName={configuration}&includeDeleted=true</b> Obtiene la lista de todas las entidades para una configuración de carga concreta incluyendo las entidades de baja.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SecurityVersionView"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/VTA_Attachment/GetAllKendoFilter": {
+      "put": {
+        "tags": [
+          "VTA_Attachment"
+        ],
+        "summary": "Obtiene la lista de todas las entidades aplicando un filtro complejo proporcionado por la grid de Kendo Telerik.",
+        "description": "<H3>Parametros:</H3><br><li>KendoGridFilter: Objeto de filtrado generado por la grid de Kendo Telerik. Este parámetro se recibe en el request payload.<br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br> <li>IncludeDeleted: Incluye o no los elementos de baja lógica. Si no se indica toma el valor false.<br><br><H3>Ejemplos:</H3><br><li><b>/api/VTA_Attachment/GetAllKendoFilter</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto sin incluir las entidades de baja.<br><li><b>/api/VTA_Attachment/GetAllKendoFilter?configurationName={configuration}</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta sin incluir las entidades de baja.<br><li><b>/api/VTA_Attachment/GetAllKendoFilter?includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto incluyendo las entidades de baja.<br><li><b>/api/VTA_Attachment/GetAllKendoFilter?configurationName={configuration}&includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta incluyendo las entidades de baja.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KendoGridFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagingResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/VTA_Organization/GetAllKendoFilter": {
+      "put": {
+        "tags": [
+          "VTA_Organization"
+        ],
+        "summary": "Obtiene la lista de todas las entidades aplicando un filtro complejo proporcionado por la grid de Kendo Telerik.",
+        "description": "<H3>Parametros:</H3><br><li>KendoGridFilter: Objeto de filtrado generado por la grid de Kendo Telerik. Este parámetro se recibe en el request payload.<br><li>ConfigurationName: Indica la configuración de carga. Si no se indica toma la configuración de carga por defecto de la entidad.<br> <li>IncludeDeleted: Incluye o no los elementos de baja lógica. Si no se indica toma el valor false.<br><br><H3>Ejemplos:</H3><br><li><b>/api/VTA_Organization/GetAllKendoFilter</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto sin incluir las entidades de baja.<br><li><b>/api/VTA_Organization/GetAllKendoFilter?configurationName={configuration}</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta sin incluir las entidades de baja.<br><li><b>/api/VTA_Organization/GetAllKendoFilter?includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid con su configuración de carga por defecto incluyendo las entidades de baja.<br><li><b>/api/VTA_Organization/GetAllKendoFilter?configurationName={configuration}&includeDeleted=true</b> Obtiene la lista de las entidades filtradas por el filtro de la grid para una configuración de carga concreta incluyendo las entidades de baja.",
+        "parameters": [
+          {
+            "name": "configurationName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "español (España)": {
+                "value": "es-ES"
+              },
+              "English (United Kingdom)": {
+                "value": "en-GB"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KendoGridFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagingResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AttachmentFileView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fileContent": {
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "attachment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AttachmentTypeView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "maxLength": 2000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "attachment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AttachmentView": {
+        "type": "object",
+        "properties": {
+          "fileContent": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entityId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entityName": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "entityDescription": {
+            "maxLength": 2000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "fileName": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "fileExtension": {
+            "maxLength": 10,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "fileSizeKb": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "attachmentTypeId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "attachmentDescription": {
+            "maxLength": 2000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "attachmentFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "attachmentFile": {
+            "$ref": "#/components/schemas/AttachmentFileView"
+          },
+          "attachmentType": {
+            "$ref": "#/components/schemas/AttachmentTypeView"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuthApplication": {
+        "type": "object",
+        "properties": {
+          "application": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "securityCompanyId": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuthClaim": {
+        "type": "object",
+        "properties": {
+          "claim": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuthUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "login": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "mail": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "organizationCif": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "organizationCode": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "organizationName": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isAdmin": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "userConfiguration": {
+            "$ref": "#/components/schemas/AuthUserConfiguration"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuthUserConfiguration": {
+        "type": "object",
+        "properties": {
+          "rowsPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "modalRowsPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastConnectionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoAgregate": {
+        "type": "object",
+        "properties": {
+          "aggregate": {
+            "type": "string",
+            "nullable": true
+          },
+          "field": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoDataFilter": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "$ref": "#/components/schemas/KendoFilters"
+          },
+          "group": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KendoGroup"
+            },
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "skip": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KendoSort"
+            },
+            "nullable": true
+          },
+          "take": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoFilter": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "nullable": true
+          },
+          "ignoreCase": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "operator": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "nullable": true
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KendoFilter"
+            },
+            "nullable": true
+          },
+          "logic": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoFilters": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KendoFilter"
+            },
+            "nullable": true
+          },
+          "logic": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoGridFilter": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/KendoDataFilter"
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoGroup": {
+        "type": "object",
+        "properties": {
+          "aggregates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KendoAgregate"
+            },
+            "nullable": true
+          },
+          "dir": {
+            "type": "string",
+            "nullable": true
+          },
+          "field": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KendoSort": {
+        "type": "object",
+        "properties": {
+          "compare": {
+            "type": "string",
+            "nullable": true
+          },
+          "dir": {
+            "type": "string",
+            "nullable": true
+          },
+          "field": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PagingResponse": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": { },
+            "nullable": true
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "SecurityAccessOptionLevelView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityAccessOptionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "controller": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "securityLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityAccessOption": {
+            "$ref": "#/components/schemas/SecurityAccessOptionView"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityAccessOptionView": {
+        "type": "object",
+        "properties": {
+          "includedInProfile": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityModuleId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityAccessOptionLevel": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityAccessOptionLevelView"
+            },
+            "nullable": true
+          },
+          "securityModule": {
+            "$ref": "#/components/schemas/SecurityModuleView"
+          },
+          "securityProfile_SecurityAccessOption": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityProfile_SecurityAccessOptionView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityCompanyConfigurationView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hostEmail": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "portEmail": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "userEmail": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "passwordEmail": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "defaultCredentialsEmail": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "sslEmail": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityCompany": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityCompanyView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityCompanyGroupView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityCompany": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityCompanyView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityCompanyView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityCompanyGroupId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "cif": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "securityCompanyConfigurationId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityCompanyConfiguration": {
+            "$ref": "#/components/schemas/SecurityCompanyConfigurationView"
+          },
+          "securityCompanyGroup": {
+            "$ref": "#/components/schemas/SecurityCompanyGroupView"
+          },
+          "securityProfile": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityProfileView"
+            },
+            "nullable": true
+          },
+          "securityUser": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityUserView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityModuleView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityAccessOption": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityAccessOptionView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityProfileView": {
+        "type": "object",
+        "properties": {
+          "securityModule": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityModuleView"
+            },
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityCompanyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "rol": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityCompany": {
+            "$ref": "#/components/schemas/SecurityCompanyView"
+          },
+          "securityProfile_SecurityAccessOption": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityProfile_SecurityAccessOptionView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityProfile_SecurityAccessOptionView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityProfileId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityAccessOptionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityAccessOption": {
+            "$ref": "#/components/schemas/SecurityAccessOptionView"
+          },
+          "securityProfile": {
+            "$ref": "#/components/schemas/SecurityProfileView"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityUserConfigurationView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pagination": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "modalPagination": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "language": {
+            "maxLength": 10,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "lastConnectionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityUser": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityUserView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityUserGridConfigurationView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entity": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "defaultConfiguration": {
+            "type": "boolean"
+          },
+          "configuration": {
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityUser": {
+            "$ref": "#/components/schemas/SecurityUserView"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityUserView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityCompanyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userIdentifier": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "login": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "mail": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "organizationCif": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "organizationCode": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "organizationName": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "securityUserConfigurationId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "securityCompany": {
+            "$ref": "#/components/schemas/SecurityCompanyView"
+          },
+          "securityUserConfiguration": {
+            "$ref": "#/components/schemas/SecurityUserConfigurationView"
+          },
+          "securityUserGridConfiguration": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityUserGridConfigurationView"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecurityVersionView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "observations": {
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditModificationUser": {
+            "maxLength": 70,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "auditCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditDeletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserContext": {
+        "type": "object",
+        "properties": {
+          "applications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthApplication"
+            },
+            "nullable": true,
+            "readOnly": true
+          },
+          "authenticationType": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "claims": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthClaim"
+            },
+            "nullable": true
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUser"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "Enter the Bearer Authorization string as following: `Bearer GeneratedToken`",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}

@@ -26,9 +26,6 @@
     <EmbeddedResource Include="EmbbededFiles\File3.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Helix6.Base" Version="2.3.1" />
-    <PackageReference Include="Helix6.Base.Domain" Version="2.3.1" />
-    <PackageReference Include="Helix6.Base.Utils" Version="2.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
     <PackageReference Include="Microsoft.Identity.Web" Version="4.3.0" />
@@ -47,6 +44,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Utils\Helix6.Base.Utils.csproj" />
+    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base\Helix6.Base.csproj" />
     <ProjectReference Include="..\InfoportOneAdmon.Back.Data.Tests\InfoportOneAdmon.Back.Data.Tests.csproj" />
   </ItemGroup>
   <ItemGroup>

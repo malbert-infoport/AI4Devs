@@ -8,6 +8,7 @@ using Helix6.Base.Domain.BaseInterfaces;
 namespace InfoportOneAdmon.Back.DataModel {
 
 // [Keyless]
+[Table("VTA_Organization", Schema = "Admon")]
 public partial class VTA_Organization : IEntityBase
 {
     public int Id { get; set; }

@@ -5,5 +5,5 @@
  * y nosotros utilizamos el appName, en la función hasPermissions
  * del authentication.service.ts
  * El appName debe condicir con el que pone el back,
- * está ubicado InfoportOneAdmin.Back.Api\appsettings.Development.json (HelixConfiguration.ApplicationName) */
-export const appName = 'InfoportOneAdmin';
+ * está ubicado InfoportOneAdmon.Back.Api\appsettings.Development.json (HelixConfiguration.ApplicationName) */
+export const appName = 'infoportoneadmon';

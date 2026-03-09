@@ -1,9 +1,9 @@
-using InfoportOneAdmon.Back.Data.Repository.Base.Interfaces;
-using InfoportOneAdmon.Back.DataModel.Base;
 using Helix6.Base.Application;
 using Helix6.Base.Domain.Parameters;
 using Helix6.Base.Domain.Security;
 using Helix6.Base.Repository;
+using InfoportOneAdmon.Back.Data.Repository.Base.Interfaces;
+using InfoportOneAdmon.Back.DataModel.Base;
 
 namespace InfoportOneAdmon.Back.Data.Repository.Base
 {

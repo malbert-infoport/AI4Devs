@@ -44,12 +44,14 @@ class EntityInfo {
     [string]$FullPath
     [bool]$IsVersionEntity
     [bool]$IsValidityEntity
+    [bool]$IsBase
     [System.Collections.ArrayList]$Properties
     [System.Collections.ArrayList]$NavigationProperties
     
     EntityInfo() {
         $this.Properties = New-Object System.Collections.ArrayList
         $this.NavigationProperties = New-Object System.Collections.ArrayList
+        $this.IsBase = $false
     }
 }
 
@@ -190,11 +192,12 @@ function Parse-EntityFile {
         $prop.IsNullable = $type -match '\?'
         
         # Detectar colecciones
-        if ($type -match 'ICollection<(\w+)>') {
+        $collectionMatch = [regex]::Match($type, 'ICollection<(\w+)>')
+        if ($collectionMatch.Success) {
             $prop.IsCollection = $true
             $prop.IsNavigation = $true
-            $prop.RelatedEntity = $matches[1]
-            $prop.Type = $matches[1]
+            $prop.RelatedEntity = $collectionMatch.Groups[1].Value
+            $prop.Type = $collectionMatch.Groups[1].Value
             [void]$entity.NavigationProperties.Add($prop)
         }
         # Detectar navegación singular
@@ -220,9 +223,9 @@ function Get-DataModelEntities {
     
     Write-Step "📦 Inventariando entidades del DataModel..."
     
-    $entityFiles = Get-ChildItem -Path $DataModelDir -Filter "*.cs" | Where-Object {
+    $entityFiles = Get-ChildItem -Path $DataModelDir -Filter "*.cs" -Recurse | Where-Object {
         $_.Name -ne "AssemblyInfo.cs" -and 
-        $_.DirectoryName -notmatch '\\Base\\|\\bin\\|\\obj\\'
+        $_.DirectoryName -notmatch '\\bin\\|\\obj\\'
     }
     
     $entities = @()
@@ -230,17 +233,24 @@ function Get-DataModelEntities {
     foreach ($file in $entityFiles) {
         $content = Get-Content -Path $file.FullName -Raw
         
-        # Solo entidades que implementan IEntityBase
-        if ($content -match 'class\s+\w+\s*:\s*IEntityBase') {
-            $entity = Parse-EntityFile -FilePath $file.FullName
-            $entities += $entity
-            
-            $interfaceInfo = "IEntityBase"
-            if ($entity.IsVersionEntity) { $interfaceInfo += ", IVersionEntity" }
-            if ($entity.IsValidityEntity) { $interfaceInfo += ", IValidityEntity" }
-            
-            Write-Host "  $($entities.Count). $($entity.Name) ($interfaceInfo) - $($entity.Properties.Count) propiedades" -ForegroundColor Gray
-        }
+            # Determinar namespace del fichero
+            $nsMatch = [regex]::Match($content,'namespace\s+([\w\.]+)')
+            $ns = if ($nsMatch.Success) { $nsMatch.Groups[1].Value } else { '' }
+
+            # Incluir si el fichero hace referencia a IEntityBase o si pertenece al namespace .Base (como hace Helix6.Generator)
+            if ($content -match '\bIEntityBase\b' -or $ns -like '*.Base') {
+                $entity = Parse-EntityFile -FilePath $file.FullName
+                # Marcar si pertenece al namespace .Base para tratarla como entidad base
+                $entity.IsBase = $false
+                if ($ns -like '*.Base') { $entity.IsBase = $true }
+                $entities += $entity
+
+                $interfaceInfo = "IEntityBase"
+                if ($entity.IsVersionEntity) { $interfaceInfo += ", IVersionEntity" }
+                if ($entity.IsValidityEntity) { $interfaceInfo += ", IValidityEntity" }
+
+                Write-Host "  $($entities.Count). $($entity.Name) ($interfaceInfo) - $($entity.Properties.Count) propiedades" -ForegroundColor Gray
+            }
     }
     
     Write-Success "$($entities.Count) entidades encontradas"
@@ -250,8 +260,13 @@ function Get-DataModelEntities {
 function Test-ViewExists {
     param([string]$ViewsDir, [string]$ViewName)
     
+    # Buscar en la carpeta raíz de Views/
     $viewPath = Join-Path $ViewsDir "$ViewName.cs"
-    return Test-Path $viewPath
+    if (Test-Path $viewPath) { return $true }
+
+    # Buscar también en Views/Base/ (entidades base del framework)
+    $baseViewPath = Join-Path $ViewsDir "Base\$ViewName.cs"
+    return (Test-Path $baseViewPath)
 }
 
 function Convert-TypeToXml {
@@ -291,7 +306,8 @@ function Create-XmlField {
       <EntityFieldName>$($Property.Name)</EntityFieldName>
       <ViewFieldName>$($Property.Name)</ViewFieldName>
       <EntityFieldTypeDB>$(Convert-TypeToXml -Type $Property.Type)</EntityFieldTypeDB>
-      <IsEntidadBase>$($IsNavigation.ToString().ToLower())</IsEntidadBase>
+            <IsEntidadBase>$($IsNavigation.ToString().ToLower())</IsEntidadBase>
+            <IsList>$($Property.IsCollection.ToString().ToLower())</IsList>
     </Fields>
 "@
     
@@ -299,29 +315,31 @@ function Create-XmlField {
 }
 
 function Create-DefaultConfiguration {
-    return @"
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <Field>Id</Field>
-        <Order>Ascending</Order>
-      </Orders>
-    </Configurations>
+        return @"
+        <Configurations>
+            <ConfigurationName>Defecto</ConfigurationName>
+            <Orders>
+                <OrderFieldName>Id</OrderFieldName>
+                <OrderType>Ascending</OrderType>
+            </Orders>
+        </Configurations>
 "@
 }
 
 function Create-EntityXml {
     param([EntityInfo]$Entity)
     
-    $xml = @"
-  <Entities>
-    <EntityName>$($Entity.Name)</EntityName>
-    <ViewName>$($Entity.ViewName)</ViewName>
-    <DefaultFilterField>$(if ($Entity.Properties | Where-Object Name -eq 'Name') { 'Name' } else { 'Id' })</DefaultFilterField>
-    <IsVersionEntity>$($Entity.IsVersionEntity.ToString().ToLower())</IsVersionEntity>
-    <IsValidityEntity>$($Entity.IsValidityEntity.ToString().ToLower())</IsValidityEntity>
-
+        $xml = @"
+    <Entities>
+        <EntityName>$($Entity.Name)</EntityName>
+        <ViewName>$($Entity.ViewName)</ViewName>
+        <DefaultFilterField>$(if ($Entity.Properties | Where-Object Name -eq 'Name') { 'Name' } else { 'Id' })</DefaultFilterField>
 "@
+
+        # Solo serializar IsVersionEntity/IsValidityEntity si son true
+        if ($Entity.IsVersionEntity) { $xml += "    <IsVersionEntity>true</IsVersionEntity>`n" }
+        if ($Entity.IsValidityEntity) { $xml += "    <IsValidityEntity>true</IsValidityEntity>`n" }
+
     
     # Lista de campos de auditoría para filtrar
     $auditFieldNames = @('AuditCreationUser', 'AuditCreationDate', 'AuditModificationUser', 'AuditModificationDate', 'AuditDeletionDate')
@@ -491,28 +509,163 @@ try {
         }
     }
     
-    # Paso 5-7: Generar XML
-    Write-Step "🔨 Generando HelixEntities.xml..."
-    
-    $xmlContent = @"
-<?xml version="1.0" encoding="utf-8"?>
-<HelixEntities>
-"@
-    
-    foreach ($entity in $entitiesWithViews) {
-        $xmlContent += Create-EntityXml -Entity $entity
+    # Paso 5-7: Generar/Mergear XML
+    Write-Step "🔨 Generando/mergeando HelixEntities.xml..."
+
+    $scriptDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+    $templatesDir = Join-Path $scriptDir "templates"
+    if (-not (Test-Path $templatesDir)) { New-Item -ItemType Directory -Path $templatesDir | Out-Null }
+    $templateBasePath = Join-Path $templatesDir "HelixEntitiesBase.xml"
+
+    # Localizar un HelixEntities.xml de plantilla (Helix6.Back.Api) para crear la plantilla base si no existe
+    function Find-TemplateHelixEntities {
+        param()
+        $candidates = @()
+        try {
+            $candidates += Get-ChildItem -Path $projects.ProjectName -Filter "HelixEntities.xml" -Recurse -ErrorAction SilentlyContinue
+        } catch { }
+        if (Test-Path 'c:\Git') { $candidates += Get-ChildItem -Path 'c:\Git' -Filter 'HelixEntities.xml' -Recurse -ErrorAction SilentlyContinue }
+        if (Test-Path 'c:\Ai4Devs') { $candidates += Get-ChildItem -Path 'c:\Ai4Devs' -Filter 'HelixEntities.xml' -Recurse -ErrorAction SilentlyContinue }
+        if ($candidates.Count -gt 0) {
+            $preferred = $candidates | Where-Object { $_.FullName -match 'Helix6.Back.Api' } | Select-Object -First 1
+            if ($preferred) { return $preferred.FullName }
+            return $candidates[0].FullName
+        }
+        return $null
+    }
+
+    # Crear plantilla HelixEntitiesBase.xml en tools/templates si no existe
+    if (-not (Test-Path $templateBasePath)) {
+        Write-Step "Creando plantilla templates/HelixEntitiesBase.xml desde plantilla del framework..."
+        $templatePath = Find-TemplateHelixEntities
+        if ($templatePath) {
+            try {
+                [xml]$templateXml = Get-Content -Path $templatePath -Raw
+                $baseEntities = New-Object System.Collections.ArrayList
+                foreach ($entNode in $templateXml.HelixEntities.Entities) {
+                    $ename = $entNode.EntityName
+                    $found = Get-ChildItem -Path $projects.DataModelDir -Filter "$($ename).cs" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match '[\\/]Base([\\/]|$)' }
+                    if ($found) { $baseEntities.Add($entNode) | Out-Null }
+                }
+                if ($baseEntities.Count -gt 0) {
+                    $xmlWriterSettings = New-Object System.Xml.XmlWriterSettings
+                    $xmlWriterSettings.Indent = $true
+                    $sb = New-Object System.Text.StringBuilder
+                    $xw = [System.Xml.XmlWriter]::Create($sb, $xmlWriterSettings)
+                    $xw.WriteStartDocument()
+                    $xw.WriteStartElement('HelixEntities')
+                    foreach ($n in $baseEntities) { $n.WriteTo($xw) }
+                    $xw.WriteEndElement()
+                    $xw.WriteEndDocument()
+                    $xw.Flush()
+                    $sb.ToString() | Out-File -FilePath $templateBasePath -Encoding UTF8 -Force
+                    Write-Success "Plantilla creada en $templateBasePath"
+                }
+                else { Write-Warning-Message "No se extrajeron entidades Base de la plantilla; no se creó templates/HelixEntitiesBase.xml" }
+            } catch { Write-Warning-Message "Error al crear plantilla desde $templatePath" }
+        } else { Write-Warning-Message "No se encontró HelixEntities.xml de referencia para crear la plantilla base" }
+    }
+
+    # Cargar template base si existe
+    [xml]$templateBaseXml = $null
+    if (Test-Path $templateBasePath) {
+        try { [xml]$templateBaseXml = Get-Content -Path $templateBasePath -Raw } catch { $templateBaseXml = $null }
+    }
+
+    # Cargar xml existente para preservar configuraciones y endpoints
+    [xml]$existingXml = $null
+    if (Test-Path $projects.HelixEntitiesPath) {
+        try { [xml]$existingXml = Get-Content -Path $projects.HelixEntitiesPath -Raw } catch { $existingXml = $null }
+    }
+
+    # Helper para obtener generated entity fragment as xml
+    function Get-GeneratedEntityXmlNode {
+        param([EntityInfo]$Entity)
+        $s = Create-EntityXml -Entity $Entity
+        $fragment = "<Root>$s</Root>"
+        [xml]$fragXml = $fragment
+        return $fragXml.Root.Entities
+    }
+
+    # Construir nuevo documento: iniciar con header
+    $xmlDoc = New-Object System.Xml.XmlDocument
+    $declaration = $xmlDoc.CreateXmlDeclaration('1.0','utf-8',$null)
+    $xmlDoc.AppendChild($declaration) | Out-Null
+    $root = $xmlDoc.CreateElement('HelixEntities')
+    $xmlDoc.AppendChild($root) | Out-Null
+
+    if ($existingXml -ne $null) {
+        # Si ya existe HelixEntities.xml importamos todo para preservarlo (base + custom)
+        foreach ($ent in $existingXml.HelixEntities.Entities) {
+            $imported = $xmlDoc.ImportNode($ent, $true)
+            $root.AppendChild($imported) | Out-Null
+        }
+    }
+    else {
+        # Si no existe aún, y hay plantilla base, añadimos las entidades base al final tras generar las no-base
+        # (por ahora no añadimos nada aquí; se añadirán después)
+    }
+
+    # 3) Para cada entidad actual del DataModel con View, actualizar o crear su nodo (no tocar Base si ya existen)
+    foreach ($entity in ($entitiesWithViews | Where-Object { -not $_.IsBase })) {
+        $ename = $entity.Name
+        $existingNode = $root.SelectSingleNode("//Entities[EntityName='$ename']")
+        $generatedNode = Get-GeneratedEntityXmlNode -Entity $entity
+
+        if ($existingNode -ne $null) {
+            # reemplazar campos (Fields) por los generados, pero conservar Configurations y Endpoints del existingNode
+            $fields = @($existingNode.SelectNodes('Fields'))
+            foreach ($f in $fields) { $existingNode.RemoveChild($f) | Out-Null }
+            foreach ($gf in $generatedNode.SelectNodes('Fields')) {
+                $imported = $xmlDoc.ImportNode($gf, $true)
+                $refNode = $existingNode.SelectSingleNode('Configurations')
+                if ($refNode -ne $null) {
+                    $existingNode.InsertBefore($imported, $refNode) | Out-Null
+                }
+                else {
+                    $existingNode.AppendChild($imported) | Out-Null
+                }
+            }
+            $dfNode = $existingNode.SelectSingleNode('DefaultFilterField')
+            if ($dfNode -ne $null) { $dfNode.InnerText = $generatedNode.DefaultFilterField }
+            else { $n = $xmlDoc.CreateElement('DefaultFilterField'); $n.InnerText = $generatedNode.DefaultFilterField; $existingNode.AppendChild($n) | Out-Null }
+            $iv = $existingNode.SelectSingleNode('IsVersionEntity'); if ($iv -ne $null) { $iv.InnerText = $generatedNode.IsVersionEntity }
+            $ival = $existingNode.SelectSingleNode('IsValidityEntity'); if ($ival -ne $null) { $ival.InnerText = $generatedNode.IsValidityEntity }
+        }
+        else {
+            # añadir nodo completo generado
+            $imported = $xmlDoc.ImportNode($generatedNode, $true)
+            $root.AppendChild($imported) | Out-Null
+        }
         Write-Host "  ✓ $($entity.Name): $($entity.Properties.Count) propiedades + $($entity.NavigationProperties.Count) navegaciones" -ForegroundColor Gray
         $stats.New++
     }
-    
-    $xmlContent += "</HelixEntities>"
-    
+
+    # Si no existía el HelixEntities.xml previo (primera generación) y existe plantilla base, anexamos sus entidades al final
+    if (($existingXml -eq $null) -and ($templateBaseXml -ne $null)) {
+        foreach ($ent in $templateBaseXml.HelixEntities.Entities) {
+            $imported = $xmlDoc.ImportNode($ent, $true)
+            $root.AppendChild($imported) | Out-Null
+        }
+    }
+
+    $xmlContent = $xmlDoc.OuterXml
+
     # Paso 8-9: Ya están validados en la generación
-    
-    # Paso 10: Guardar archivo
-    Write-Step "💾 Guardando HelixEntities.xml..."
-    
-    $xmlContent | Out-File -FilePath $projects.HelixEntitiesPath -Encoding UTF8 -Force
+
+    # Paso 10: Guardar archivo con indentación
+    Write-Step "💾 Guardando HelixEntities.xml (formateado)..."
+
+    $xmlWriterSettings = New-Object System.Xml.XmlWriterSettings
+    $xmlWriterSettings.Indent = $true
+    $xmlWriterSettings.Encoding = [System.Text.Encoding]::UTF8
+    $xmlWriterSettings.NewLineChars = "`r`n"
+    $xmlWriterSettings.NewLineHandling = [System.Xml.NewLineHandling]::Replace
+
+    $writer = [System.Xml.XmlWriter]::Create($projects.HelixEntitiesPath, $xmlWriterSettings)
+    $xmlDoc.Save($writer)
+    $writer.Close()
+
     Write-Success "Archivo guardado exitosamente"
     
     # Paso 11: Resumen

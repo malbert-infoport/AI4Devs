@@ -1,10 +1,10 @@
-﻿using InfoportOneAdmon.Back.Data.Repository.Base.Interfaces;
-using InfoportOneAdmon.Back.DataModel.Base;
-using Helix6.Base.Application;
+﻿using Helix6.Base.Application;
 using Helix6.Base.Domain.Parameters;
 using Helix6.Base.Domain.Security;
 using Helix6.Base.Helpers;
 using Helix6.Base.Repository;
+using InfoportOneAdmon.Back.Data.Repository.Base.Interfaces;
+using InfoportOneAdmon.Back.DataModel.Base;
 
 namespace InfoportOneAdmon.Back.Data.Repository.Base
 {
@@ -28,7 +28,7 @@ namespace InfoportOneAdmon.Back.Data.Repository.Base
                 {
                     HelixFilter helixFilter = new()
                     {
-                        WhereToSql = RepositoryHelper.GetWhereForMultipleString("Rol", UserContext.Applications[0].Roles)
+                        WhereToSql = RepositoryHelper.GetWhereForMultipleString("\"Rol\"", UserContext.Applications[0].Roles)
                     };
                     return await DapperRepository.GetAll(new QueryParams(), helixFilter);
                 }

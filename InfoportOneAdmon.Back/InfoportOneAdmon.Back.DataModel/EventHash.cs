@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // using Microsoft.EntityFrameworkCore;
+// // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
@@ -11,9 +11,9 @@ namespace InfoportOneAdmon.Back.DataModel {
 /// Control de eventos duplicados mediante hash SHA-256. Previene publicar eventos idénticos consecutivos
 /// </summary>
 [Table("EventHash", Schema = "Admon")]
-// // [Index("AuditDeletionDate", Name = "idx_eventhash_auditdeletiondate")]
-// // [Index("LastPublishedAt", Name = "idx_eventhash_lastpublishedat", AllDescending = true)]
-// // [Index("EntityType", "EntityId", Name = "uq_eventhash_entitytype_entityid", IsUnique = true)]
+// // // [Index("AuditDeletionDate", Name = "idx_eventhash_auditdeletiondate")]
+// // // [Index("LastPublishedAt", Name = "idx_eventhash_lastpublishedat", AllDescending = true)]
+// // // [Index("EntityType", "EntityId", Name = "uq_eventhash_entitytype_entityid", IsUnique = true)]
 public partial class EventHash : IEntityBase
 {
     [Key]

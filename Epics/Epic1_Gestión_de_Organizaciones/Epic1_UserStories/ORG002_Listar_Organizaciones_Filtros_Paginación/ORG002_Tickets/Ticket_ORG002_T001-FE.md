@@ -15,7 +15,7 @@
 Implementar listado de organizaciones con Kendo Grid: paginación server-side, filtros y acciones contextuales
 
 ## DESCRIPCIÓN (resumen)
-Crear un componente Angular que muestre el listado de organizaciones usando `ClGrid`/Kendo Grid integrado con los endpoints Helix6. El componente debe consumir la vista `VW_ORGANIZATION` (Task view) para mostrar `AppCount` y `ModuleCount`, soportar filtros (estado, texto, grupo) y acciones (editar, dar de baja/reactivar).
+Crear un componente Angular que muestre el listado de organizaciones usando `ClGrid`/Kendo Grid integrado con los endpoints Helix6. El componente debe consumir la vista `VTA_Organization` (Task view) para mostrar `AppCount` y `ModuleCount`, soportar filtros (estado, texto, grupo) y acciones (editar, dar de baja/reactivar).
 
 ## ALCANCE
 - Listado paginado (server-side) con columnas: `SecurityCompanyId`, `Name`, `TaxId`, `ContactEmail`, `ContactPhone`, `GroupName`, `AppCount`, `ModuleCount`, `Actions`.
@@ -32,7 +32,7 @@ Crear un componente Angular que muestre el listado de organizaciones usando `ClG
 ## CONTEXTO TÉCNICO
 - UI: `ClGrid` (o `kendo-grid`) como wrapper estándar (ver `Helix6_Frontend_Architecture.md` sección ClGrid).
 - Datos: endpoint genérico Helix6 `POST /api/Organization/GetAllKendoFilter` (o `PUT`) con `KendoFilter` para paginación/orden/filtrado.
-- Vista requerida: `VW_ORGANIZATION` con `AppCount` y `ModuleCount`.
+- Vista requerida: `VTA_Organization` con `AppCount` y `ModuleCount`.
 - Paginación por defecto: 20 items/page.
 - Implementar `debounce` en búsqueda (300ms).
 
@@ -79,7 +79,7 @@ Crear un componente Angular que muestre el listado de organizaciones usando `ClG
 - `.../organization-list.component.spec.ts`
 
 ## DEPENDENCIAS
-- `VW_ORGANIZATION` (Task view) que incluya `AppCount`, `ModuleCount`.
+- `VTA_Organization` (Task view) que incluya `AppCount`, `ModuleCount`.
 - Endpoints Helix6 generados (`GetAllKendoFilter`, `GetById`, `Delete/Undelete logic` en service).
 - `@cl/common-library` (ClGrid) o Kendo Grid para Angular.
 
@@ -271,7 +271,7 @@ describe('OrganizationListComponent', () => {
 - `src/app/modules/organizations/components/organization-list/organization-list.component.spec.ts` - Tests
 
 ## DEPENDENCIAS
-- TASK-001-VIEW - Vista VW_ORGANIZATION con ModuleCount y AppCount
+- TASK-001-VIEW - Vista VTA_Organization con ModuleCount y AppCount
 - TASK-003-FE - ConfirmDialogComponent para modales
 - Kendo UI Grid para Angular
 - Angular Material Menu

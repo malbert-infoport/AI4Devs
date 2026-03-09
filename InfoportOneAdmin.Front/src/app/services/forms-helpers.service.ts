@@ -1,13 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AbstractControl, FormGroup, ValidationErrors } from '@angular/forms';
-import { EmpleadoClient } from '@restApi/api/apiClients';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FormsHelpersService {
-  private empleadoClient = inject(EmpleadoClient);
-
   /**
    * Función para validar NIF
    * @param control

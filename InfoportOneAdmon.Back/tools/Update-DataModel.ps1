@@ -451,9 +451,49 @@ function Add-VersionValidityInterfaces {
 }
 
 function Fix-NetStandardCompatibility {
-    param([string]$DataModelProjectDir)
+    param(
+        [string]$DataModelProjectDir,
+        [string]$DataProjectDir
+    )
     
     Write-Step "Aplicando correcciones para .NET Standard 2.0..."
+
+    # Extraer mapeos de vistas VTA_* desde EntityModel.cs para garantizar [Table(...)]
+    $vtaViewMappings = @{}
+    if (-not [string]::IsNullOrWhiteSpace($DataProjectDir)) {
+        $entityModelPath = Join-Path $DataProjectDir "DataModel\EntityModel.cs"
+        if (Test-Path $entityModelPath) {
+            $entityModelContent = Get-Content -Path $entityModelPath -Raw
+            $entityBlockMatches = [regex]::Matches(
+                $entityModelContent,
+                'modelBuilder\.Entity<(?<entityName>VTA_[A-Za-z0-9_]+)>\(entity\s*=>\s*\{(?<entityBody>.*?)\}\);',
+                [System.Text.RegularExpressions.RegexOptions]::Singleline
+            )
+
+            foreach ($entityBlockMatch in $entityBlockMatches) {
+                $entityName = $entityBlockMatch.Groups['entityName'].Value
+                $entityBody = $entityBlockMatch.Groups['entityBody'].Value
+                $toViewMatch = [regex]::Match(
+                    $entityBody,
+                    'entity\.ToView\("(?<viewName>[^"]+)"\s*,\s*"(?<schema>[^"]+)"\)',
+                    [System.Text.RegularExpressions.RegexOptions]::Singleline
+                )
+
+                if ($toViewMatch.Success) {
+                    $vtaViewMappings[$entityName] = @{
+                        ViewName = $toViewMatch.Groups['viewName'].Value
+                        Schema = $toViewMatch.Groups['schema'].Value
+                    }
+                }
+            }
+
+            Write-Host "Mapeos VTA_* detectados en EntityModel: $($vtaViewMappings.Count)" -ForegroundColor Gray
+        } else {
+            Write-Warning-Message "No se encontró EntityModel.cs en $entityModelPath. Se omite inyección de [Table] para vistas VTA_*."
+        }
+    } else {
+        Write-Warning-Message "No se recibió DataProjectDir. Se omite inyección de [Table] para vistas VTA_*."
+    }
     
     $entityFiles = Get-ChildItem -Path $DataModelProjectDir -Filter "*.cs" | Where-Object {
         $_.Name -ne "AssemblyInfo.cs"
@@ -474,6 +514,27 @@ function Fix-NetStandardCompatibility {
             $content = Get-Content -Path $file.FullName -Raw
             $originalContent = $content
             $fileFixes = 0
+
+            # 0. Añadir [Table(...)] a vistas VTA_* usando el mapeo ToView del EntityModel
+            if ($file.BaseName -match '^VTA_') {
+                if ($vtaViewMappings.ContainsKey($file.BaseName)) {
+                    if ($content -notmatch '\[Table\(') {
+                        $mapping = $vtaViewMappings[$file.BaseName]
+                        $tableAttribute = ('[Table("{0}", Schema = "{1}")]' -f $mapping.ViewName, $mapping.Schema)
+                        $classPattern = "(?m)^(\s*public\s+partial\s+class\s+$([regex]::Escape($file.BaseName))\s*:\s*IEntityBase)"
+
+                        if ([regex]::IsMatch($content, $classPattern)) {
+                            $content = [regex]::Replace($content, $classPattern, "$tableAttribute`r`n`$1", 1)
+                            $fileFixes++
+                            Write-Host ('  ✓ {0} - anadido [Table("{1}", Schema = "{2}")]' -f $file.Name, $mapping.ViewName, $mapping.Schema) -ForegroundColor $script:SuccessColor
+                        } else {
+                            Write-Warning-Message "$($file.Name): no se encontró el patrón de clase para inyectar [Table]"
+                        }
+                    }
+                } else {
+                    Write-Warning-Message "$($file.Name): no se encontró mapeo ToView en EntityModel.cs"
+                }
+            }
             
             # 1. Comentar TODOS los atributos [Index(...)] - pueden ser multilínea
             $indexMatches = [regex]::Matches($content, '\[Index\([^\]]*\)\]', [System.Text.RegularExpressions.RegexOptions]::Singleline)
@@ -758,7 +819,7 @@ try {
     
     # 10. Aplicar correcciones para .NET Standard 2.0
     if (-not $SkipFix) {
-        Fix-NetStandardCompatibility -DataModelProjectDir $dataModelInfo.ProjectDir
+        Fix-NetStandardCompatibility -DataModelProjectDir $dataModelInfo.ProjectDir -DataProjectDir $dataInfo.ProjectDir
     } else {
         Write-Warning-Message "Correcciones automáticas omitidas (--SkipFix)"
     }

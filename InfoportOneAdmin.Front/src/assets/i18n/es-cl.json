@@ -1,4 +1,5 @@
 {
+  "REFRESH": "Refrescar",
   "kendo": {
     "slider": {
       "increment": "Incrementar valor",
@@ -330,7 +331,10 @@
       "searchAction": "Buscar",
       "modalDefaultTitle": "Búsqueda",
       "modalDefaultSubmitButtonText": "Aceptar",
-      "modalDefaultCancellButtonText": "Cancelar"
+      "modalDefaultCancellButtonText": "Cancelar",
+      "searchField": "Campo de búsqueda",
+      "value": "Valor",
+      "noResults": "No se han encontrado resultados"
     }
   }
 }

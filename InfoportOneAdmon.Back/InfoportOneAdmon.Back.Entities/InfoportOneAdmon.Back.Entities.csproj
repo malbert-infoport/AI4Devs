@@ -5,10 +5,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Helix6.Base.Domain" Version="2.3.1" />
     <PackageReference Include="Mapster" Version="7.4.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Metadata\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj" />
   </ItemGroup>
 </Project>

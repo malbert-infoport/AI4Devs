@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, filter, map, take } from 'rxjs';
+import { BehaviorSubject, Observable, filter, map, take, distinctUntilChanged } from 'rxjs';
 import { Access } from '@app/theme/access/access';
 import { AuthenticationService } from '@app/theme/services/authentication.service';
 import { AuthApplication } from '@restApi/api/apiClients';
@@ -19,26 +19,38 @@ export class AccessService {
   // Observable que emite cuando los permisos están listos
   public permissionsReady$: Observable<boolean> = this.emitPermissionsObs.pipe(filter((ready) => ready === true));
 
+
   init() {
     // Suscribirse al observable de permisos del AuthenticationService
-    this.authService.allPermissionsObs.subscribe((allPermissions: AuthApplication[]) => {
-      if (allPermissions && allPermissions.length > 0) {
-        // Obtener los permisos de la aplicación actual
-        const currentAppPermissions = allPermissions.find((app) => app.application === appName);
+    this.authService.allPermissionsObs
+      .pipe(
+        filter((allPermissions: AuthApplication[]) => Array.isArray(allPermissions) && allPermissions.length > 0),
+        distinctUntilChanged((a: AuthApplication[], b: AuthApplication[]) => JSON.stringify(a) === JSON.stringify(b)),
+        take(1)
+      )
+      .subscribe((allPermissions: AuthApplication[]) => {
+        console.log('[AccessService] allPermissions from AuthenticationService:', allPermissions);
 
-        if (currentAppPermissions) {
-          this.permissions = [
-            {
-              application: currentAppPermissions.application,
-              permissions: currentAppPermissions.permissions || []
-            }
-          ];
-          this.emitPermissionsSubject.next(true);
-        } else {
-          this.emitPermissionsSubject.next(false);
+        // Obtener los permisos de la aplicación actual (intentar coincidir exacto, case-insensitive, o hacer fallback al primero)
+        let currentAppPermissions = allPermissions.find((app) => app.application === appName);
+        if (!currentAppPermissions) {
+          currentAppPermissions = allPermissions.find((app) =>
+            app.application && app.application.toString().toLowerCase() === (appName || '').toLowerCase()
+          );
         }
-      }
-    });
+        if (!currentAppPermissions) {
+          currentAppPermissions = allPermissions[0];
+        }
+
+        console.log('[AccessService] Selected currentAppPermissions:', currentAppPermissions);
+        this.permissions = [
+          {
+            application: currentAppPermissions.application,
+            permissions: currentAppPermissions.permissions || []
+          }
+        ];
+        this.emitPermissionsSubject.next(true);
+      });
   }
 
   hasPermission(permissionCheck: () => boolean): Observable<boolean> {
@@ -123,8 +135,21 @@ export class AccessService {
 
   // MAESTROS GENERAL
   mastersAccess() {
-    return this.authService.hasPermissions(this.permissions, Access['Masters access']);
+    // In InfoportOneAdmon the concept of 'masters' is represented by Organization access options (200/201)
+    return this.authService.hasPermissions(this.permissions, Access['Organization query'] || Access['Organization modification']);
   }
+
+  /********** ORGANIZATIONS (NEW) *******/
+  // Consulta Organizations (menu left) - verifica opción 200
+  organizationsConsulta() {
+    return this.authService.hasPermissions(this.permissions, Access['Organization query']);
+  }
+
+  // Modificación Organizations (menu left) - verifica opción 201
+  organizationModification() {
+    return this.authService.hasPermissions(this.permissions, Access['Organization modification']);
+  }
+
 
   /********** END MAESTROS  *******/
 

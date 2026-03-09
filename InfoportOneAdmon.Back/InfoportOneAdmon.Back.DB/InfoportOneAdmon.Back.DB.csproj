@@ -11,6 +11,9 @@
     <EmbeddedResource Include="Scripts\01000002_SecurityData.sql" />
     <EmbeddedResource Include="Scripts\01000003_OrganizationInfrastructure.sql" />
     <EmbeddedResource Include="Scripts\01000004_VTA_Organization_WithCounters.sql" />
+    <EmbeddedResource Include="Scripts\01000005_SecurityAccessOptionLevel_VTA_Organization_Read.sql" />
+    <EmbeddedResource Include="Scripts\01000006_Seed_VTA_Organizations.sql" />
+    <EmbeddedResource Include="Scripts\01000007_SecurityAccessOptionLevel_SecurityUserGridConfiguration_Write.sql" />
   </ItemGroup>
 
   <ItemGroup>

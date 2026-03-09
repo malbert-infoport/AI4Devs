@@ -16,7 +16,7 @@ import { EnvConfigurationService } from '@app/theme/services/env-configuration.s
 import { MastersModule } from '@app/modules/masters/masters.module';
 import { DialogContainerService, DialogService } from '@progress/kendo-angular-dialog';
 
-import { API_BASE_URL, EmpleadoClient, SecurityUserGridConfigurationClient } from '@restApi/api/apiClients';
+import { API_BASE_URL, SecurityUserGridConfigurationClient } from '@restApi/api/apiClients';
 
 import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations';
 
@@ -81,7 +81,6 @@ export const appConfig: ApplicationConfig = {
       MaterialForAngularModule,
       MastersModule
     ),
-    EmpleadoClient,
     {
       provide: API_BASE_URL,
       useFactory: getApiUrlFromConfigFn,

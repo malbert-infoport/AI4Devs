@@ -5,10 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Helix6.Base.Domain" Version="2.3.1" />
     <PackageReference Include="Mapster" Version="7.3.0" />
     <PackageReference Include="Portable.System.DateTimeOnly" Version="9.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj" />
   </ItemGroup>
 
 </Project>

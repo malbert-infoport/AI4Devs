@@ -24,7 +24,7 @@ namespace InfoportOneAdmon.Back.Api.Endpoints.Base.Generator
         /// <param name="app"></param>
         public static void MapVTA_OrganizationEndpoints(this WebApplication app)
         {
-            EndpointHelper.GenerateGetAllKendoFilterEndpoint<VTA_OrganizationService, VTA_OrganizationView, VTA_Organization, VTA_OrganizationViewMetadata>(app, "/api/VTA_Organization/GetAllKendoFilter", new EndpointAccess(HelixEnums.SecurityLevel.Read));
+            EndpointHelper.GenerateGetAllKendoFilterEndpoint<VTA_OrganizationService, VTA_OrganizationView, VTA_Organization, VTA_OrganizationViewMetadata>(app, "/api/VTA_Organization/GetAllKendoFilter", new EndpointAccess(HelixEnums.SecurityLevel.Read), false);
         }
     }
 }

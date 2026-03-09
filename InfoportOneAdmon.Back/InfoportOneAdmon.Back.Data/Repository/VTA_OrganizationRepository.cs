@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Helix6.Base.Repository;
 using Helix6.Base.Application;
+using Helix6.Base.Domain.Parameters;
 using Helix6.Base.Domain.Security;
-using InfoportOneAdmon.Back.DataModel;
+using Helix6.Base.Repository;
 using InfoportOneAdmon.Back.Data.Repository.Interfaces;
+using InfoportOneAdmon.Back.DataModel;
 
 namespace InfoportOneAdmon.Back.Data.Repository
 {
@@ -17,6 +18,10 @@ namespace InfoportOneAdmon.Back.Data.Repository
             IBaseDapperRepository<VTA_Organization> baseDapperRepository)
             : base(applicationContext, userContext, baseEFRepository, baseDapperRepository)
         {
+        }
+        public override Task<List<VTA_Organization>> GetAll(QueryParams queryParams, IGenericFilter? genericFilter = null)
+        {
+            return base.GetAll(queryParams, genericFilter);
         }
     }
 }

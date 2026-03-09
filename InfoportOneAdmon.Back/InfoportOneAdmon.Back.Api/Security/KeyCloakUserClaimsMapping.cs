@@ -1,22 +1,22 @@
-﻿using Helix6.Base.Domain.Security;
+﻿using System.Security.Claims;
+using System.Text.Json;
+using Helix6.Base.Domain.Security;
 using Helix6.Base.Extensions;
 using IdentityModel;
-using System.Security.Claims;
-using System.Text.Json;
 
 namespace InfoportOneAdmon.Back.Api.Security
 {
     public class KeyCloakUserClaimsMapping : IUserClaimsMapping
     {
         const int DEFAULT_SECURITY_COMPANY_ID = 1;
-        public const string SECURITY_COMPANY_ID_CLAIM = "c_id";
+        public const string SECURITY_COMPANY_ID_CLAIM = "c_ids";
         public const string ORGANIZATION_CIF_CLAIM = "o_cif";
         public const string ORGANIZATION_CODE_CLAIM = "o_code";
         public const string ORGANIZATION_NAME_CLAIM = "o_name";
         const string ISADMIN_CLAIM = "HLX_IsAdmin";
         const string REALM_ROLES_CLAIM = "realm_access";
         const string RESOURCE_ROLES_CLAIM = "resource_access";
-        const string CLIENT_NAME = "angularclient";
+        const string CLIENT_NAME = "infoportoneadmon";
         const string NODE_ROLES = "roles";
         const bool SEND_CLAIMS_TO_FRONT = false;
 

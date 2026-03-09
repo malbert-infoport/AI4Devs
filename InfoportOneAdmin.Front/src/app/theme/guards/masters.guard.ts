@@ -11,6 +11,7 @@ export const mastersGuard: CanActivateFn = () => {
     .hasPermission(() => accessService.mastersAccess())
     .pipe(
       map((hasAccess) => {
+        console.log('[mastersGuard] hasAccess=', hasAccess);
         if (!hasAccess) {
           router.navigate(['/unauthorized']);
           return false;

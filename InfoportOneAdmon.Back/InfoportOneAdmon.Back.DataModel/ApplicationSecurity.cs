@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // using Microsoft.EntityFrameworkCore;
+// // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
@@ -11,9 +11,9 @@ namespace InfoportOneAdmon.Back.DataModel {
 /// Credenciales OAuth2 para autenticación de aplicaciones en Keycloak. Soporta múltiples credenciales por aplicación
 /// </summary>
 [Table("ApplicationSecurity", Schema = "Admon")]
-// // [Index("ApplicationId", Name = "idx_appsecurity_applicationid")]
-// // [Index("AuditDeletionDate", Name = "idx_appsecurity_auditdeletiondate")]
-// // [Index("ClientId", Name = "uq_appsecurity_clientid", IsUnique = true)]
+// // // [Index("ApplicationId", Name = "idx_appsecurity_applicationid")]
+// // // [Index("AuditDeletionDate", Name = "idx_appsecurity_auditdeletiondate")]
+// // // [Index("ClientId", Name = "uq_appsecurity_clientid", IsUnique = true)]
 public partial class ApplicationSecurity : IEntityBase
 {
     [Key]

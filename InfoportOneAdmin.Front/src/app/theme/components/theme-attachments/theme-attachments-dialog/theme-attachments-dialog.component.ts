@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, inject, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IAttachmentTypeView, IAttachmentView, IVehiculoView } from '@restApi/api/apiClients';
+import { IAttachmentTypeView, IAttachmentView } from '@restApi/api/apiClients';
 import { Observable, take } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatFormFieldModule } from '@angular/material/form-field';

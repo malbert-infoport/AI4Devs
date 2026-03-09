@@ -1,0 +1,51 @@
+<div class="organization-list-container">
+  <div class="list-header">
+    <h1>{{ 'ORGANIZATIONS.TITLE' | translate }}</h1>
+  </div>
+
+  <ng-template #toolbarRight>
+    <cl-button
+      class="mx-1"
+      [text]="'REFRESH' | translate"
+      [icon]="{ name: 'ph ph-arrow-clockwise', classes: 'fill' }"
+      [theme]="'secondary'"
+      (clicked)="loadData(state)"
+    ></cl-button>
+  </ng-template>
+
+  <!-- Use cl-grid default toolbar; toolbarRight provides Refresh text button so order is: Filters/Columns (center) → (spacer) → Refresh (text) → Excel → Configurator -->
+  <cl-grid [config]="gridConfig" [data]="gridData" (dataStateChangeEvent)="onDataStateChange($event)">
+    <ng-template #noRecordsTemplate>
+      <div class="no-records">{{ 'ORGANIZATIONS.PLACEHOLDERS.NO_RECORDS' | translate }}</div>
+    </ng-template>
+
+    <ng-template #footerTemplate let-item>
+      <cl-button text="+ Añadir" [theme]="'secondary'" (clicked)="editItem(0)"></cl-button>
+    </ng-template>
+
+    <ng-template clGridColumnTemplate let-dataItem let-column="column" *ngFor="let col of gridConfig.columns">
+      <ng-container [ngSwitch]="col.field">
+        <ng-container *ngSwitchCase="'Actions'">
+          <button class="btn btn-link" (click)="editItem(dataItem.Id)">{{ 'ORGANIZATIONS.BUTTONS.EDIT' | translate }}</button>
+          <button class="btn btn-link" (click)="toggleActive(dataItem)">{{ dataItem?.AuditDeletionDate ? ('ORGANIZATIONS.BUTTONS.REACTIVATE' | translate) : ('ORGANIZATIONS.BUTTONS.DEACTIVATE' | translate) }}</button>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          {{ dataItem[col.field] }}
+        </ng-container>
+      </ng-container>
+    </ng-template>
+  </cl-grid>
+
+  <!-- Footer provided via cl-grid footerTemplate above; removed duplicate external button -->
+
+  <!-- Columns configurator modal template -->
+  <ng-template #columnsTemplate>
+    <div class="columns-modal">
+      <div *ngFor="let c of columnsConfigurator" class="column-option">
+        <label>
+          <input type="checkbox" [(ngModel)]="c.hidden" /> {{ c.title }}
+        </label>
+      </div>
+    </div>
+  </ng-template>
+</div>

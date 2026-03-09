@@ -17,13 +17,11 @@ export class GridConfiguratorMapperServiceService {
   private gridConfigClient = inject(SecurityUserGridConfigurationClient);
 
   getUserGridConfigurations = (idGrid: string): Observable<ClGridSavedConfig[]> => {
-    return this.gridConfigClient
-      .getUserGridConfigurations(idGrid)
-      .pipe(
-        map((configs: SecurityUserGridConfigurationView[]) =>
-          configs.map((config: SecurityUserGridConfigurationView) => this.mapGridConfigModelToClGridSavedConfig(config))
-        )
-      );
+    return this.gridConfigClient.getUserGridConfigurations(idGrid).pipe(
+      map((configs: SecurityUserGridConfigurationView[]) =>
+        configs.map((config: SecurityUserGridConfigurationView) => this.mapGridConfigModelToClGridSavedConfig(config))
+      )
+    );
   };
 
   create = (dataItem: ClGridSavedConfig): Observable<ClGridSavedConfig> => {
@@ -57,7 +55,7 @@ export class GridConfiguratorMapperServiceService {
       id: dataItem.id,
       idGrid: dataItem.entity,
       configurationName: dataItem.description,
-      gridPersistedState: JSON.parse(dataItem.configuration!),
+      gridPersistedState: dataItem.configuration ? JSON.parse(dataItem.configuration) : undefined,
       defaultConfiguration: dataItem.defaultConfiguration
     });
   }

@@ -66,6 +66,14 @@ export class ThemeLeftSidebarService {
         disabled: false,
         hasParent: false
       },
+      {
+        translateKey: 'ORGANIZATIONS.TITLE',
+        iconname: 'groups',
+        url: '/protected/organizations',
+        exactUrl: true,
+        disabled: !this.accessService.organizationsConsulta(),
+        hasParent: false
+      },
 
 
     ];
