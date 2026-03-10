@@ -774,7 +774,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods>
+        <Method>DeleteUndeleteLogicById</Method>
+      </Methods>
+    </Endpoints>
   </Entities>
   <Entities>
     <EntityName>OrganizationApplicationModule</EntityName>

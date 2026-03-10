@@ -14,6 +14,7 @@ namespace InfoportOneAdmon.Back.Api.Endpoints.Base
         public static void MapGenericEndpoints(this WebApplication app)
         {
             app.MapVTA_OrganizationEndpoints();
+            app.MapOrganizationEndpoints();
         }
     }
 }

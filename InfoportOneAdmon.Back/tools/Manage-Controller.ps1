@@ -126,12 +126,44 @@ namespace $rootName.Api.Endpoints.Base
         if ($DryRun) { Write-Host "Would create $genericPath"; Write-Host $genericContent; } else { $genericContent | Out-File -FilePath $genericPath -Encoding utf8 }
     }
 
-    # ensure Map{Entity}Endpoints call is present in GenericEndpoints.cs
+    # ensure Map{Entity}Endpoints call is present in GenericEndpoints.cs (robust insertion)
     $genCall = "            app.Map${EntityName}Endpoints();"
     $gText = Get-Content -Path $genericPath -Raw
     if ($gText -notmatch [regex]::Escape($genCall)) {
-        $gText = $gText -replace '(public static void MapGenericEndpoints\(this WebApplication app\)\s*\{)\s*\}', "`$1`r`n$genCall`r`n        }"
-        if ($DryRun) { Write-Host "Would update $genericPath to add map call for $EntityName"; } else { $gText | Out-File -FilePath $genericPath -Encoding utf8 }
+        $lines = Get-Content -Path $genericPath
+        $matchLine = $null
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match 'public\s+static\s+void\s+MapGenericEndpoints\s*\(this\s+WebApplication\s+app\)') { $matchLine = $i; break }
+        }
+        if ($matchLine -ne $null) {
+            $startLine = $matchLine
+            $depth = 0
+            $insertIndex = $null
+            for ($i = $startLine; $i -lt $lines.Count; $i++) {
+                $line = $lines[$i]
+                $open = ([regex]::Matches($line, '\{')).Count
+                $close = ([regex]::Matches($line, '\}')).Count
+                $depth += $open - $close
+                if ($depth -eq 0 -and $i -gt $startLine) {
+                    $insertIndex = $i
+                    break
+                }
+            }
+            if ($null -ne $insertIndex) {
+                $before = if ($insertIndex -gt 0) { $lines[0..($insertIndex - 1)] } else { @() }
+                $after = $lines[$insertIndex..($lines.Count - 1)]
+                $newLines = @()
+                $newLines += $before
+                $newLines += $genCall
+                $newLines += $after
+                $newText = $newLines -join "`r`n"
+                if ($DryRun) { Write-Host "Would update $genericPath to add map call for $EntityName" } else { $newText | Out-File -FilePath $genericPath -Encoding utf8 }
+            } else {
+                Write-Host "Could not determine insertion point in $genericPath for MapGenericEndpoints." -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "MapGenericEndpoints method not found in $genericPath" -ForegroundColor Yellow
+        }
     }
 
     # Generate entity endpoints file

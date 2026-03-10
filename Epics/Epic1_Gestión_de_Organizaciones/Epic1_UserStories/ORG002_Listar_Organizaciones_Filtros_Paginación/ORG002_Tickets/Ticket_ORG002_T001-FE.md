@@ -18,7 +18,7 @@ Implementar listado de organizaciones con Kendo Grid: paginación server-side, f
 Crear un componente Angular que muestre el listado de organizaciones usando `ClGrid`/Kendo Grid integrado con los endpoints Helix6. El componente debe consumir la vista `VTA_Organization` (Task view) para mostrar `AppCount` y `ModuleCount`, soportar filtros (estado, texto, grupo) y acciones (editar, dar de baja/reactivar).
 
 ## ALCANCE
-- Listado paginado (server-side) con columnas: `SecurityCompanyId`, `Name`, `TaxId`, `ContactEmail`, `ContactPhone`, `GroupName`, `AppCount`, `ModuleCount`, `Actions`.
+- Listado paginado (server-side) con columnas: `SecurityCompanyId`, `Name`, `TaxId`, `ContactEmail`, `ContactPhone`, `GroupName`, `AppCount`, `ModuleCount`.
 - Filtros: estado (alta/baja), búsqueda libre (nombre/CIF), grupo.
 - Row styling condicional: inactive (grises) y pending (naranja cuando ModuleCount=0).
 - Acciones: editar (navegar a detalle), dar de baja/reactivar (modal confirmación; reactivar valida ModuleCount>0).

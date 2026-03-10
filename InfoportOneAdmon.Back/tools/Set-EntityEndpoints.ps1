@@ -88,17 +88,10 @@ try {
         exit 0
     }
 
-    # create a backup before writing only if -Backup was specified
+    # NOTE: Backups via .bak were disabled per request — do not create .bak files.
     $bak = $null
     if ($Backup) {
-        $timestamp = (Get-Date).ToString('yyyyMMddHHmmss')
-        $bak = "$helixEntitiesPath.$timestamp.bak"
-        try {
-            Copy-Item -Path $helixEntitiesPath -Destination $bak -Force -ErrorAction Stop
-        } catch {
-            Write-Host "Warning: could not create backup: $($_.Exception.Message)" -ForegroundColor Yellow
-            $bak = $null
-        }
+        Write-Host "Backup requested but .bak creation is disabled by policy; skipping copy." -ForegroundColor Yellow
     }
 
     # validate xml before saving
