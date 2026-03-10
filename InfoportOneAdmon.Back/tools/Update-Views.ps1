@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Actualiza o crea Views y Metadata en Back.Entities desde Back.DataModel
 
@@ -617,3 +617,4 @@ catch {
     Write-Host $_.Exception.StackTrace -ForegroundColor Gray
     exit 1
 }
+

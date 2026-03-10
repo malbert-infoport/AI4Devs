@@ -3,27 +3,27 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // // using Microsoft.EntityFrameworkCore;
+// // // // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
 /// <summary>
-/// Caché de usuarios consolidados multi-organización. Optimiza procesamiento del Background Worker
+/// CachÃ© de usuarios consolidados multi-organizaciÃ³n. Optimiza procesamiento del Background Worker
 /// </summary>
 [Table("UserCache", Schema = "Admon")]
-// // // [Index("AuditDeletionDate", Name = "idx_usercache_auditdeletiondate")]
-// // // [Index("LastUpdated", Name = "idx_usercache_lastupdated", AllDescending = true)]
-// // // [Index("Email", Name = "uq_usercache_email", IsUnique = true)]
+// // // // // [Index("AuditDeletionDate", Name = "idx_usercache_auditdeletiondate")]
+// // // // // [Index("LastUpdated", Name = "idx_usercache_lastupdated", AllDescending = true)]
+// // // // // [Index("Email", Name = "uq_usercache_email", IsUnique = true)]
 public partial class UserCache : IEntityBase
 {
     /// <summary>
-    /// Clave primaria técnica requerida por Helix6 (IEntityBase)
+    /// Clave primaria tÃ©cnica requerida por Helix6 (IEntityBase)
     /// </summary>
     [Key]
     public int Id { get; set; }
 
     /// <summary>
-    /// Email del usuario (único, case-insensitive)
+    /// Email del usuario (Ãºnico, case-insensitive)
     /// </summary>
     [Column(TypeName = "citext")]
     public string Email { get; set; }
@@ -39,13 +39,13 @@ public partial class UserCache : IEntityBase
     public string ConsolidatedRoles { get; set; }
 
     /// <summary>
-    /// Timestamp de la última consolidación
+    /// Timestamp de la Ãºltima consolidaciÃ³n
     /// </summary>
     [Column(TypeName = "timestamp without time zone")]
     public DateTime LastUpdated { get; set; }
 
     /// <summary>
-    /// Hash SHA-256 del último evento procesado para este usuario
+    /// Hash SHA-256 del Ãºltimo evento procesado para este usuario
     /// </summary>
     [StringLength(64)]
     public string LastEventHash { get; set; }
@@ -65,3 +65,4 @@ public partial class UserCache : IEntityBase
     [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
 }}
+

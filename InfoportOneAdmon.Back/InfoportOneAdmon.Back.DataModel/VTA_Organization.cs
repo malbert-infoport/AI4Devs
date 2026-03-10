@@ -15,7 +15,8 @@ public partial class VTA_Organization : IEntityBase
 
     public int? SecurityCompanyId { get; set; }
 
-    public int? GroupId { get; set; }
+    [StringLength(200)]
+    public string GroupName { get; set; }
 
     [StringLength(200)]
     public string Name { get; set; }
@@ -56,13 +57,9 @@ public partial class VTA_Organization : IEntityBase
 
     public DateTime? AuditDeletionDate { get; set; }
 
-    /// <summary>
-    /// Número de módulos activos (AuditDeletionDate IS NULL) asignados a la organización.
-    /// </summary>
     public int? ModuleCount { get; set; }
 
-    /// <summary>
-    /// Número de aplicaciones activas distintas cuyos módulos están asignados a la organización.
-    /// </summary>
     public int? AppCount { get; set; }
+
+    public string AppList { get; set; }
 }}

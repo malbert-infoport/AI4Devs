@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // // using Microsoft.EntityFrameworkCore;
+// // // // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
 /// <summary>
-/// Credenciales OAuth2 para autenticación de aplicaciones en Keycloak. Soporta múltiples credenciales por aplicación
+/// Credenciales OAuth2 para autenticaciÃ³n de aplicaciones en Keycloak. Soporta mÃºltiples credenciales por aplicaciÃ³n
 /// </summary>
 [Table("ApplicationSecurity", Schema = "Admon")]
-// // // [Index("ApplicationId", Name = "idx_appsecurity_applicationid")]
-// // // [Index("AuditDeletionDate", Name = "idx_appsecurity_auditdeletiondate")]
-// // // [Index("ClientId", Name = "uq_appsecurity_clientid", IsUnique = true)]
+// // // // // [Index("ApplicationId", Name = "idx_appsecurity_applicationid")]
+// // // // // [Index("AuditDeletionDate", Name = "idx_appsecurity_auditdeletiondate")]
+// // // // // [Index("ClientId", Name = "uq_appsecurity_clientid", IsUnique = true)]
 public partial class ApplicationSecurity : IEntityBase
 {
     [Key]
     public int Id { get; set; }
 
     /// <summary>
-    /// ID de la aplicación (FK a Application.Id)
+    /// ID de la aplicaciÃ³n (FK a Application.Id)
     /// </summary>
     public int ApplicationId { get; set; }
 
     /// <summary>
-    /// OAuth2 client_id único para autenticación en Keycloak
+    /// OAuth2 client_id Ãºnico para autenticaciÃ³n en Keycloak
     /// </summary>
     [Column(TypeName = "citext")]
     public string ClientId { get; set; }
@@ -64,7 +64,7 @@ public partial class ApplicationSecurity : IEntityBase
     public DateTime? AuditModificationDate { get; set; }
 
     /// <summary>
-    /// Fecha de baja lógica. Al establecerse, revoca la credencial en Keycloak
+    /// Fecha de baja lÃ³gica. Al establecerse, revoca la credencial en Keycloak
     /// </summary>
     [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
@@ -73,3 +73,4 @@ public partial class ApplicationSecurity : IEntityBase
     [InverseProperty("ApplicationSecurity")]
     public virtual Application Application { get; set; }
 }}
+

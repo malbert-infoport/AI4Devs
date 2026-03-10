@@ -1,4 +1,4 @@
-using Helix6.Base.Domain.BaseInterfaces;
+﻿using Helix6.Base.Domain.BaseInterfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -76,3 +76,4 @@ namespace InfoportOneAdmon.Back.DataModel.Base
         public virtual ICollection<SecurityProfile_SecurityAccessOption> SecurityProfile_SecurityAccessOption { get; set; } = new List<SecurityProfile_SecurityAccessOption>();
     }
 }
+

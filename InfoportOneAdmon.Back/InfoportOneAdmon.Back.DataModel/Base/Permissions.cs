@@ -1,4 +1,4 @@
-using Helix6.Base.Domain.BaseInterfaces;
+﻿using Helix6.Base.Domain.BaseInterfaces;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -61,3 +61,4 @@ namespace InfoportOneAdmon.Back.DataModel.Base
         public DateTime? AuditDeletionDate { get; set; }
     }
 }
+

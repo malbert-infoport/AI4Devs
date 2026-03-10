@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // // using Microsoft.EntityFrameworkCore;
+// // // // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
 /// <summary>
-/// Control de eventos duplicados mediante hash SHA-256. Previene publicar eventos idénticos consecutivos
+/// Control de eventos duplicados mediante hash SHA-256. Previene publicar eventos idÃ©nticos consecutivos
 /// </summary>
 [Table("EventHash", Schema = "Admon")]
-// // // [Index("AuditDeletionDate", Name = "idx_eventhash_auditdeletiondate")]
-// // // [Index("LastPublishedAt", Name = "idx_eventhash_lastpublishedat", AllDescending = true)]
-// // // [Index("EntityType", "EntityId", Name = "uq_eventhash_entitytype_entityid", IsUnique = true)]
+// // // // // [Index("AuditDeletionDate", Name = "idx_eventhash_auditdeletiondate")]
+// // // // // [Index("LastPublishedAt", Name = "idx_eventhash_lastpublishedat", AllDescending = true)]
+// // // // // [Index("EntityType", "EntityId", Name = "uq_eventhash_entitytype_entityid", IsUnique = true)]
 public partial class EventHash : IEntityBase
 {
     [Key]
@@ -31,13 +31,13 @@ public partial class EventHash : IEntityBase
     public int EntityId { get; set; }
 
     /// <summary>
-    /// Hash SHA-256 (64 caracteres) del Payload del último evento publicado
+    /// Hash SHA-256 (64 caracteres) del Payload del Ãºltimo evento publicado
     /// </summary>
     [StringLength(64)]
     public string LastEventHash { get; set; }
 
     /// <summary>
-    /// Timestamp de la última publicación exitosa
+    /// Timestamp de la Ãºltima publicaciÃ³n exitosa
     /// </summary>
     [Column(TypeName = "timestamp without time zone")]
     public DateTime LastPublishedAt { get; set; }
@@ -57,3 +57,4 @@ public partial class EventHash : IEntityBase
     [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
 }}
+

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Actualiza o crea mapeos entre DataModel y Views en HelixEntities.xml
 
@@ -699,3 +699,4 @@ catch {
     Write-Host $_.Exception.StackTrace -ForegroundColor Gray
     exit 1
 }
+

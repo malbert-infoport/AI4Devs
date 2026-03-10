@@ -113,8 +113,8 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
       AuditCreationDate: it.auditCreationDate ?? it.AuditCreationDate,
       AuditModificationUser: it.auditModificationUser ?? it.AuditModificationUser,
       AuditModificationDate: it.auditModificationDate ?? it.AuditModificationDate,
-      ModuleCount: it.moduleCount ?? it.ModuleCount ?? 0,
-      AppCount: it.appCount ?? it.AppCount ?? 0,
+       ModuleCount: it.moduleCount ?? it.ModuleCount ?? 0,
+       AppList: it.appList ?? it.AppList ?? (it.apps ? (Array.isArray(it.apps) ? it.apps.join(' / ') : it.apps) : ''),
       _raw: it
     }));
   }
@@ -133,9 +133,8 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
       { field: 'ContactEmail', title: this.translate.instant('ORGANIZATIONS.COLUMNS.EMAIL'), width: 200, filterable: true, filter: 'text' },
       { field: 'ContactPhone', title: this.translate.instant('ORGANIZATIONS.COLUMNS.PHONE'), width: 140, filterable: true, filter: 'text' },
       { field: 'GroupName', title: this.translate.instant('ORGANIZATIONS.COLUMNS.GROUP'), width: 160, filterable: true, filter: 'text' },
-      { field: 'AppCount', title: this.translate.instant('ORGANIZATIONS.COLUMNS.APPS'), width: 100, filterable: true, filter: 'numeric' },
-      { field: 'ModuleCount', title: this.translate.instant('ORGANIZATIONS.COLUMNS.MODULES'), width: 100, filterable: true, filter: 'numeric' },
-      { field: 'Actions', title: this.translate.instant('ORGANIZATIONS.COLUMNS.ACTIONS'), width: 160, filterable: false }
+        { field: 'AppList', title: this.translate.instant('ORGANIZATIONS.COLUMNS.APPS'), width: 260, filterable: true, filter: 'text' },
+      { field: 'ModuleCount', title: this.translate.instant('ORGANIZATIONS.COLUMNS.MODULES'), width: 100, filterable: true, filter: 'numeric' }
     ] as any;
 
     // Keep a simple mirror for the columns configurator UI
@@ -204,6 +203,7 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
             AuditModificationDate: it.auditModificationDate ?? it.AuditModificationDate,
             ModuleCount: it.moduleCount ?? it.ModuleCount ?? 0,
             AppCount: it.appCount ?? it.AppCount ?? 0,
+            AppList: it.appList ?? it.AppList ?? (it.apps ? (Array.isArray(it.apps) ? it.apps.join(' / ') : it.apps) : ''),
             // keep original payload for advanced scenarios
             _raw: it
           }));

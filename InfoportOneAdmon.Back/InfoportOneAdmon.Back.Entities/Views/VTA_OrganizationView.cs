@@ -21,7 +21,7 @@ namespace InfoportOneAdmon.Back.Entities.Views
 
 		public Int32? SecurityCompanyId { get; set; }
 
-		public Int32? GroupId { get; set; }
+		public String GroupName { get; set; }
 
 		public String Name { get; set; }
 
@@ -54,6 +54,8 @@ namespace InfoportOneAdmon.Back.Entities.Views
 		public Int32? ModuleCount { get; set; }
 
 		public Int32? AppCount { get; set; }
+
+		public String AppList { get; set; }
 
 	}
 }

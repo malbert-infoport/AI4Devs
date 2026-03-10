@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Actualiza el DataModel de Entity Framework desde la base de datos mediante scaffolding.
 
@@ -13,13 +13,13 @@
     Ruta al archivo .sln del proyecto backend. Si no se especifica, busca en el directorio actual.
 
 .PARAMETER ProjectName
-    Nombre del proyecto (ej: InfoportOneAdmon). Si no se especifica, se intenta detectar automáticamente.
+    Nombre del proyecto (ej: InfoportOneAdmon). Si no se especifica, se intenta detectar automaticamente.
 
 .PARAMETER SkipFix
-    Si se especifica, no aplica correcciones automáticas para .NET Standard 2.0.
+    Si se especifica, no aplica correcciones automaticas para .NET Standard 2.0.
 
 .PARAMETER ConnectionString
-    Cadena de conexión personalizada. Si no se especifica, se lee de appsettings.Development.json.
+    Cadena de conexion personalizada. Si no se especifica, se lee de appsettings.Development.json.
 
 .PARAMETER Schemas
     Schemas de la base de datos a incluir en el scaffolding, separados por comas (ej: "public" o "public,audit").
@@ -27,11 +27,11 @@
 
 .EXAMPLE
     .\Update-DataModel.ps1
-    Ejecuta el proceso completo con detección automática del proyecto.
+    Ejecuta el proceso completo con deteccion automatica del proyecto.
 
 .EXAMPLE
     .\Update-DataModel.ps1 -ProjectName "InfoportOneAdmon" -SkipFix
-    Ejecuta sin aplicar correcciones automáticas.
+    Ejecuta sin aplicar correcciones automaticas.
 
 .EXAMPLE
     .\Update-DataModel.ps1 -Schemas "public"
@@ -61,7 +61,7 @@ param(
     [string]$Schemas
 )
 
-# Configuración de colores para salida
+# Configuracion de colores para salida
 $script:ErrorColor = "Red"
 $script:SuccessColor = "Green"
 $script:InfoColor = "Cyan"
@@ -74,41 +74,41 @@ function Write-Step {
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "✓ $Message" -ForegroundColor $script:SuccessColor
+    Write-Host "[OK] $Message" -ForegroundColor $script:SuccessColor
 }
 
 function Write-Error-Message {
     param([string]$Message)
-    Write-Host "✗ $Message" -ForegroundColor $script:ErrorColor
+    Write-Host "[ERROR] $Message" -ForegroundColor $script:ErrorColor
 }
 
 function Write-Warning-Message {
     param([string]$Message)
-    Write-Host "⚠ $Message" -ForegroundColor $script:WarningColor
+    Write-Host "[WARN] $Message" -ForegroundColor $script:WarningColor
 }
 
 function Find-Solution {
-    Write-Step "Buscando archivo de solución..."
+    Write-Step "Buscando archivo de solucion..."
     
     if ($SolutionPath -and (Test-Path $SolutionPath)) {
-        Write-Success "Solución encontrada: $SolutionPath"
+        Write-Success "Solucion encontrada: $SolutionPath"
         return $SolutionPath
     }
     
     $solutions = Get-ChildItem -Path . -Filter "*.sln" -Recurse -Depth 2 | Where-Object { $_.Name -like "*Back.sln" }
     
     if ($solutions.Count -eq 0) {
-        throw "No se encontró ningún archivo .sln en el directorio actual"
+        throw "No se encontro ningUn archivo .sln en el directorio actual"
     }
     
     if ($solutions.Count -gt 1) {
-        Write-Warning-Message "Se encontraron múltiples soluciones:"
+        Write-Warning-Message "Se encontraron mUltiples soluciones:"
         $solutions | ForEach-Object { Write-Host "  - $($_.FullName)" }
         $solutionPath = $solutions[0].FullName
         Write-Warning-Message "Usando: $solutionPath"
     } else {
         $solutionPath = $solutions[0].FullName
-        Write-Success "Solución encontrada: $solutionPath"
+        Write-Success "Solucion encontrada: $solutionPath"
     }
     
     return $solutionPath
@@ -122,7 +122,7 @@ function Find-DataProject {
     $dataProjects = Get-ChildItem -Path $SolutionDir -Filter "*.Back.Data.csproj" -Recurse
     
     if ($dataProjects.Count -eq 0) {
-        throw "No se encontró el proyecto *.Back.Data.csproj"
+        throw "No se encontro el proyecto *.Back.Data.csproj"
     }
     
     $dataProject = $dataProjects[0].FullName
@@ -146,7 +146,7 @@ function Find-DataModelProject {
     $dataModelProjects = Get-ChildItem -Path $SolutionDir -Filter "$ProjectName.Back.DataModel.csproj" -Recurse
     
     if ($dataModelProjects.Count -eq 0) {
-        throw "No se encontró el proyecto $ProjectName.Back.DataModel.csproj"
+        throw "No se encontro el proyecto $ProjectName.Back.DataModel.csproj"
     }
     
     $dataModelProject = $dataModelProjects[0].FullName
@@ -166,7 +166,7 @@ function Find-ApiProject {
     $apiProject = Get-ChildItem -Path $SolutionDir -Filter "$ProjectName.Back.Api.csproj" -Recurse
     
     if ($apiProject.Count -eq 0) {
-        throw "No se encontró el proyecto $ProjectName.Back.Api.csproj"
+        throw "No se encontro el proyecto $ProjectName.Back.Api.csproj"
     }
     
     return $apiProject[0].FullName
@@ -176,29 +176,29 @@ function Get-ConnectionString {
     param([string]$ApiProjectPath)
     
     if ($ConnectionString) {
-        Write-Step "Usando cadena de conexión proporcionada"
+        Write-Step "Usando cadena de conexion proporcionada"
         $maskedConnection = $ConnectionString -replace '(Password=)[^;]+', '$1***'
         Write-Host "  $maskedConnection" -ForegroundColor Gray
         return $ConnectionString
     }
     
-    Write-Step "Obteniendo cadena de conexión..."
+    Write-Step "Obteniendo cadena de conexion..."
     
     $apiProjectDir = [System.IO.Path]::GetDirectoryName($ApiProjectPath)
     $appSettingsPath = Join-Path $apiProjectDir "appsettings.Development.json"
     
     if (-not (Test-Path $appSettingsPath)) {
-        throw "No se encontró appsettings.Development.json"
+        throw "No se encontro appsettings.Development.json"
     }
     
     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
     $connString = $appSettings.ConnectionStrings.DefaultConnection
     
     if (-not $connString) {
-        throw "No se encontró la cadena de conexión 'DefaultConnection'"
+        throw "No se encontro la cadena de conexion 'DefaultConnection'"
     }
     
-    Write-Host "`nCadena de conexión:" -ForegroundColor $script:InfoColor
+    Write-Host "`nCadena de conexion:" -ForegroundColor $script:InfoColor
     $maskedConnection = $connString -replace '(Password=)[^;]+', '$1***'
     Write-Host "  $maskedConnection" -ForegroundColor Gray
     
@@ -213,8 +213,8 @@ function Get-SchemasToInclude {
         return $Schemas
     }
     
-    Write-Host "`n¿Qué schemas de la base de datos desea incluir en el scaffolding?" -ForegroundColor $script:InfoColor
-    Write-Host "  Nota: Los schemas Helix6_Internal y Helix6_Security ya están en el framework base" -ForegroundColor Gray
+    Write-Host "`nQue schemas de la base de datos desea incluir en el scaffolding?" -ForegroundColor $script:InfoColor
+    Write-Host "  Nota: Los schemas Helix6_Internal y Helix6_Security ya estan en el framework base" -ForegroundColor Gray
     Write-Host "  Ingrese los schemas separados por comas (ej: public o public,audit)" -ForegroundColor Gray
     Write-Host "  [Valor por defecto: public]" -ForegroundColor DarkGray
     
@@ -241,7 +241,7 @@ function Execute-Scaffolding {
     Write-Warning-Message "Este proceso puede tardar varios minutos..."
     
     try {
-        # Convertir schemas separados por comas a múltiples parámetros --schema
+        # Convertir schemas separados por comas a mUltiples parametros --schema
         $schemaParams = ""
         if ($SchemasToInclude) {
             $schemaList = $SchemasToInclude -split ',' | ForEach-Object { $_.Trim() }
@@ -296,7 +296,7 @@ function Fix-EntityModelNamespace {
     $entityModelPath = Join-Path $DataProjectDir "DataModel\EntityModel.cs"
     
     if (-not (Test-Path $entityModelPath)) {
-        Write-Warning-Message "No se encontró EntityModel.cs en $entityModelPath"
+        Write-Warning-Message "No se encontro EntityModel.cs en $entityModelPath"
         return $false
     }
     
@@ -313,7 +313,7 @@ function Fix-EntityModelNamespace {
             Write-Success "Namespace corregido: $correctNamespace"
             return $true
         } else {
-            Write-Host "  El namespace ya es correcto o no se encontró el patrón esperado" -ForegroundColor $script:InfoColor
+            Write-Host "  El namespace ya es correcto o no se encontro el patron esperado" -ForegroundColor $script:InfoColor
             return $true
         }
         
@@ -334,7 +334,7 @@ function Move-EntityClasses {
     $sourceDir = Join-Path $DataProjectDir "DataModel"
     
     if (-not (Test-Path $sourceDir)) {
-        throw "No se encontró la carpeta DataModel en el proyecto Data"
+        throw "No se encontro la carpeta DataModel en el proyecto Data"
     }
     
     # Obtener todos los archivos excepto EntityModel.cs y la carpeta Base
@@ -354,9 +354,9 @@ function Move-EntityClasses {
         try {
             $destPath = Join-Path $DataModelProjectDir $file.Name
             
-            # Sobrescribir sin crear backup (los cambios están en Git)
+            # Sobrescribir sin crear backup (los cambios estan en Git)
             Move-Item -Path $file.FullName -Destination $destPath -Force
-            Write-Host "  ✓ $($file.Name)" -ForegroundColor $script:SuccessColor
+            Write-Host "  [OK] $($file.Name)" -ForegroundColor $script:SuccessColor
             $movedCount++
             
         } catch {
@@ -392,7 +392,7 @@ function Add-VersionValidityInterfaces {
             $content = Get-Content -Path $file.FullName -Raw
             $originalContent = $content
             
-            # Buscar propiedades requeridas (tipos más flexibles para capturar List<int>, int?, etc.)
+            # Buscar propiedades requeridas (tipos mas flexibles para capturar List<int>, int?, etc.)
             $hasVersionKey = $content -match 'public\s+[\w<>]+\s+VersionKey\s*{'
             $hasVersionNumber = $content -match 'public\s+[\w<>]+\s+VersionNumber\s*{'
             $hasValidityFrom = $content -match 'public\s+DateTime\??\s+ValidityFrom\s*{'
@@ -417,18 +417,18 @@ function Add-VersionValidityInterfaces {
             if ($interfaceToAdd -ne "") {
                 # Verificar si ya tiene la interfaz
                 if ($content -match ":\s*IEntityBase\s*,\s*$interfaceToAdd") {
-                    Write-Host "  ℹ $($file.Name) ya implementa $interfaceToAdd" -ForegroundColor Gray
+                    Write-Host "  [INFO] $($file.Name) ya implementa $interfaceToAdd" -ForegroundColor Gray
                     continue
                 }
                 
-                # Añadir la interfaz después de IEntityBase
+                # ANadir la interfaz despues de IEntityBase
                 if ($content -match '(class\s+\w+\s*:\s*IEntityBase)') {
                     $content = $content -replace '(class\s+\w+\s*:\s*IEntityBase)', "`$1, $interfaceToAdd"
                     Set-Content -Path $file.FullName -Value $content -NoNewline
-                    Write-Host "  ✓ $($file.Name) → $entityType" -ForegroundColor $script:SuccessColor
+                    Write-Host "  [OK] $($file.Name) -> $entityType" -ForegroundColor $script:SuccessColor
                 }
                 else {
-                    Write-Warning-Message "$($file.Name): No se encontró patrón 'class X : IEntityBase'"
+                    Write-Warning-Message "$($file.Name): No se encontro patron 'class X : IEntityBase'"
                 }
             }
             
@@ -439,14 +439,14 @@ function Add-VersionValidityInterfaces {
     
     if ($versionEntitiesCount -gt 0 -or $validityEntitiesCount -gt 0) {
         Write-Host ""
-        if ($versionEntitiesCount -gt 0) {
-            Write-Host "  ✓ $versionEntitiesCount entidades marcadas como IVersionEntity" -ForegroundColor $script:SuccessColor
+            if ($versionEntitiesCount -gt 0) {
+            Write-Host "  [OK] $versionEntitiesCount entidades marcadas como IVersionEntity" -ForegroundColor $script:SuccessColor
         }
         if ($validityEntitiesCount -gt 0) {
-            Write-Host "  ✓ $validityEntitiesCount entidades marcadas como IValidityEntity" -ForegroundColor $script:SuccessColor
+            Write-Host "  [OK] $validityEntitiesCount entidades marcadas como IValidityEntity" -ForegroundColor $script:SuccessColor
         }
     } else {
-        Write-Host "  ℹ No se detectaron entidades con versionado/vigencia" -ForegroundColor Gray
+        Write-Host "  [INFO] No se detectaron entidades con versionado/vigencia" -ForegroundColor Gray
     }
 }
 
@@ -458,42 +458,62 @@ function Fix-NetStandardCompatibility {
     
     Write-Step "Aplicando correcciones para .NET Standard 2.0..."
 
-    # Extraer mapeos de vistas VTA_* desde EntityModel.cs para garantizar [Table(...)]
-    $vtaViewMappings = @{}
-    if (-not [string]::IsNullOrWhiteSpace($DataProjectDir)) {
-        $entityModelPath = Join-Path $DataProjectDir "DataModel\EntityModel.cs"
-        if (Test-Path $entityModelPath) {
-            $entityModelContent = Get-Content -Path $entityModelPath -Raw
-            $entityBlockMatches = [regex]::Matches(
-                $entityModelContent,
-                'modelBuilder\.Entity<(?<entityName>VTA_[A-Za-z0-9_]+)>\(entity\s*=>\s*\{(?<entityBody>.*?)\}\);',
-                [System.Text.RegularExpressions.RegexOptions]::Singleline
-            )
+            # Extraer mapeos de vistas VTA_* y tablas desde EntityModel.cs para garantizar [Table(...)]
+            $entityMappings = @{}
+            if (-not [string]::IsNullOrWhiteSpace($DataProjectDir)) {
+                $entityModelPath = Join-Path $DataProjectDir "DataModel\EntityModel.cs"
+                if (Test-Path $entityModelPath) {
+                    $entityModelContent = Get-Content -Path $entityModelPath -Raw
 
-            foreach ($entityBlockMatch in $entityBlockMatches) {
-                $entityName = $entityBlockMatch.Groups['entityName'].Value
-                $entityBody = $entityBlockMatch.Groups['entityBody'].Value
-                $toViewMatch = [regex]::Match(
-                    $entityBody,
-                    'entity\.ToView\("(?<viewName>[^"]+)"\s*,\s*"(?<schema>[^"]+)"\)',
-                    [System.Text.RegularExpressions.RegexOptions]::Singleline
-                )
+                    # Buscar todos los bloques modelBuilder.Entity<...>(entity => { ... });
+                    $patternEntityBlock = 'modelBuilder\.Entity<(?<entityName>[A-Za-z0-9_]+)>(?:\(entity\s*=>\s*\{(?<entityBody>.*?)\}\)|\(\))\s*;'
+                    $entityBlockMatches = [regex]::Matches($entityModelContent, $patternEntityBlock, [System.Text.RegularExpressions.RegexOptions]::Singleline)
 
-                if ($toViewMatch.Success) {
-                    $vtaViewMappings[$entityName] = @{
-                        ViewName = $toViewMatch.Groups['viewName'].Value
-                        Schema = $toViewMatch.Groups['schema'].Value
+                    foreach ($entityBlockMatch in $entityBlockMatches) {
+                        $entityName = $entityBlockMatch.Groups['entityName'].Value
+                        $entityBody = $entityBlockMatch.Groups['entityBody'].Value
+
+                        # Intentar extraer ToView("ViewName", "Schema")
+                        $patternToView = 'entity\.ToView\("(?<viewName>[^"]+)"\s*,\s*"(?<schema>[^"]+)"\)'
+                        $toViewMatch = [regex]::Match($entityBody, $patternToView, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+                        if ($toViewMatch.Success) {
+                            $entityMappings[$entityName] = @{
+                                Name = $toViewMatch.Groups['viewName'].Value
+                                Schema = $toViewMatch.Groups['schema'].Value
+                                IsView = $true
+                            }
+                            continue
+                        }
+
+                        # Intentar extraer ToTable("TableName", "Schema") o ToTable("TableName")
+                        $patternToTableWithSchema = 'entity\.ToTable\("(?<tableName>[^"]+)"\s*,\s*"(?<schema>[^"]+)"\)'
+                        $patternToTableNoSchema = 'entity\.ToTable\("(?<tableName>[^"]+)"\)'
+                        $toTableMatch = [regex]::Match($entityBody, $patternToTableWithSchema, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+                        if ($toTableMatch.Success) {
+                            $entityMappings[$entityName] = @{
+                                Name = $toTableMatch.Groups['tableName'].Value
+                                Schema = $toTableMatch.Groups['schema'].Value
+                                IsView = $false
+                            }
+                            continue
+                        }
+                        $toTableMatch = [regex]::Match($entityBody, $patternToTableNoSchema, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+                        if ($toTableMatch.Success) {
+                            $entityMappings[$entityName] = @{
+                                Name = $toTableMatch.Groups['tableName'].Value
+                                Schema = $null
+                                IsView = $false
+                            }
+                        }
                     }
-                }
-            }
 
-            Write-Host "Mapeos VTA_* detectados en EntityModel: $($vtaViewMappings.Count)" -ForegroundColor Gray
-        } else {
-            Write-Warning-Message "No se encontró EntityModel.cs en $entityModelPath. Se omite inyección de [Table] para vistas VTA_*."
-        }
-    } else {
-        Write-Warning-Message "No se recibió DataProjectDir. Se omite inyección de [Table] para vistas VTA_*."
-    }
+                    Write-Host "Mapeos detectados en EntityModel: $($entityMappings.Count)" -ForegroundColor Gray
+                } else {
+                    Write-Warning-Message "No se encontro EntityModel.cs en $entityModelPath. Se omite inyeccion de [Table] para entidades."
+                }
+            } else {
+                Write-Warning-Message "No se recibio DataProjectDir. Se omite inyeccion de [Table] para entidades."
+            }
     
     $entityFiles = Get-ChildItem -Path $DataModelProjectDir -Filter "*.cs" | Where-Object {
         $_.Name -ne "AssemblyInfo.cs"
@@ -515,28 +535,38 @@ function Fix-NetStandardCompatibility {
             $originalContent = $content
             $fileFixes = 0
 
-            # 0. Añadir [Table(...)] a vistas VTA_* usando el mapeo ToView del EntityModel
-            if ($file.BaseName -match '^VTA_') {
-                if ($vtaViewMappings.ContainsKey($file.BaseName)) {
-                    if ($content -notmatch '\[Table\(') {
-                        $mapping = $vtaViewMappings[$file.BaseName]
-                        $tableAttribute = ('[Table("{0}", Schema = "{1}")]' -f $mapping.ViewName, $mapping.Schema)
-                        $classPattern = "(?m)^(\s*public\s+partial\s+class\s+$([regex]::Escape($file.BaseName))\s*:\s*IEntityBase)"
+            # 0. Añadir [Table(...)] a entidades/vistas usando los mapeos extraidos del EntityModel
+            if ($content -notmatch '\[Table\(') {
+                if ($entityMappings.ContainsKey($file.BaseName)) {
+                    $mapping = $entityMappings[$file.BaseName]
+                    if ($mapping.Name) {
+                        if ($mapping.Schema) {
+                            $tableAttribute = ('[Table("{0}", Schema = "{1}")]' -f $mapping.Name, $mapping.Schema)
+                        } else {
+                            $tableAttribute = ('[Table("{0}")]' -f $mapping.Name)
+                        }
 
+                        # Asegurar using para TableAttribute
+                        if ($content -notmatch 'using\s+System\.ComponentModel\.DataAnnotations\.Schema;') {
+                            # Insertar after other using statements (or at top)
+                            $content = $content -replace '((?:using\s+[\w\.\,\s]+;\r?\n)+)', "`$1using System.ComponentModel.DataAnnotations.Schema;`r`n"
+                            $fileFixes++
+                        }
+
+                        $escapedBase = [regex]::Escape($file.BaseName)
+                        $classPattern = '(?m)^(\s*public\s+partial\s+class\s+' + $escapedBase + '\s*:\s*IEntityBase)'
                         if ([regex]::IsMatch($content, $classPattern)) {
                             $content = [regex]::Replace($content, $classPattern, "$tableAttribute`r`n`$1", 1)
                             $fileFixes++
-                            Write-Host ('  ✓ {0} - anadido [Table("{1}", Schema = "{2}")]' -f $file.Name, $mapping.ViewName, $mapping.Schema) -ForegroundColor $script:SuccessColor
+                            Write-Host ('  [OK] {0} - anadido {1}' -f $file.Name, $tableAttribute) -ForegroundColor $script:SuccessColor
                         } else {
-                            Write-Warning-Message "$($file.Name): no se encontró el patrón de clase para inyectar [Table]"
+                            Write-Warning-Message "$($file.Name): no se encontro el patron de clase para inyectar [Table]"
                         }
                     }
-                } else {
-                    Write-Warning-Message "$($file.Name): no se encontró mapeo ToView en EntityModel.cs"
                 }
             }
             
-            # 1. Comentar TODOS los atributos [Index(...)] - pueden ser multilínea
+            # 1. Comentar TODOS los atributos [Index(...)] - pueden ser multilInea
             $indexMatches = [regex]::Matches($content, '\[Index\([^\]]*\)\]', [System.Text.RegularExpressions.RegexOptions]::Singleline)
             foreach ($match in $indexMatches | Sort-Object -Property Index -Descending) {
                 $beforeMatch = $content.Substring(0, $match.Index)
@@ -563,7 +593,7 @@ function Fix-NetStandardCompatibility {
                 $fileFixes++
             }
             
-            # 3. Eliminar using Microsoft.EntityFrameworkCore (excepto DataAnnotations) línea por línea
+            # 3. Eliminar using Microsoft.EntityFrameworkCore (excepto DataAnnotations) lInea por lInea
             $lines = $content -split "`r?`n"
             $newLines = @()
             foreach ($line in $lines) {
@@ -577,13 +607,13 @@ function Fix-NetStandardCompatibility {
             }
             $content = $newLines -join "`n"
             
-            # 4. Remover IEntityFramework de vistas (Vta*) - no tienen propiedades de auditoría
+            # 4. Remover IEntityFramework de vistas (Vta*) - no tienen propiedades de auditorIa
             if ($file.Name -match '^Vta[A-Z]') {
                 if ($content -match ':\s*IEntityFramework') {
-                    # Remover la implementación de la interfaz
+                    # Remover la implementacion de la interfaz
                     $content = $content -replace ':\s*IEntityFramework\s*', ''
                     $fileFixes++
-                    Write-Host "  ⚠ Vista $($file.Name): removida interfaz IEntityFramework" -ForegroundColor $script:WarningColor
+                    Write-Host "  [WARN] Vista $($file.Name): removida interfaz IEntityFramework" -ForegroundColor $script:WarningColor
                 }
             }
             
@@ -603,7 +633,7 @@ function Fix-NetStandardCompatibility {
             if ($content -ne $originalContent) {
                 Set-Content -Path $file.FullName -Value $content -Encoding UTF8 -NoNewline
                 if ($fileFixes -gt 0) {
-                    Write-Host "  ✓ $($file.Name) - $fileFixes correcciones" -ForegroundColor $script:SuccessColor
+                    Write-Host "  [OK] $($file.Name) - $fileFixes correcciones" -ForegroundColor $script:SuccessColor
                     $fixedCount++
                     $totalFixes += $fileFixes
                 }
@@ -631,7 +661,7 @@ function Build-DataModelProject {
         $output = Invoke-Expression $command 2>&1
         
         if ($LASTEXITCODE -ne 0) {
-            Write-Error-Message "Error en la compilación:"
+            Write-Error-Message "Error en la compilacion:"
             Write-Host $output -ForegroundColor Red
             return $false
         }
@@ -654,7 +684,7 @@ function Show-DataModelChanges {
         # Verificar si estamos en un repositorio Git
         $gitCheck = git rev-parse --git-dir 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning-Message "No se detectó repositorio Git. Omitiendo enumeración de cambios."
+            Write-Warning-Message "No se detecto repositorio Git. Omitiendo enumeracion de cambios."
             return
         }
         
@@ -662,7 +692,7 @@ function Show-DataModelChanges {
         $gitStatus = git status --porcelain $DataModelProjectDir 2>&1
         
         if ([string]::IsNullOrWhiteSpace($gitStatus)) {
-            Write-Host "`nℹ No hay cambios en el DataModel" -ForegroundColor $script:InfoColor
+            Write-Host "`n[INFO] No hay cambios en el DataModel" -ForegroundColor $script:InfoColor
             return
         }
         
@@ -712,15 +742,15 @@ function Show-DataModelChanges {
                         $diff -split "`n" | ForEach-Object {
                             $line = $_
                             if ($line -match "^-(?!--)(.*)") {
-                                # Línea eliminada (roja)
+                                # LInea eliminada (roja)
                                 Write-Host "    $line" -ForegroundColor Red
                             }
                             elseif ($line -match "^\+(?!\+\+)(.*)") {
-                                # Línea añadida (verde)
+                                # LInea aNadida (verde)
                                 Write-Host "    $line" -ForegroundColor Green
                             }
                             elseif ($line -match "^@@") {
-                                # Cabecera de sección (cyan)
+                                # Cabecera de seccion (cyan)
                                 Write-Host "    $line" -ForegroundColor Cyan
                             }
                             elseif ($line -match "^(diff|index|---|\+\+\+)") {
@@ -728,11 +758,11 @@ function Show-DataModelChanges {
                                 Write-Host "    $line" -ForegroundColor DarkGray
                             }
                             else {
-                                # Líneas de contexto
+                                # LIneas de contexto
                                 Write-Host "    $line" -ForegroundColor Gray
                             }
                         }
-                        Write-Host "" # Línea en blanco entre archivos
+                        Write-Host "" # LInea en blanco entre archivos
                     }
                 }
             }
@@ -764,7 +794,7 @@ try {
     Write-Host "  UPDATE DATAMODEL - Helix6 Framework" -ForegroundColor $script:InfoColor
     Write-Host "========================================`n" -ForegroundColor $script:InfoColor
     
-    # 1. Encontrar solución
+    # 1. Encontrar solucion
     $solutionPath = Find-Solution
     $solutionDir = [System.IO.Path]::GetDirectoryName($solutionPath)
     
@@ -782,7 +812,7 @@ try {
     $apiProject = Find-ApiProject -SolutionDir $solutionDir -ProjectName $ProjectName
     Write-Host "Proyecto Api: $([System.IO.Path]::GetFileName($apiProject))" -ForegroundColor Gray
     
-    # 5. Obtener cadena de conexión
+    # 5. Obtener cadena de conexion
     $connString = Get-ConnectionString -ApiProjectPath $apiProject
     
     # 6. Obtener schemas a incluir
@@ -796,7 +826,7 @@ try {
         -SchemasToInclude $schemasToInclude
     
     if (-not $scaffoldSuccess) {
-        throw "El scaffolding falló"
+        throw "El scaffolding fallo"
     }
     
     # 8. Corregir namespace de EntityModel.cs
@@ -821,10 +851,10 @@ try {
     if (-not $SkipFix) {
         Fix-NetStandardCompatibility -DataModelProjectDir $dataModelInfo.ProjectDir -DataProjectDir $dataInfo.ProjectDir
     } else {
-        Write-Warning-Message "Correcciones automáticas omitidas (--SkipFix)"
+        Write-Warning-Message "Correcciones automaticas omitidas (--SkipFix)"
     }
     
-    # 11. Detectar y añadir interfaces IVersionEntity / IValidityEntity
+    # 11. Detectar y aNadir interfaces IVersionEntity / IValidityEntity
     Add-VersionValidityInterfaces -DataModelProjectDir $dataModelInfo.ProjectDir
     
     # 12. Compilar proyecto DataModel
@@ -845,7 +875,7 @@ try {
         
         exit 0
     } else {
-        Write-Warning-Message "El proceso se completó pero hubo errores de compilación"
+        Write-Warning-Message "El proceso se completo pero hubo errores de compilacion"
         Write-Warning-Message "Revise manualmente los archivos en Back.DataModel"
         exit 1
     }
@@ -859,3 +889,4 @@ try {
     Write-Host $_.Exception.StackTrace -ForegroundColor Gray
     exit 1
 }
+

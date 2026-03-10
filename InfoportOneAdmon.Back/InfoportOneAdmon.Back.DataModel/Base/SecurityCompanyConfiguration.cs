@@ -1,4 +1,4 @@
-using Helix6.Base.Domain.BaseInterfaces;
+﻿using Helix6.Base.Domain.BaseInterfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -71,3 +71,4 @@ namespace InfoportOneAdmon.Back.DataModel.Base
         public virtual ICollection<SecurityCompany> SecurityCompany { get; set; } = new List<SecurityCompany>();
     }
 }
+

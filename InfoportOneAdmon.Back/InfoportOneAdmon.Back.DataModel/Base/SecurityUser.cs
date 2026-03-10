@@ -1,4 +1,4 @@
-using Helix6.Base.Domain.BaseInterfaces;
+﻿using Helix6.Base.Domain.BaseInterfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -131,3 +131,4 @@ namespace InfoportOneAdmon.Back.DataModel.Base
         public virtual ICollection<SecurityUserGridConfiguration> SecurityUserGridConfiguration { get; set; } = new List<SecurityUserGridConfiguration>();
     }
 }
+

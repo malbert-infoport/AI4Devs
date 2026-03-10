@@ -23,16 +23,8 @@
       <cl-button text="+ Añadir" [theme]="'secondary'" (clicked)="editItem(0)"></cl-button>
     </ng-template>
 
-    <ng-template clGridColumnTemplate let-dataItem let-column="column" *ngFor="let col of gridConfig.columns">
-      <ng-container [ngSwitch]="col.field">
-        <ng-container *ngSwitchCase="'Actions'">
-          <button class="btn btn-link" (click)="editItem(dataItem.Id)">{{ 'ORGANIZATIONS.BUTTONS.EDIT' | translate }}</button>
-          <button class="btn btn-link" (click)="toggleActive(dataItem)">{{ dataItem?.AuditDeletionDate ? ('ORGANIZATIONS.BUTTONS.REACTIVATE' | translate) : ('ORGANIZATIONS.BUTTONS.DEACTIVATE' | translate) }}</button>
-        </ng-container>
-        <ng-container *ngSwitchDefault>
-          {{ dataItem[col.field] }}
-        </ng-container>
-      </ng-container>
+    <ng-template #clGridColumnTemplate let-dataItem let-column="column" *ngFor="let col of gridConfig.columns">
+      {{ dataItem[col.field] }}
     </ng-template>
   </cl-grid>
 

@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// // // using Microsoft.EntityFrameworkCore;
+// // // // // using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
 /// <summary>
-/// Catálogo maestro de roles de cada aplicación. Garantiza coherencia en nomenclatura
+/// CatÃ¡logo maestro de roles de cada aplicaciÃ³n. Garantiza coherencia en nomenclatura
 /// </summary>
 [Table("ApplicationRole", Schema = "Admon")]
-// // // [Index("ApplicationId", Name = "idx_applicationrole_applicationid")]
-// // // [Index("AuditDeletionDate", Name = "idx_applicationrole_auditdeletiondate")]
-// // // [Index("ApplicationId", "Name", Name = "uq_applicationrole_application_name", IsUnique = true)]
+// // // // // [Index("ApplicationId", Name = "idx_applicationrole_applicationid")]
+// // // // // [Index("AuditDeletionDate", Name = "idx_applicationrole_auditdeletiondate")]
+// // // // // [Index("ApplicationId", "Name", Name = "uq_applicationrole_application_name", IsUnique = true)]
 public partial class ApplicationRole : IEntityBase
 {
     [Key]
@@ -43,7 +43,7 @@ public partial class ApplicationRole : IEntityBase
     public DateTime? AuditModificationDate { get; set; }
 
     /// <summary>
-    /// Fecha de baja lógica. Roles dados de baja no se asignan a nuevos usuarios
+    /// Fecha de baja lÃ³gica. Roles dados de baja no se asignan a nuevos usuarios
     /// </summary>
     [Column(TypeName = "timestamp without time zone")]
     public DateTime? AuditDeletionDate { get; set; }
@@ -52,3 +52,4 @@ public partial class ApplicationRole : IEntityBase
     [InverseProperty("ApplicationRole")]
     public virtual Application Application { get; set; }
 }}
+

@@ -79,9 +79,6 @@ public partial class EntityModel : DbContext
         modelBuilder.Entity<VTA_Organization>(entity =>
         {
             entity.ToView("VTA_Organization", "Admon");
-
-            entity.Property(e => e.AppCount).HasComment("Número de aplicaciones activas distintas cuyos módulos están asignados a la organización.");
-            entity.Property(e => e.ModuleCount).HasComment("Número de módulos activos (AuditDeletionDate IS NULL) asignados a la organización.");
         });
         modelBuilder.HasSequence("Organization_SecurityCompanyId_seq", "Admon").StartsAt(1001L);
 

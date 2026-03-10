@@ -1471,6 +1471,13 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
+      <EntityFieldName>AppList</EntityFieldName>
+      <ViewFieldName>AppList</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
       <EntityFieldName>City</EntityFieldName>
       <ViewFieldName>City</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -1499,9 +1506,9 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>GroupId</EntityFieldName>
-      <ViewFieldName>GroupId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
+      <EntityFieldName>GroupName</EntityFieldName>
+      <ViewFieldName>GroupName</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
