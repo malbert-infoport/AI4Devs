@@ -774,8 +774,27 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
+    <Configurations>
+      <ConfigurationName>OrganizationComplete</ConfigurationName>
+      <Includes>
+        <IncludeName>Group</IncludeName>
+        <IncludeType>SoloLectura</IncludeType>
+        <IncludeTypeDB>OrganizationGroup</IncludeTypeDB>
+        <IsList>false</IsList>
+      </Includes>
+      <Includes>
+        <IncludeName>Organization_ApplicationModule</IncludeName>
+        <IncludeType>Modificable</IncludeType>
+        <IncludeTypeDB>Organization_ApplicationModule</IncludeTypeDB>
+        <IsList>true</IsList>
+      </Includes>
+    </Configurations>
     <Endpoints>
       <Methods>
+        <Method>GetNewEntity</Method>
+        <Method>GetById</Method>
+        <Method>Insert</Method>
+        <Method>Update</Method>
         <Method>DeleteUndeleteLogicById</Method>
       </Methods>
     </Endpoints>

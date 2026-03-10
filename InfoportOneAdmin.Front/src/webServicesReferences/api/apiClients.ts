@@ -1955,6 +1955,35 @@ export class AttachmentTypeClient implements IAttachmentTypeClient {
 
 export interface IOrganizationClient {
     /**
+     * Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getNewEntity(accept_Language?: string | undefined): Observable<OrganizationView>;
+    /**
+     * Obtiene una entidad en base a su identificador esté o no de baja lógica.
+     * @param configurationName (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getById(id: number, configurationName?: string | undefined, accept_Language?: string | undefined): Observable<OrganizationView>;
+    /**
+     * Inserta una nueva entidad. Devuelve la entidad insertada actualizada.
+     * @param configurationName (optional) 
+     * @param reloadView (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    insert(body: OrganizationView, configurationName?: string | undefined, reloadView?: boolean | undefined, accept_Language?: string | undefined): Observable<OrganizationView>;
+    /**
+     * Actualiza una entidad. Devuelve la entidad actualizada.
+     * @param configurationName (optional) 
+     * @param reloadView (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    update(body: OrganizationView, configurationName?: string | undefined, reloadView?: boolean | undefined, accept_Language?: string | undefined): Observable<OrganizationView>;
+    /**
      * Da de baja lógica o de alta una entidad en base a su identificador. Devuelve un booleano indicando si la baja lógica o el alta se ha realizado correctamente.
      * @param accept_Language (optional) 
      * @return OK
@@ -1971,6 +2000,375 @@ export class OrganizationClient implements IOrganizationClient {
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
         this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Obtiene una nueva entidad inicializada y pendiente de almacenar en base de datos.
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getNewEntity(accept_Language?: string | undefined): Observable<OrganizationView> {
+        let url_ = this.baseUrl + "/api/Organization/GetNewEntity";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept-Language": accept_Language !== undefined && accept_Language !== null ? "" + accept_Language : "",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetNewEntity(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetNewEntity(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<OrganizationView>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<OrganizationView>;
+        }));
+    }
+
+    protected processGetNewEntity(response: HttpResponseBase): Observable<OrganizationView> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationView.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("No Content", status, _responseText, _headers);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status === 403) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            }));
+        } else if (status === 500) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ProblemDetails.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * Obtiene una entidad en base a su identificador esté o no de baja lógica.
+     * @param configurationName (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getById(id: number, configurationName?: string | undefined, accept_Language?: string | undefined): Observable<OrganizationView> {
+        let url_ = this.baseUrl + "/api/Organization/GetById?";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined and cannot be null.");
+        else
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        if (configurationName === null)
+            throw new globalThis.Error("The parameter 'configurationName' cannot be null.");
+        else if (configurationName !== undefined)
+            url_ += "configurationName=" + encodeURIComponent("" + configurationName) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept-Language": accept_Language !== undefined && accept_Language !== null ? "" + accept_Language : "",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetById(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetById(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<OrganizationView>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<OrganizationView>;
+        }));
+    }
+
+    protected processGetById(response: HttpResponseBase): Observable<OrganizationView> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationView.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status === 403) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status === 500) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ProblemDetails.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * Inserta una nueva entidad. Devuelve la entidad insertada actualizada.
+     * @param configurationName (optional) 
+     * @param reloadView (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    insert(body: OrganizationView, configurationName?: string | undefined, reloadView?: boolean | undefined, accept_Language?: string | undefined): Observable<OrganizationView> {
+        let url_ = this.baseUrl + "/api/Organization/Insert?";
+        if (configurationName === null)
+            throw new globalThis.Error("The parameter 'configurationName' cannot be null.");
+        else if (configurationName !== undefined)
+            url_ += "configurationName=" + encodeURIComponent("" + configurationName) + "&";
+        if (reloadView === null)
+            throw new globalThis.Error("The parameter 'reloadView' cannot be null.");
+        else if (reloadView !== undefined)
+            url_ += "reloadView=" + encodeURIComponent("" + reloadView) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept-Language": accept_Language !== undefined && accept_Language !== null ? "" + accept_Language : "",
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processInsert(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processInsert(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<OrganizationView>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<OrganizationView>;
+        }));
+    }
+
+    protected processInsert(response: HttpResponseBase): Observable<OrganizationView> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationView.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status === 403) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            }));
+        } else if (status === 500) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ProblemDetails.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * Actualiza una entidad. Devuelve la entidad actualizada.
+     * @param configurationName (optional) 
+     * @param reloadView (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    update(body: OrganizationView, configurationName?: string | undefined, reloadView?: boolean | undefined, accept_Language?: string | undefined): Observable<OrganizationView> {
+        let url_ = this.baseUrl + "/api/Organization/Update?";
+        if (configurationName === null)
+            throw new globalThis.Error("The parameter 'configurationName' cannot be null.");
+        else if (configurationName !== undefined)
+            url_ += "configurationName=" + encodeURIComponent("" + configurationName) + "&";
+        if (reloadView === null)
+            throw new globalThis.Error("The parameter 'reloadView' cannot be null.");
+        else if (reloadView !== undefined)
+            url_ += "reloadView=" + encodeURIComponent("" + reloadView) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept-Language": accept_Language !== undefined && accept_Language !== null ? "" + accept_Language : "",
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processUpdate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processUpdate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<OrganizationView>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<OrganizationView>;
+        }));
+    }
+
+    protected processUpdate(response: HttpResponseBase): Observable<OrganizationView> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationView.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status === 403) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status === 500) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ProblemDetails.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
     }
 
     /**
@@ -4056,6 +4454,174 @@ export class VTA_OrganizationClient implements IVTA_OrganizationClient {
     }
 }
 
+export class ApplicationModuleView implements IApplicationModuleView {
+    id?: number;
+    applicationId?: number;
+    moduleName?: string | undefined;
+    description?: string | undefined;
+    displayOrder?: number | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    application?: ApplicationView;
+    organization_ApplicationModule?: Organization_ApplicationModuleView[] | undefined;
+
+    constructor(data?: IApplicationModuleView) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.applicationId = _data["applicationId"];
+            this.moduleName = _data["moduleName"];
+            this.description = _data["description"];
+            this.displayOrder = _data["displayOrder"];
+            this.auditCreationUser = _data["auditCreationUser"];
+            this.auditCreationDate = _data["auditCreationDate"] ? new Date(_data["auditCreationDate"].toString()) : undefined as any;
+            this.auditModificationUser = _data["auditModificationUser"];
+            this.auditModificationDate = _data["auditModificationDate"] ? new Date(_data["auditModificationDate"].toString()) : undefined as any;
+            this.auditDeletionDate = _data["auditDeletionDate"] ? new Date(_data["auditDeletionDate"].toString()) : undefined as any;
+            this.application = _data["application"] ? ApplicationView.fromJS(_data["application"]) : undefined as any;
+            if (Array.isArray(_data["organization_ApplicationModule"])) {
+                this.organization_ApplicationModule = [] as any;
+                for (let item of _data["organization_ApplicationModule"])
+                    this.organization_ApplicationModule!.push(Organization_ApplicationModuleView.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ApplicationModuleView {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApplicationModuleView();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["applicationId"] = this.applicationId;
+        data["moduleName"] = this.moduleName;
+        data["description"] = this.description;
+        data["displayOrder"] = this.displayOrder;
+        data["auditCreationUser"] = this.auditCreationUser;
+        data["auditCreationDate"] = this.auditCreationDate ? this.auditCreationDate.toISOString() : undefined as any;
+        data["auditModificationUser"] = this.auditModificationUser;
+        data["auditModificationDate"] = this.auditModificationDate ? this.auditModificationDate.toISOString() : undefined as any;
+        data["auditDeletionDate"] = this.auditDeletionDate ? this.auditDeletionDate.toISOString() : undefined as any;
+        data["application"] = this.application ? this.application.toJSON() : undefined as any;
+        if (Array.isArray(this.organization_ApplicationModule)) {
+            data["organization_ApplicationModule"] = [];
+            for (let item of this.organization_ApplicationModule)
+                data["organization_ApplicationModule"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IApplicationModuleView {
+    id?: number;
+    applicationId?: number;
+    moduleName?: string | undefined;
+    description?: string | undefined;
+    displayOrder?: number | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    application?: ApplicationView;
+    organization_ApplicationModule?: Organization_ApplicationModuleView[] | undefined;
+}
+
+export class ApplicationView implements IApplicationView {
+    id?: number;
+    appName?: string | undefined;
+    description?: string | undefined;
+    rolePrefix?: string | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    applicationModule?: ApplicationModuleView[] | undefined;
+
+    constructor(data?: IApplicationView) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.appName = _data["appName"];
+            this.description = _data["description"];
+            this.rolePrefix = _data["rolePrefix"];
+            this.auditCreationUser = _data["auditCreationUser"];
+            this.auditCreationDate = _data["auditCreationDate"] ? new Date(_data["auditCreationDate"].toString()) : undefined as any;
+            this.auditModificationUser = _data["auditModificationUser"];
+            this.auditModificationDate = _data["auditModificationDate"] ? new Date(_data["auditModificationDate"].toString()) : undefined as any;
+            this.auditDeletionDate = _data["auditDeletionDate"] ? new Date(_data["auditDeletionDate"].toString()) : undefined as any;
+            if (Array.isArray(_data["applicationModule"])) {
+                this.applicationModule = [] as any;
+                for (let item of _data["applicationModule"])
+                    this.applicationModule!.push(ApplicationModuleView.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ApplicationView {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApplicationView();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["appName"] = this.appName;
+        data["description"] = this.description;
+        data["rolePrefix"] = this.rolePrefix;
+        data["auditCreationUser"] = this.auditCreationUser;
+        data["auditCreationDate"] = this.auditCreationDate ? this.auditCreationDate.toISOString() : undefined as any;
+        data["auditModificationUser"] = this.auditModificationUser;
+        data["auditModificationDate"] = this.auditModificationDate ? this.auditModificationDate.toISOString() : undefined as any;
+        data["auditDeletionDate"] = this.auditDeletionDate ? this.auditDeletionDate.toISOString() : undefined as any;
+        if (Array.isArray(this.applicationModule)) {
+            data["applicationModule"] = [];
+            for (let item of this.applicationModule)
+                data["applicationModule"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IApplicationView {
+    id?: number;
+    appName?: string | undefined;
+    description?: string | undefined;
+    rolePrefix?: string | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    applicationModule?: ApplicationModuleView[] | undefined;
+}
+
 export class AttachmentFileView implements IAttachmentFileView {
     id?: number;
     fileContent?: string | undefined;
@@ -4886,6 +5452,270 @@ export interface IKendoSort {
     compare?: string | undefined;
     dir?: string | undefined;
     field?: string | undefined;
+}
+
+export class OrganizationGroupView implements IOrganizationGroupView {
+    id?: number;
+    groupName?: string | undefined;
+    description?: string | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    organization?: OrganizationView[] | undefined;
+
+    constructor(data?: IOrganizationGroupView) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.groupName = _data["groupName"];
+            this.description = _data["description"];
+            this.auditCreationUser = _data["auditCreationUser"];
+            this.auditCreationDate = _data["auditCreationDate"] ? new Date(_data["auditCreationDate"].toString()) : undefined as any;
+            this.auditModificationUser = _data["auditModificationUser"];
+            this.auditModificationDate = _data["auditModificationDate"] ? new Date(_data["auditModificationDate"].toString()) : undefined as any;
+            this.auditDeletionDate = _data["auditDeletionDate"] ? new Date(_data["auditDeletionDate"].toString()) : undefined as any;
+            if (Array.isArray(_data["organization"])) {
+                this.organization = [] as any;
+                for (let item of _data["organization"])
+                    this.organization!.push(OrganizationView.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): OrganizationGroupView {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrganizationGroupView();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["groupName"] = this.groupName;
+        data["description"] = this.description;
+        data["auditCreationUser"] = this.auditCreationUser;
+        data["auditCreationDate"] = this.auditCreationDate ? this.auditCreationDate.toISOString() : undefined as any;
+        data["auditModificationUser"] = this.auditModificationUser;
+        data["auditModificationDate"] = this.auditModificationDate ? this.auditModificationDate.toISOString() : undefined as any;
+        data["auditDeletionDate"] = this.auditDeletionDate ? this.auditDeletionDate.toISOString() : undefined as any;
+        if (Array.isArray(this.organization)) {
+            data["organization"] = [];
+            for (let item of this.organization)
+                data["organization"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IOrganizationGroupView {
+    id?: number;
+    groupName?: string | undefined;
+    description?: string | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    organization?: OrganizationView[] | undefined;
+}
+
+export class OrganizationView implements IOrganizationView {
+    id?: number;
+    securityCompanyId?: number;
+    groupId?: number | undefined;
+    name?: string | undefined;
+    acronym?: string | undefined;
+    taxId?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    country?: string | undefined;
+    contactEmail?: string | undefined;
+    contactPhone?: string | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    group?: OrganizationGroupView;
+    organization_ApplicationModule?: Organization_ApplicationModuleView[] | undefined;
+
+    constructor(data?: IOrganizationView) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.securityCompanyId = _data["securityCompanyId"];
+            this.groupId = _data["groupId"];
+            this.name = _data["name"];
+            this.acronym = _data["acronym"];
+            this.taxId = _data["taxId"];
+            this.address = _data["address"];
+            this.city = _data["city"];
+            this.postalCode = _data["postalCode"];
+            this.country = _data["country"];
+            this.contactEmail = _data["contactEmail"];
+            this.contactPhone = _data["contactPhone"];
+            this.auditCreationUser = _data["auditCreationUser"];
+            this.auditCreationDate = _data["auditCreationDate"] ? new Date(_data["auditCreationDate"].toString()) : undefined as any;
+            this.auditModificationUser = _data["auditModificationUser"];
+            this.auditModificationDate = _data["auditModificationDate"] ? new Date(_data["auditModificationDate"].toString()) : undefined as any;
+            this.auditDeletionDate = _data["auditDeletionDate"] ? new Date(_data["auditDeletionDate"].toString()) : undefined as any;
+            this.group = _data["group"] ? OrganizationGroupView.fromJS(_data["group"]) : undefined as any;
+            if (Array.isArray(_data["organization_ApplicationModule"])) {
+                this.organization_ApplicationModule = [] as any;
+                for (let item of _data["organization_ApplicationModule"])
+                    this.organization_ApplicationModule!.push(Organization_ApplicationModuleView.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): OrganizationView {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrganizationView();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["securityCompanyId"] = this.securityCompanyId;
+        data["groupId"] = this.groupId;
+        data["name"] = this.name;
+        data["acronym"] = this.acronym;
+        data["taxId"] = this.taxId;
+        data["address"] = this.address;
+        data["city"] = this.city;
+        data["postalCode"] = this.postalCode;
+        data["country"] = this.country;
+        data["contactEmail"] = this.contactEmail;
+        data["contactPhone"] = this.contactPhone;
+        data["auditCreationUser"] = this.auditCreationUser;
+        data["auditCreationDate"] = this.auditCreationDate ? this.auditCreationDate.toISOString() : undefined as any;
+        data["auditModificationUser"] = this.auditModificationUser;
+        data["auditModificationDate"] = this.auditModificationDate ? this.auditModificationDate.toISOString() : undefined as any;
+        data["auditDeletionDate"] = this.auditDeletionDate ? this.auditDeletionDate.toISOString() : undefined as any;
+        data["group"] = this.group ? this.group.toJSON() : undefined as any;
+        if (Array.isArray(this.organization_ApplicationModule)) {
+            data["organization_ApplicationModule"] = [];
+            for (let item of this.organization_ApplicationModule)
+                data["organization_ApplicationModule"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IOrganizationView {
+    id?: number;
+    securityCompanyId?: number;
+    groupId?: number | undefined;
+    name?: string | undefined;
+    acronym?: string | undefined;
+    taxId?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    country?: string | undefined;
+    contactEmail?: string | undefined;
+    contactPhone?: string | undefined;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    group?: OrganizationGroupView;
+    organization_ApplicationModule?: Organization_ApplicationModuleView[] | undefined;
+}
+
+export class Organization_ApplicationModuleView implements IOrganization_ApplicationModuleView {
+    id?: number;
+    applicationModuleId?: number;
+    organizationId?: number;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    applicationModule?: ApplicationModuleView;
+    organization?: OrganizationView;
+
+    constructor(data?: IOrganization_ApplicationModuleView) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.applicationModuleId = _data["applicationModuleId"];
+            this.organizationId = _data["organizationId"];
+            this.auditCreationUser = _data["auditCreationUser"];
+            this.auditCreationDate = _data["auditCreationDate"] ? new Date(_data["auditCreationDate"].toString()) : undefined as any;
+            this.auditModificationUser = _data["auditModificationUser"];
+            this.auditModificationDate = _data["auditModificationDate"] ? new Date(_data["auditModificationDate"].toString()) : undefined as any;
+            this.auditDeletionDate = _data["auditDeletionDate"] ? new Date(_data["auditDeletionDate"].toString()) : undefined as any;
+            this.applicationModule = _data["applicationModule"] ? ApplicationModuleView.fromJS(_data["applicationModule"]) : undefined as any;
+            this.organization = _data["organization"] ? OrganizationView.fromJS(_data["organization"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): Organization_ApplicationModuleView {
+        data = typeof data === 'object' ? data : {};
+        let result = new Organization_ApplicationModuleView();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["applicationModuleId"] = this.applicationModuleId;
+        data["organizationId"] = this.organizationId;
+        data["auditCreationUser"] = this.auditCreationUser;
+        data["auditCreationDate"] = this.auditCreationDate ? this.auditCreationDate.toISOString() : undefined as any;
+        data["auditModificationUser"] = this.auditModificationUser;
+        data["auditModificationDate"] = this.auditModificationDate ? this.auditModificationDate.toISOString() : undefined as any;
+        data["auditDeletionDate"] = this.auditDeletionDate ? this.auditDeletionDate.toISOString() : undefined as any;
+        data["applicationModule"] = this.applicationModule ? this.applicationModule.toJSON() : undefined as any;
+        data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IOrganization_ApplicationModuleView {
+    id?: number;
+    applicationModuleId?: number;
+    organizationId?: number;
+    auditCreationUser?: string | undefined;
+    auditCreationDate?: Date | undefined;
+    auditModificationUser?: string | undefined;
+    auditModificationDate?: Date | undefined;
+    auditDeletionDate?: Date | undefined;
+    applicationModule?: ApplicationModuleView;
+    organization?: OrganizationView;
 }
 
 export class PagingResponse implements IPagingResponse {

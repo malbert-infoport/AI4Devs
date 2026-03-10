@@ -1,5 +1,4 @@
 using Helix6.Base.Application;
-using Helix6.Base.Domain.Parameters;
 using Helix6.Base.Domain.Security;
 using Helix6.Base.Repository;
 using Helix6.Base.Service;
@@ -9,7 +8,7 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Services
 {
-    public class OrganizationGroupService : BaseService<OrganizationGroupView, OrganizationGroup, OrganizationGroupViewMetadata>, IOrganizationGroupService
+    public class OrganizationGroupService : BaseService<OrganizationGroupView, OrganizationGroup, OrganizationGroupViewMetadata>
     {
         public OrganizationGroupService(
             IApplicationContext applicationContext,
@@ -17,15 +16,6 @@ namespace InfoportOneAdmon.Back.Services
             IBaseRepository<OrganizationGroup> repository)
             : base(applicationContext, userContext, repository)
         {
-        }
-
-        public async Task<bool> ExistsActiveById(int? groupId)
-        {
-            if (!groupId.HasValue)
-                return true;
-
-            var entity = await Repository.GetById(groupId.Value, new QueryParams(null, true));
-            return entity != null && entity.AuditDeletionDate == null;
         }
     }
 }

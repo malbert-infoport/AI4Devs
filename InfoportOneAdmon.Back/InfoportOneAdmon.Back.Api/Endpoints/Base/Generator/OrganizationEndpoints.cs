@@ -24,6 +24,10 @@ namespace InfoportOneAdmon.Back.Api.Endpoints.Base.Generator
         /// <param name="app"></param>
         public static void MapOrganizationEndpoints(this WebApplication app)
         {
+            EndpointHelper.GenerateGetNewEntityEndpoint<OrganizationService, OrganizationView, Organization, OrganizationViewMetadata>(app, "/api/Organization/GetNewEntity", new EndpointAccess(HelixEnums.SecurityLevel.Modify));
+            EndpointHelper.GenerateGetByIdEndpoint<OrganizationService, OrganizationView, Organization, OrganizationViewMetadata>(app, "/api/Organization/GetById", new EndpointAccess(HelixEnums.SecurityLevel.Read));
+            EndpointHelper.GenerateInsertEndpoint<OrganizationService, OrganizationView, Organization, OrganizationViewMetadata>(app, "/api/Organization/Insert", new EndpointAccess(HelixEnums.SecurityLevel.Modify));
+            EndpointHelper.GenerateUpdateEndpoint<OrganizationService, OrganizationView, Organization, OrganizationViewMetadata>(app, "/api/Organization/Update", new EndpointAccess(HelixEnums.SecurityLevel.Modify));
             EndpointHelper.GenerateDeleteUndeleteLogicByIdEndpoint<OrganizationService, OrganizationView, Organization, OrganizationViewMetadata>(app, "/api/Organization/DeleteUndeleteLogicById", new EndpointAccess(HelixEnums.SecurityLevel.Modify));
         }
     }

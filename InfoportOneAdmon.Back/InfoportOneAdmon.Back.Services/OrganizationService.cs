@@ -20,14 +20,14 @@ namespace InfoportOneAdmon.Back.Services
 
         private readonly IUserPermissions _userPermissions;
         private readonly IOrganizationRepository _organizationRepository;
-        private readonly IOrganizationGroupService _organizationGroupService;
+        private readonly OrganizationGroupService _organizationGroupService;
 
         public OrganizationService(
             IApplicationContext applicationContext,
             IUserContext userContext,
             IOrganizationRepository repository,
             IUserPermissions userPermissions,
-            IOrganizationGroupService organizationGroupService
+            OrganizationGroupService organizationGroupService
             )
             : base(applicationContext, userContext, repository)
         {
@@ -191,7 +191,8 @@ namespace InfoportOneAdmon.Back.Services
             if (!view.GroupId.HasValue)
                 return;
 
-            var exists = await _organizationGroupService.ExistsActiveById(view.GroupId);
+            var group = await _organizationGroupService.GetById(view.GroupId.Value);
+            var exists = group != null;
             if (!exists)
                 validations.AddError(Consts.Validations.Organization.GROUP_NOT_FOUND_OR_INACTIVE, view.GroupId.Value.ToString());
         }
