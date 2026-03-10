@@ -129,30 +129,40 @@ VALUES
 	(8, 4, 'SecurityCompany', 1, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.783', '2025-07-29 09:31:23.783', NULL),
 	(9, 5, 'SecurityCompany', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.787', '2025-07-29 09:31:23.787', NULL),
 
-	-- Organizations controllers (example mappings)
+	-- Organizations controllers
 	(2000, 200, 'Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2001, 201, 'Organization', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2002, 202, 'OrganizationModules', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2004, 204, 'OrganizationModules', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2003, 203, 'OrganizationAudit', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2001, 201, 'Organization', 3, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2002, 202, 'Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2003, 204, 'Organization', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
-	-- Group controllers (mirror Organization access options so Groups inherit Org permissions)
-	(2010, 200, 'Group', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2011, 201, 'Group', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2012, 202, 'GroupModules', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2014, 204, 'GroupModules', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2013, 203, 'GroupAudit', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	-- AuditLog controllers
+	(2004, 200, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2005, 201, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2006, 202, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2007, 203, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
 	-- Applications controllers
 	(3000, 300, 'Application', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3001, 301, 'Application', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3002, 302, 'ApplicationModules', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3003, 303, 'ApplicationModules', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3004, 304, 'ApplicationRoles', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3005, 305, 'ApplicationRoles', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3006, 306, 'ApplicationCredentials', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3007, 307, 'ApplicationCredentials', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3008, 308, 'ApplicationAudit', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL)
+	(3001, 301, 'Application', 3, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3002, 302, 'Application', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3003, 303, 'Application', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3004, 304, 'Application', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3005, 305, 'Application', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3006, 306, 'Application', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3007, 307, 'Application', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	
+	-- AuditLog controllers
+	(3008, 300, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3009, 301, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3010, 302, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3011, 303, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3012, 304, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3013, 305, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3014, 306, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3015, 307, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3016, 308, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+
+
 ON CONFLICT ("Id") DO UPDATE SET
 	"SecurityAccessOptionId" = EXCLUDED."SecurityAccessOptionId",
 	"Controller" = EXCLUDED."Controller",

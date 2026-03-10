@@ -168,6 +168,36 @@
   <data name="PROJECT_DELETE_HAS_WORKER" xml:space="preserve">
     <value>The project cannot be removed because it has associated workers.</value>
   </data>
+  <data name="ORGANIZATION_CONTACT_EMAIL_INVALID" xml:space="preserve">
+    <value>The contact email format is invalid.</value>
+  </data>
+  <data name="ORGANIZATION_CREATE_FORBIDDEN" xml:space="preserve">
+    <value>You do not have permission to create organizations.</value>
+  </data>
+  <data name="ORGANIZATION_GROUP_NOT_FOUND_OR_INACTIVE" xml:space="preserve">
+    <value>The group with Id {0} does not exist or is inactive.</value>
+  </data>
+  <data name="ORGANIZATION_MODULES_MODIFICATION_FORBIDDEN" xml:space="preserve">
+    <value>You do not have permission to modify organization modules.</value>
+  </data>
+  <data name="ORGANIZATION_NAME_ALREADY_EXISTS" xml:space="preserve">
+    <value>An organization with the name '{0}' already exists.</value>
+  </data>
+  <data name="ORGANIZATION_NAME_REQUIRED" xml:space="preserve">
+    <value>The organization name is required.</value>
+  </data>
+  <data name="ORGANIZATION_TAXID_ALREADY_EXISTS" xml:space="preserve">
+    <value>An organization with TaxId '{0}' already exists.</value>
+  </data>
+  <data name="ORGANIZATION_TAXID_INVALID_FORMAT" xml:space="preserve">
+    <value>The TaxId format is invalid for Spanish CIF.</value>
+  </data>
+  <data name="ORGANIZATION_TAXID_REQUIRED" xml:space="preserve">
+    <value>TaxId is required.</value>
+  </data>
+  <data name="ORGANIZATION_UPDATE_FORBIDDEN" xml:space="preserve">
+    <value>You do not have permission to modify organizations.</value>
+  </data>
   <data name="TRAINEE_WORKER_MUST_BE_FROM_AGENCY" xml:space="preserve">
     <value>The trainee worker {0} {1} must come from agency. </value>
   </data>
