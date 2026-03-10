@@ -14,13 +14,18 @@
   </ng-template>
 
   <!-- Use cl-grid default toolbar; toolbarRight provides Refresh text button so order is: Filters/Columns (center) → (spacer) → Refresh (text) → Excel → Configurator -->
-  <cl-grid [config]="gridConfig" [data]="gridData" (dataStateChangeEvent)="onDataStateChange($event)">
+  <cl-grid
+    [config]="gridConfig"
+    [data]="gridData"
+    (dataStateChangeEvent)="onDataStateChange($event)"
+    (rowSelected)="onRowSelected($event)"
+  >
     <ng-template #noRecordsTemplate>
       <div class="no-records">{{ 'ORGANIZATIONS.PLACEHOLDERS.NO_RECORDS' | translate }}</div>
     </ng-template>
 
     <ng-template #footerTemplate let-item>
-      <cl-button text="+ Añadir" [theme]="'secondary'" (clicked)="editItem(0)"></cl-button>
+      <cl-button [text]="'+ ' + ('ORGANIZATIONS.BUTTONS.NEW' | translate)" [theme]="'secondary'" (clicked)="editItem(0)"></cl-button>
     </ng-template>
 
     <ng-template #clGridColumnTemplate let-dataItem let-column="column" *ngFor="let col of gridConfig.columns">

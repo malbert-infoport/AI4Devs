@@ -1,6 +1,20 @@
 {
 	"ORGANIZATIONS": {
 		"TITLE": "Organizations",
+		"FORM": {
+			"TITLE_NEW": "New organization",
+			"TITLE_EDIT": "Edit organization",
+			"TABS": {
+				"GENERAL_DATA": "Organization data",
+				"MODULES": "Modules and access",
+				"AUDIT": "Audit"
+			},
+			"PLACEHOLDERS": {
+				"GENERAL_DATA": "Tab 1 under implementation: general data form.",
+				"MODULES": "Tab 2 under implementation: organization modules management.",
+				"AUDIT": "Tab 3 under implementation: paged audit history."
+			}
+		},
 		"COLUMNS": {
 			"COMPANY": "Company",
 			"NAME": "Name",

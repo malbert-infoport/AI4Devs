@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild, TemplateRef, inject, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
-import { ClGridComponent, ClGridConfig, ClGridColumn, ClGridState, IClGridConfiguratorEndpoints, ClFilterableSettings, ClExcelExport } from '@cl/common-library/cl-grid';
+import { ClGridComponent, ClGridConfig, ClGridColumn, ClGridState, IClGridConfiguratorEndpoints, ClFilterableSettings, ClExcelExport, ClSelectableSettings } from '@cl/common-library/cl-grid';
 import { ClModalConfig, ClModalService } from '@cl/common-library/cl-modal';
 import { State } from '@progress/kendo-data-query';
 import { TranslateModule } from '@ngx-translate/core';
@@ -62,6 +62,11 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
       idGrid,
       selectBy: 'Id',
       mode: 'server-side',
+      selectable: new ClSelectableSettings({
+        mode: 'multiple',
+        showSelectAll: false,
+        checkboxOnly: false
+      }),
       pageable: true,
       persistState: false,
       filterable: new ClFilterableSettings({ hideToolbarFilter: false, hideSearcherFilter: true }),
@@ -231,14 +236,20 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
     // deprecated; search handled via grid filters. Keep method to avoid template errors if referenced.
   }
 
+  onRowSelected(row: any) {
+    const id = row?.Id ?? row?.id ?? row?._raw?.id ?? row?._raw?.Id;
+    if (id && Number(id) > 0) {
+      this.editItem(Number(id));
+    }
+  }
+
   editItem(id: number) {
-    // Navigate to edit page if route exists; fallback: show message
-    if (id && id > 0) {
-      try {
-        this.router.navigate(['organizations', id]);
-      } catch (e) {
-        this.sharedMessageService.showMessage(this.translate.instant('NAVIGATE_TO_EDIT'));
-      }
+    const targetRoute = id && id > 0 ? ['/protected/organizations', id] : ['/protected/organizations/new'];
+
+    try {
+      this.router.navigate(targetRoute);
+    } catch (e) {
+      this.sharedMessageService.showMessage(this.translate.instant('NAVIGATE_TO_EDIT'));
     }
   }
 
