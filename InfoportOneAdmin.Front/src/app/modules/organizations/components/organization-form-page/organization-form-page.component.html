@@ -21,30 +21,43 @@
   <ng-template #generalDataTab>
     <div class="tab-content p-3">
       <form [formGroup]="organizationForm" class="general-data-form">
-        <div class="row g-3">
-          <cl-input class="col-md-3" formControlName="securityCompanyId" [label]="'ORGANIZATIONS.FORM.FIELDS.COMPANY_ID' | translate" [inputType]="'number'"></cl-input>
-          <cl-combo-box
-            class="col-md-3"
-            formControlName="groupId"
-            [items]="organizationGroups"
-            [textField]="'groupName'"
-            [valueField]="'id'"
-            [defaultItem]="emptyGroupItem"
-            [label]="'ORGANIZATIONS.FORM.FIELDS.GROUP' | translate"
-          ></cl-combo-box>
-          <cl-input class="col-md-6" formControlName="name" [label]="'ORGANIZATIONS.FORM.FIELDS.NAME' | translate"></cl-input>
+        <section class="data-section">
+          <h3 class="section-title">{{ 'ORGANIZATIONS.FORM.SECTIONS.BASIC' | translate }}</h3>
+          <div class="row g-3">
+            <cl-input class="col-md-6" formControlName="name" [label]="'ORGANIZATIONS.FORM.FIELDS.NAME' | translate"></cl-input>
+            <cl-input class="col-md-3" formControlName="taxId" [label]="'ORGANIZATIONS.FORM.FIELDS.TAX_ID' | translate"></cl-input>
+            <cl-combo-box
+              class="col-md-3"
+              formControlName="groupId"
+              [items]="organizationGroups"
+              [textField]="'groupName'"
+              [valueField]="'id'"
+              [defaultItem]="emptyGroupItem"
+              [label]="'ORGANIZATIONS.FORM.FIELDS.GROUP' | translate"
+            ></cl-combo-box>
 
-          <cl-input class="col-md-3" formControlName="acronym" [label]="'ORGANIZATIONS.FORM.FIELDS.ACRONYM' | translate"></cl-input>
-          <cl-input class="col-md-3" formControlName="taxId" [label]="'ORGANIZATIONS.FORM.FIELDS.TAX_ID' | translate"></cl-input>
-          <cl-input class="col-md-6" formControlName="contactEmail" [label]="'ORGANIZATIONS.FORM.FIELDS.CONTACT_EMAIL' | translate"></cl-input>
+            <cl-input class="col-md-3" formControlName="securityCompanyId" [label]="'ORGANIZATIONS.FORM.FIELDS.COMPANY_ID' | translate" [inputType]="'number'"></cl-input>
+            <cl-input class="col-md-3" formControlName="acronym" [label]="'ORGANIZATIONS.FORM.FIELDS.ACRONYM' | translate"></cl-input>
+          </div>
+        </section>
 
-          <cl-input class="col-md-4" formControlName="contactPhone" [label]="'ORGANIZATIONS.FORM.FIELDS.CONTACT_PHONE' | translate"></cl-input>
-          <cl-input class="col-md-8" formControlName="address" [label]="'ORGANIZATIONS.FORM.FIELDS.ADDRESS' | translate"></cl-input>
+        <section class="data-section">
+          <h3 class="section-title">{{ 'ORGANIZATIONS.FORM.SECTIONS.LOCATION' | translate }}</h3>
+          <div class="row g-3">
+            <cl-input class="col-md-6" formControlName="address" [label]="'ORGANIZATIONS.FORM.FIELDS.ADDRESS' | translate"></cl-input>
+            <cl-input class="col-md-2" formControlName="city" [label]="'ORGANIZATIONS.FORM.FIELDS.CITY' | translate"></cl-input>
+            <cl-input class="col-md-2" formControlName="postalCode" [label]="'ORGANIZATIONS.FORM.FIELDS.POSTAL_CODE' | translate"></cl-input>
+            <cl-input class="col-md-2" formControlName="country" [label]="'ORGANIZATIONS.FORM.FIELDS.COUNTRY' | translate"></cl-input>
+          </div>
+        </section>
 
-          <cl-input class="col-md-4" formControlName="city" [label]="'ORGANIZATIONS.FORM.FIELDS.CITY' | translate"></cl-input>
-          <cl-input class="col-md-4" formControlName="postalCode" [label]="'ORGANIZATIONS.FORM.FIELDS.POSTAL_CODE' | translate"></cl-input>
-          <cl-input class="col-md-4" formControlName="country" [label]="'ORGANIZATIONS.FORM.FIELDS.COUNTRY' | translate"></cl-input>
-        </div>
+        <section class="data-section">
+          <h3 class="section-title">{{ 'ORGANIZATIONS.FORM.SECTIONS.CONTACT' | translate }}</h3>
+          <div class="row g-3">
+            <cl-input class="col-md-6" formControlName="contactEmail" [label]="'ORGANIZATIONS.FORM.FIELDS.CONTACT_EMAIL' | translate"></cl-input>
+            <cl-input class="col-md-6" formControlName="contactPhone" [label]="'ORGANIZATIONS.FORM.FIELDS.CONTACT_PHONE' | translate"></cl-input>
+          </div>
+        </section>
       </form>
     </div>
   </ng-template>

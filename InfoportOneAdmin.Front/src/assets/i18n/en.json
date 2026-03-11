@@ -4,6 +4,11 @@
 		"FORM": {
 			"TITLE_NEW": "New organization",
 			"TITLE_EDIT": "Edit organization",
+			"SECTIONS": {
+				"BASIC": "Basic information",
+				"LOCATION": "Location",
+				"CONTACT": "Contact"
+			},
 			"FIELDS": {
 				"COMPANY_ID": "Company id",
 				"GROUP_ID": "Group id",
