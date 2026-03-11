@@ -42,5 +42,17 @@ namespace InfoportOneAdmon.Back.Data.Repository
                 o.Id != excludedId &&
                 o.TaxId == taxId);
         }
+
+        public async Task<int> GetNextSecurityCompanyId()
+        {
+            var query = EFRepository.GetAllAsQueryable(new QueryParams(null, true, false));
+
+            var lastSecurityCompanyId = await query
+                .OrderByDescending(o => o.SecurityCompanyId)
+                .Select(o => o.SecurityCompanyId)
+                .FirstOrDefaultAsync();
+
+            return lastSecurityCompanyId + 1;
+        }
     }
 }

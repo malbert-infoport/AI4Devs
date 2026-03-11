@@ -7,6 +7,7 @@ import { ClButtonComponent } from '@cl/common-library/cl-buttons';
 import { ClTabsComponent, IClTabData } from '@cl/common-library/cl-tabs';
 import { SelectEvent } from '@progress/kendo-angular-layout';
 import { ClComboBoxComponent, ClInputComponent } from '@cl/common-library/cl-form-fields';
+import { MatIconModule } from '@angular/material/icon';
 import { ThemeLoadingComponent } from '@app/theme/components/theme-loading/theme-loading.component';
 import { SharedMessageService } from '@app/theme/services/shared-message.service';
 import { OrganizationClient, OrganizationGroupClient, OrganizationGroupView, OrganizationView } from '../../../../../webServicesReferences/api/apiClients';
@@ -23,6 +24,7 @@ import { take } from 'rxjs';
     ClButtonComponent,
     ClComboBoxComponent,
     ClInputComponent,
+    MatIconModule,
     ThemeLoadingComponent
   ],
   providers: [OrganizationClient, OrganizationGroupClient],
@@ -99,8 +101,14 @@ export class OrganizationFormPageComponent implements OnInit {
     }
 
     this.saving = true;
-    const payload = new OrganizationView(this.organizationForm.getRawValue() as any);
-    const endpoint = payload.id && payload.id > 0 ? this.organizationClient.update(payload) : this.organizationClient.insert(payload);
+    const rawValue = this.organizationForm.getRawValue() as any;
+    const payload = new OrganizationView({
+      ...rawValue,
+      groupId: this.normalizeGroupId(rawValue.groupId)
+    });
+    const endpoint = payload.id && payload.id > 0
+      ? this.organizationClient.update(payload, 'OrganizationComplete', true)
+      : this.organizationClient.insert(payload, 'OrganizationComplete', true);
 
     endpoint.pipe(take(1)).subscribe({
       next: (saved) => {
@@ -187,5 +195,28 @@ export class OrganizationFormPageComponent implements OnInit {
           this.organizationGroups = [];
         }
       });
+  }
+
+  private normalizeGroupId(groupId: unknown): number | null {
+    if (groupId == null) {
+      return null;
+    }
+
+    if (typeof groupId === 'number') {
+      return Number.isFinite(groupId) ? groupId : null;
+    }
+
+    if (typeof groupId === 'string') {
+      const parsed = Number(groupId);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    if (typeof groupId === 'object' && 'id' in (groupId as Record<string, unknown>)) {
+      const idValue = (groupId as Record<string, unknown>)['id'];
+      const parsed = Number(idValue);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
   }
 }

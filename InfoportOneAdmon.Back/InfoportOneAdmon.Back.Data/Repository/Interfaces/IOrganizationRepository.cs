@@ -7,5 +7,6 @@ namespace InfoportOneAdmon.Back.Data.Repository.Interfaces
     {
         Task<bool> ExistsActiveByName(string name, int excludedId = 0);
         Task<bool> ExistsActiveByTaxId(string taxId, int excludedId = 0);
+        Task<int> GetNextSecurityCompanyId();
     }
 }

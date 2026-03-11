@@ -42,10 +42,51 @@
   }
 
   .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0 0 12px;
     font-size: 0.95rem;
     font-weight: 700;
     color: #2f3e46;
+  }
+
+  .section-title-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #4a6b78;
+  }
+
+  .basic-fields-row {
+    display: grid;
+    gap: 12px;
+    align-items: end;
+    grid-template-columns: minmax(90px, 110px) minmax(260px, 1fr) minmax(110px, 130px) minmax(140px, 170px) minmax(180px, 240px);
+  }
+
+  .field-company-id,
+  .field-name,
+  .field-acronym,
+  .field-tax-id,
+  .field-group {
+    min-width: 0;
+  }
+
+  @media (max-width: 1200px) {
+    .basic-fields-row {
+      grid-template-columns: 1fr 2fr 1fr 1fr;
+    }
+
+    .field-group {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .basic-fields-row {
+      grid-template-columns: 1fr;
+    }
   }
 
   .placeholder-box {

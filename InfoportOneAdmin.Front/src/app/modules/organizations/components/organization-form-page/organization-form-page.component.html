@@ -22,12 +22,17 @@
     <div class="tab-content p-3">
       <form [formGroup]="organizationForm" class="general-data-form">
         <section class="data-section">
-          <h3 class="section-title">{{ 'ORGANIZATIONS.FORM.SECTIONS.BASIC' | translate }}</h3>
-          <div class="row g-3">
-            <cl-input class="col-md-6" formControlName="name" [label]="'ORGANIZATIONS.FORM.FIELDS.NAME' | translate"></cl-input>
-            <cl-input class="col-md-3" formControlName="taxId" [label]="'ORGANIZATIONS.FORM.FIELDS.TAX_ID' | translate"></cl-input>
+          <h3 class="section-title">
+            <mat-icon class="section-title-icon" aria-hidden="true">info</mat-icon>
+            {{ 'ORGANIZATIONS.FORM.SECTIONS.BASIC' | translate }}
+          </h3>
+          <div class="basic-fields-row">
+            <cl-input class="field-company-id" formControlName="securityCompanyId" [label]="'Id Empresa'" [inputType]="'number'"></cl-input>
+            <cl-input class="field-name" formControlName="name" [label]="'ORGANIZATIONS.FORM.FIELDS.NAME' | translate"></cl-input>
+            <cl-input class="field-acronym" formControlName="acronym" [label]="'ORGANIZATIONS.FORM.FIELDS.ACRONYM' | translate"></cl-input>
+            <cl-input class="field-tax-id" formControlName="taxId" [label]="'ORGANIZATIONS.FORM.FIELDS.TAX_ID' | translate"></cl-input>
             <cl-combo-box
-              class="col-md-3"
+              class="field-group"
               formControlName="groupId"
               [items]="organizationGroups"
               [textField]="'groupName'"
@@ -35,14 +40,14 @@
               [defaultItem]="emptyGroupItem"
               [label]="'ORGANIZATIONS.FORM.FIELDS.GROUP' | translate"
             ></cl-combo-box>
-
-            <cl-input class="col-md-3" formControlName="securityCompanyId" [label]="'ORGANIZATIONS.FORM.FIELDS.COMPANY_ID' | translate" [inputType]="'number'"></cl-input>
-            <cl-input class="col-md-3" formControlName="acronym" [label]="'ORGANIZATIONS.FORM.FIELDS.ACRONYM' | translate"></cl-input>
           </div>
         </section>
 
         <section class="data-section">
-          <h3 class="section-title">{{ 'ORGANIZATIONS.FORM.SECTIONS.LOCATION' | translate }}</h3>
+          <h3 class="section-title">
+            <mat-icon class="section-title-icon" aria-hidden="true">location_on</mat-icon>
+            {{ 'ORGANIZATIONS.FORM.SECTIONS.LOCATION' | translate }}
+          </h3>
           <div class="row g-3">
             <cl-input class="col-md-6" formControlName="address" [label]="'ORGANIZATIONS.FORM.FIELDS.ADDRESS' | translate"></cl-input>
             <cl-input class="col-md-2" formControlName="city" [label]="'ORGANIZATIONS.FORM.FIELDS.CITY' | translate"></cl-input>
@@ -52,7 +57,10 @@
         </section>
 
         <section class="data-section">
-          <h3 class="section-title">{{ 'ORGANIZATIONS.FORM.SECTIONS.CONTACT' | translate }}</h3>
+          <h3 class="section-title">
+            <mat-icon class="section-title-icon" aria-hidden="true">phone</mat-icon>
+            {{ 'ORGANIZATIONS.FORM.SECTIONS.CONTACT' | translate }}
+          </h3>
           <div class="row g-3">
             <cl-input class="col-md-6" formControlName="contactEmail" [label]="'ORGANIZATIONS.FORM.FIELDS.CONTACT_EMAIL' | translate"></cl-input>
             <cl-input class="col-md-6" formControlName="contactPhone" [label]="'ORGANIZATIONS.FORM.FIELDS.CONTACT_PHONE' | translate"></cl-input>

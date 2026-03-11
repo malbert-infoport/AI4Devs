@@ -234,6 +234,50 @@ CREATE INDEX IF NOT EXISTS "IX_AuditLog_EntityType_EntityId" ON "Admon"."AuditLo
 CREATE INDEX IF NOT EXISTS "IX_AuditLog_Timestamp"           ON "Admon"."AuditLog"("Timestamp" DESC);
 CREATE INDEX IF NOT EXISTS "IX_AuditLog_UserId"              ON "Admon"."AuditLog"("UserId");
 
+-- -------------------------------------------------------
+-- 8. Resincronización de secuencias SERIAL
+--    Evita errores de clave duplicada tras seeds con Id explícito.
+-- -------------------------------------------------------
+DO $$
+BEGIN
+    PERFORM setval(
+        pg_get_serial_sequence('"Admon"."Organization"', 'Id'),
+        COALESCE((SELECT MAX("Id") FROM "Admon"."Organization"), 0) + 1,
+        false
+    );
+
+    PERFORM setval(
+        pg_get_serial_sequence('"Admon"."OrganizationGroup"', 'Id'),
+        COALESCE((SELECT MAX("Id") FROM "Admon"."OrganizationGroup"), 0) + 1,
+        false
+    );
+
+    PERFORM setval(
+        pg_get_serial_sequence('"Admon"."Application"', 'Id'),
+        COALESCE((SELECT MAX("Id") FROM "Admon"."Application"), 0) + 1,
+        false
+    );
+
+    PERFORM setval(
+        pg_get_serial_sequence('"Admon"."ApplicationModule"', 'Id'),
+        COALESCE((SELECT MAX("Id") FROM "Admon"."ApplicationModule"), 0) + 1,
+        false
+    );
+
+    PERFORM setval(
+        pg_get_serial_sequence('"Admon"."Organization_ApplicationModule"', 'Id'),
+        COALESCE((SELECT MAX("Id") FROM "Admon"."Organization_ApplicationModule"), 0) + 1,
+        false
+    );
+
+    PERFORM setval(
+        pg_get_serial_sequence('"Admon"."AuditLog"', 'Id'),
+        COALESCE((SELECT MAX("Id") FROM "Admon"."AuditLog"), 0) + 1,
+        false
+    );
+END
+$$;
+
 -- =====================================================
 -- Fin del script 01000003_OrganizationInfrastructure
 -- =====================================================

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Helix6.Base.Application;
 using Helix6.Base.Domain;
 using Helix6.Base.Domain.Parameters;
@@ -16,8 +15,6 @@ namespace InfoportOneAdmon.Back.Services
 {
     public class OrganizationService : BaseService<OrganizationView, Organization, OrganizationViewMetadata>
     {
-        private static readonly Regex SpanishCifRegex = new("^[ABCDEFGHJNPQRSUVW]\\d{7}[0-9A-J]$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         private readonly IUserPermissions _userPermissions;
         private readonly IOrganizationRepository _organizationRepository;
         private readonly OrganizationGroupService _organizationGroupService;
@@ -64,9 +61,6 @@ namespace InfoportOneAdmon.Back.Services
 
             if (string.IsNullOrWhiteSpace(view.TaxId))
                 validations.AddError(Consts.Validations.Organization.TAXID_REQUIRED);
-
-            if (!string.IsNullOrWhiteSpace(view.TaxId) && !SpanishCifRegex.IsMatch(view.TaxId.Trim()))
-                validations.AddError(Consts.Validations.Organization.TAXID_INVALID_FORMAT);
 
             if (!string.IsNullOrWhiteSpace(view.ContactEmail))
             {
@@ -136,6 +130,17 @@ namespace InfoportOneAdmon.Back.Services
         {
             // Placeholder: la publicacion de eventos y auditoria funcional se implementara aqui.
             await base.EndActions(view, actionType, configurationName);
+        }
+
+        public override async Task<OrganizationView?> GetNewEntity()
+        {
+            var result = await base.GetNewEntity();
+            if (result != null)
+            {
+                result.SecurityCompanyId = await _organizationRepository.GetNextSecurityCompanyId();
+            }
+
+            return result;
         }
 
         public override async Task<OrganizationView?> MapEntityToView(Organization? entity, string? configurationName = null, OrganizationView? view = null)
