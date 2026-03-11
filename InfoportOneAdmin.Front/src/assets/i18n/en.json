@@ -4,6 +4,20 @@
 		"FORM": {
 			"TITLE_NEW": "New organization",
 			"TITLE_EDIT": "Edit organization",
+			"FIELDS": {
+				"COMPANY_ID": "Company id",
+				"GROUP_ID": "Group id",
+				"GROUP": "Group",
+				"NAME": "Name",
+				"ACRONYM": "Acronym",
+				"TAX_ID": "Tax ID",
+				"CONTACT_EMAIL": "Contact email",
+				"CONTACT_PHONE": "Contact phone",
+				"ADDRESS": "Address",
+				"CITY": "City",
+				"POSTAL_CODE": "Postal code",
+				"COUNTRY": "Country"
+			},
 			"TABS": {
 				"GENERAL_DATA": "Organization data",
 				"MODULES": "Modules and access",

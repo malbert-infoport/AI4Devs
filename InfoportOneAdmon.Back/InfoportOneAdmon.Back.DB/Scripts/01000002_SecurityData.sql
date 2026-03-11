@@ -135,11 +135,22 @@ VALUES
 	(2002, 202, 'Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(2003, 204, 'Organization', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
+	-- VTA_Organization controllers
+	(2004, 200, 'VTA_Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2005, 201, 'VTA_Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2006, 202, 'VTA_Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2007, 204, 'VTA_Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2008, 200, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(2009, 201, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(2010, 202, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(2011, 203, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(2012, 204, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+
 	-- AuditLog controllers
-	(2004, 200, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2005, 201, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2006, 202, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(2007, 203, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2013, 200, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2014, 201, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2015, 202, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2016, 203, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
 	-- Applications controllers
 	(3000, 300, 'Application', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
@@ -150,17 +161,25 @@ VALUES
 	(3005, 305, 'Application', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(3006, 306, 'Application', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(3007, 307, 'Application', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	
+	(3008, 300, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3009, 301, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3010, 302, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3011, 303, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3012, 304, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3013, 305, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3014, 306, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+	(3015, 307, 'SecurityUserGridConfiguration', 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.773', '2025-07-29 09:31:23.773', NULL),
+
 	-- AuditLog controllers
-	(3008, 300, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3009, 301, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3010, 302, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3011, 303, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3012, 304, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3013, 305, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3014, 306, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3015, 307, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(3016, 308, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3016, 300, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3017, 301, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3018, 302, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3019, 303, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3020, 304, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3021, 305, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3022, 306, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3023, 307, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(3024, 308, 'AuditLog', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL)
 
 
 ON CONFLICT ("Id") DO UPDATE SET

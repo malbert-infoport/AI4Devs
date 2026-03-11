@@ -956,7 +956,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods>
+        <Method>GetAll</Method>
+      </Methods>
+    </Endpoints>
   </Entities>
   <Entities>
     <EntityName>UserCache</EntityName>

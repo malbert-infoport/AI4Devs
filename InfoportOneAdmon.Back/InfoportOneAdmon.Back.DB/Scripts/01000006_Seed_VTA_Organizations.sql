@@ -36,7 +36,7 @@ INSERT INTO "Admon"."Organization" (
   "Id","SecurityCompanyId","Name","Acronym","TaxId","Address","City","PostalCode","Country","ContactEmail","ContactPhone","GroupId",
   "AuditCreationUser","AuditCreationDate","AuditModificationUser","AuditModificationDate"
 )
-SELECT nid, 2, 'Iberia Transportes S.A.', 'IBER', 'A87654321', 'Av. de la Marina 45', 'Barcelona', '08001', 'Spain', 'contact@iberiatrans.es', '+34 934 567 890', NULL, 1, NOW(), 1, NOW()
+SELECT nid, 1, 'Iberia Transportes S.A.', 'IBER', 'A87654321', 'Av. de la Marina 45', 'Barcelona', '08001', 'Spain', 'contact@iberiatrans.es', '+34 934 567 890', NULL, 1, NOW(), 1, NOW()
 FROM next_id
 WHERE NOT EXISTS (SELECT 1 FROM "Admon"."Organization" WHERE "TaxId" = 'A87654321');
 
@@ -51,7 +51,7 @@ INSERT INTO "Admon"."Organization" (
   "Id","SecurityCompanyId","Name","Acronym","TaxId","Address","City","PostalCode","Country","ContactEmail","ContactPhone","GroupId",
   "AuditCreationUser","AuditCreationDate","AuditModificationUser","AuditModificationDate"
 )
-SELECT nid, 3, 'TransMar Logistics SL', 'TRMS', 'B23456789', 'C/ Puerto 7', 'Valencia', '46001', 'Spain', 'ops@transmar.es', '+34 911 223 344', (SELECT "Id" FROM grp), 1, NOW(), 1, NOW()
+SELECT nid, 1, 'TransMar Logistics SL', 'TRMS', 'B23456789', 'C/ Puerto 7', 'Valencia', '46001', 'Spain', 'ops@transmar.es', '+34 911 223 344', (SELECT "Id" FROM grp), 1, NOW(), 1, NOW()
 FROM next_id
 WHERE NOT EXISTS (SELECT 1 FROM "Admon"."Organization" WHERE "TaxId" = 'B23456789');
 
@@ -66,7 +66,7 @@ INSERT INTO "Admon"."Organization" (
   "Id","SecurityCompanyId","Name","Acronym","TaxId","Address","City","PostalCode","Country","ContactEmail","ContactPhone","GroupId",
   "AuditCreationUser","AuditCreationDate","AuditModificationUser","AuditModificationDate"
 )
-SELECT nid, 4, 'NovaCargo S.L.', 'NOVC', 'B98765432', 'C/ Nave 3', 'Seville', '41001', 'Spain', 'hello@novacargo.com', '+34 900 111 222', (SELECT "Id" FROM grp), 1, NOW(), 1, NOW()
+SELECT nid, 1, 'NovaCargo S.L.', 'NOVC', 'B98765432', 'C/ Nave 3', 'Seville', '41001', 'Spain', 'hello@novacargo.com', '+34 900 111 222', (SELECT "Id" FROM grp), 1, NOW(), 1, NOW()
 FROM next_id
 WHERE NOT EXISTS (SELECT 1 FROM "Admon"."Organization" WHERE "TaxId" = 'B98765432');
 
@@ -79,7 +79,7 @@ INSERT INTO "Admon"."Organization" (
   "Id","SecurityCompanyId","Name","Acronym","TaxId","Address","City","PostalCode","Country","ContactEmail","ContactPhone","GroupId",
   "AuditCreationUser","AuditCreationDate","AuditModificationUser","AuditModificationDate"
 )
-SELECT nid, 5, 'Grupo Oeste S.A.', 'GOST', 'A11223344', 'Paseo Oeste 21', 'Seville', '41002', 'Spain', 'info@grupo-oeste.es', '+34 955 332 211', NULL, 1, NOW(), 1, NOW()
+SELECT nid, 1, 'Grupo Oeste S.A.', 'GOST', 'A11223344', 'Paseo Oeste 21', 'Seville', '41002', 'Spain', 'info@grupo-oeste.es', '+34 955 332 211', NULL, 1, NOW(), 1, NOW()
 FROM next_id
 WHERE NOT EXISTS (SELECT 1 FROM "Admon"."Organization" WHERE "TaxId" = 'A11223344');
 
@@ -92,7 +92,7 @@ INSERT INTO "Admon"."Organization" (
   "Id","SecurityCompanyId","Name","Acronym","TaxId","Address","City","PostalCode","Country","ContactEmail","ContactPhone","GroupId",
   "AuditCreationUser","AuditCreationDate","AuditModificationUser","AuditModificationDate"
 )
-SELECT nid, 6, 'Alpine Freight GmbH', 'ALPF', 'DE123456789', 'Berliner Str. 10', 'Berlin', '10115', 'Germany', 'contact@alpinefreight.de', '+49 30 1234567', NULL, 1, NOW(), 1, NOW()
+SELECT nid, 1, 'Alpine Freight GmbH', 'ALPF', 'DE123456789', 'Berliner Str. 10', 'Berlin', '10115', 'Germany', 'contact@alpinefreight.de', '+49 30 1234567', NULL, 1, NOW(), 1, NOW()
 FROM next_id
 WHERE NOT EXISTS (SELECT 1 FROM "Admon"."Organization" WHERE "TaxId" = 'DE123456789');
 
@@ -104,7 +104,7 @@ INSERT INTO "Admon"."Organization" (
   "Id","SecurityCompanyId","Name","Acronym","TaxId","Address","City","PostalCode","Country","ContactEmail","ContactPhone","GroupId",
   "AuditCreationUser","AuditCreationDate","AuditModificationUser","AuditModificationDate","AuditDeletionDate"
 )
-SELECT nid, 7, 'Old Freight S.L.', 'OLDF', 'B00000000', 'C/ Vieja 1', 'Cadiz', '11001', 'Spain', 'noreply@oldfreight.es', '+34 900 000 000', NULL, 1, NOW(), 1, NOW(), NOW()
+SELECT nid, 1, 'Old Freight S.L.', 'OLDF', 'B00000000', 'C/ Vieja 1', 'Cadiz', '11001', 'Spain', 'noreply@oldfreight.es', '+34 900 000 000', NULL, 1, NOW(), 1, NOW(), NOW()
 FROM next_id
 WHERE NOT EXISTS (SELECT 1 FROM "Admon"."Organization" WHERE "TaxId" = 'B00000000');
 
