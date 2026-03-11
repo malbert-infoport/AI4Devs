@@ -94,6 +94,10 @@ export const appConfig: ApplicationConfig = {
       provide: TitleStrategy,
       useClass: TranslateTitleStrategy
     },
+    {
+      provide: LOCALE_ID,
+      useValue: 'es-ES'
+    },
     provideAppInitializer(() => {
       const initializerFn = (
         (envConfigService: EnvConfigurationService) => () =>

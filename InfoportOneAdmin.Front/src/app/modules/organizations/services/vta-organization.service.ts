@@ -9,6 +9,7 @@ export class VtaOrganizationService {
   getAll(kendoFilter: any): Observable<any> {
     // The generated client expects a payload shaped as { data: State }
     const payload = kendoFilter && kendoFilter.data ? kendoFilter : { data: kendoFilter };
-    return this.client.getAllKendoFilter(payload);
+    // Keep includeDeleted=true so UI filters can decide whether deleted rows are shown.
+    return this.client.getAllKendoFilter(payload, '', true);
   }
 }

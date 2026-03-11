@@ -40,6 +40,7 @@
 			"TAXID": "NIF/CIF",
 			"EMAIL": "Correo",
 			"PHONE": "Teléfono",
+			"DELETION_DATE": "Fecha baja",
 			"GROUP": "Grupo",
 			"APPS": "Apps",
 			"MODULES": "Módulos",

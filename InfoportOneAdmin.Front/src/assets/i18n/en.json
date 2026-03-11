@@ -40,6 +40,7 @@
 			"TAXID": "Tax ID",
 			"EMAIL": "Email",
 			"PHONE": "Phone",
+			"DELETION_DATE": "Deactivation date",
 			"GROUP": "Group",
 			"APPS": "Apps",
 			"MODULES": "Modules",

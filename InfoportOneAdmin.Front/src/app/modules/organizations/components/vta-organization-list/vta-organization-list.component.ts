@@ -1,14 +1,25 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild, TemplateRef, inject, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
-import { ClGridComponent, ClGridConfig, ClGridColumn, ClGridState, IClGridConfiguratorEndpoints, ClFilterableSettings, ClExcelExport, ClSelectableSettings } from '@cl/common-library/cl-grid';
+import {
+  ClGridComponent,
+  ClGridConfig,
+  ClGridColumn,
+  ClGridState,
+  IClGridConfiguratorEndpoints,
+  ClFilterableSettings,
+  ClExcelExport,
+  ClSelectableSettings,
+  ClGridAction,
+  ClSortableSettings
+} from '@cl/common-library/cl-grid';
 import { ClModalConfig, ClModalService } from '@cl/common-library/cl-modal';
 import { State } from '@progress/kendo-data-query';
 import { TranslateModule } from '@ngx-translate/core';
 import { GridDataResult } from '@progress/kendo-angular-grid';
 import { take, Subject, debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { VtaOrganizationService } from '../../services/vta-organization.service';
-import { VTA_OrganizationClient } from '../../../../../webServicesReferences/api/apiClients';
+import { VTA_OrganizationClient, OrganizationClient } from '../../../../../webServicesReferences/api/apiClients';
 import { SharedMessageService } from '@app/theme/services/shared-message.service';
 import { SecurityUserGridConfigurationClient } from '@restApi/api/apiClients';
 import { ClGridConfiguratorEndpointsRequestMapToHelix } from '@app/theme/modules/common-library/models/cl-grid-config.model';
@@ -16,12 +27,13 @@ import { GridConfiguratorMapperServiceService } from '@app/services/grid-configu
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ClButtonComponent } from '@cl/common-library/cl-buttons';
 import { Router } from '@angular/router';
+import { AccessService } from '@app/theme/access/access.service';
 
 @Component({
   selector: 'app-vta-organization-list',
   standalone: true,
   imports: [CommonModule, ClGridComponent, TranslateModule, ReactiveFormsModule, FormsModule, ClButtonComponent],
-  providers: [VTA_OrganizationClient, VtaOrganizationService, SecurityUserGridConfigurationClient],
+  providers: [VTA_OrganizationClient, OrganizationClient, VtaOrganizationService, SecurityUserGridConfigurationClient],
   templateUrl: './vta-organization-list.component.html',
   styleUrls: ['./vta-organization-list.component.scss']
 })
@@ -31,6 +43,8 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
   private readonly sharedMessageService = inject(SharedMessageService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
+  private readonly organizationClient = inject(OrganizationClient);
+  private readonly accessService = inject(AccessService);
   private readonly clModalService = inject(ClModalService);
   private readonly securityUserGridConfigurationClient = inject(SecurityUserGridConfigurationClient);
   private readonly gridConfiguratorMapperService = inject(GridConfiguratorMapperServiceService);
@@ -47,6 +61,10 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
   public state!: State | ClGridState;
   public showSpinner = false;
   public columnsConfigurator: { field: string; title: string; hidden?: boolean }[] = [];
+
+  get organizationModification(): boolean {
+    return this.accessService.organizationModification();
+  }
 
   ngOnInit(): void {
     const idGrid = 'organizationsGrid';
@@ -67,6 +85,45 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
         showSelectAll: false,
         checkboxOnly: false
       }),
+      actionsMenu: {
+        mode: 'on-row',
+        actions: [
+          new ClGridAction({
+            text: this.translate.instant('ORGANIZATIONS.BUTTONS.DEACTIVATE'),
+            clIcon: { name: 'ph ph-trash-simple', classes: 'text-danger' },
+            execute: (dataItem) => {
+              this.organizationClient
+                .deleteUndeleteLogicById(dataItem.Id)
+                .pipe(take(1))
+                .subscribe({
+                  next: () => {
+                    this.sharedMessageService.showMessage(this.translate.instant('DESACTIVATE'));
+                    this.loadData(this.state);
+                  },
+                  error: (err) => this.sharedMessageService.showError(err)
+                });
+            },
+            isVisible: (dataItem) => !!(this.organizationModification && !dataItem?.AuditDeletionDate)
+          }),
+          new ClGridAction({
+            text: this.translate.instant('ORGANIZATIONS.BUTTONS.REACTIVATE'),
+            clIcon: { name: 'ph ph-arrow-arc-left' },
+            execute: (dataItem) => {
+              this.organizationClient
+                .deleteUndeleteLogicById(dataItem.Id)
+                .pipe(take(1))
+                .subscribe({
+                  next: () => {
+                    this.sharedMessageService.showMessage(this.translate.instant('ACTIVATE'));
+                    this.loadData(this.state);
+                  },
+                  error: (err) => this.sharedMessageService.showError(err)
+                });
+            },
+            isVisible: (dataItem) => !!(this.organizationModification && dataItem?.AuditDeletionDate)
+          })
+        ]
+      },
       pageable: true,
       persistState: false,
       filterable: new ClFilterableSettings({ hideToolbarFilter: false, hideSearcherFilter: true }),
@@ -84,18 +141,44 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
             })
           )
       }),
-      sortable: { hideToolbarOrder: true },
+      sortable: new ClSortableSettings({
+        mode: 'multiple',
+        allowUnsort: true,
+        hideToolbarOrder: true
+      }),
       toolbarTemplates: {
         templateLeft: null,
         templateRight: null
       },
       gridConfiguratorEndpoints: gridConfiguratorEndpoints,
+      state: {
+        skip: 0,
+        take: 20,
+        sort: [
+          {
+            field: 'SecurityCompanyId',
+            dir: 'asc'
+          }
+        ],
+        filter: {
+          filters: [
+            {
+              field: 'AuditDeletionDate',
+              operator: 'isnull',
+              value: null
+            }
+          ],
+          logic: 'and'
+        }
+      },
       columns: this.buildColumns(),
       rowClassCallback: (ctx) => {
         const item = (ctx as any).dataItem;
         return { 'row-inactive': !!item?.AuditDeletionDate, 'row-pending': item?.ModuleCount === 0 };
       }
     });
+
+    this.ensureDeletionDateColumnVisible();
     // wire toolbarRight template (templateRef available via static ViewChild)
     if (this.toolbarRight) this.gridConfig.toolbarTemplates.templateRight = this.toolbarRight;
     // initialize state and load first page (pass full Kendo state to backend)
@@ -114,6 +197,7 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
       TaxId: it.taxId ?? it.TaxId,
       ContactEmail: it.contactEmail ?? it.ContactEmail,
       ContactPhone: it.contactPhone ?? it.ContactPhone,
+      AuditDeletionDate: it.auditDeletionDate ?? it.AuditDeletionDate,
       AuditCreationUser: it.auditCreationUser ?? it.AuditCreationUser,
       AuditCreationDate: it.auditCreationDate ?? it.AuditCreationDate,
       AuditModificationUser: it.auditModificationUser ?? it.AuditModificationUser,
@@ -131,21 +215,52 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
         title: this.translate.instant('ORGANIZATIONS.COLUMNS.COMPANY'),
         width: 120,
         filterable: true,
-        filter: 'numeric'
+        filter: 'numeric',
+        sortable: true
       },
-      { field: 'Name', title: this.translate.instant('ORGANIZATIONS.COLUMNS.NAME'), width: 250, filterable: true, filter: 'text' },
-      { field: 'TaxId', title: this.translate.instant('ORGANIZATIONS.COLUMNS.TAXID'), width: 140, filterable: true, filter: 'text' },
-      { field: 'ContactEmail', title: this.translate.instant('ORGANIZATIONS.COLUMNS.EMAIL'), width: 200, filterable: true, filter: 'text' },
-      { field: 'ContactPhone', title: this.translate.instant('ORGANIZATIONS.COLUMNS.PHONE'), width: 140, filterable: true, filter: 'text' },
-      { field: 'GroupName', title: this.translate.instant('ORGANIZATIONS.COLUMNS.GROUP'), width: 160, filterable: true, filter: 'text' },
-        { field: 'AppList', title: this.translate.instant('ORGANIZATIONS.COLUMNS.APPS'), width: 260, filterable: true, filter: 'text' },
-      { field: 'ModuleCount', title: this.translate.instant('ORGANIZATIONS.COLUMNS.MODULES'), width: 100, filterable: true, filter: 'numeric' }
+      { field: 'Name', title: this.translate.instant('ORGANIZATIONS.COLUMNS.NAME'), width: 250, filterable: true, filter: 'text', sortable: true },
+      { field: 'TaxId', title: this.translate.instant('ORGANIZATIONS.COLUMNS.TAXID'), width: 140, filterable: true, filter: 'text', sortable: true },
+      { field: 'ContactEmail', title: this.translate.instant('ORGANIZATIONS.COLUMNS.EMAIL'), width: 200, filterable: true, filter: 'text', sortable: true },
+      { field: 'ContactPhone', title: this.translate.instant('ORGANIZATIONS.COLUMNS.PHONE'), width: 140, filterable: true, filter: 'text', sortable: true },
+      { field: 'GroupName', title: this.translate.instant('ORGANIZATIONS.COLUMNS.GROUP'), width: 160, filterable: true, filter: 'text', sortable: true },
+      { field: 'AppList', title: this.translate.instant('ORGANIZATIONS.COLUMNS.APPS'), width: 260, filterable: true, filter: 'text', sortable: true },
+      { field: 'ModuleCount', title: this.translate.instant('ORGANIZATIONS.COLUMNS.MODULES'), width: 100, filterable: true, filter: 'numeric', sortable: true },
+      {
+        field: 'AuditDeletionDate',
+        title: this.translate.instant('ORGANIZATIONS.COLUMNS.DELETION_DATE'),
+        width: 170,
+        filterable: true,
+        filter: 'date',
+        sortable: true,
+        dateConfig: {
+          format: 'dd/MM/yyyy'
+        },
+        editor: {
+          type: 'date'
+        }
+      }
     ] as any;
 
     // Keep a simple mirror for the columns configurator UI
     this.columnsConfigurator = cols.map((c: any) => ({ field: c.field, title: c.title, hidden: !!c.hidden }));
 
     return cols;
+  }
+
+  private ensureDeletionDateColumnVisible(): void {
+    if (!this.gridConfig?.columns) {
+      return;
+    }
+
+    const deletionColumn = (this.gridConfig.columns as any[]).find((x: any) => x.field === 'AuditDeletionDate');
+    if (deletionColumn) {
+      deletionColumn.hidden = false;
+    }
+
+    const deletionColumnConfigurator = this.columnsConfigurator.find((x) => x.field === 'AuditDeletionDate');
+    if (deletionColumnConfigurator) {
+      deletionColumnConfigurator.hidden = false;
+    }
   }
 
   openColumnsModal() {
@@ -202,6 +317,7 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
             TaxId: it.taxId ?? it.TaxId,
             ContactEmail: it.contactEmail ?? it.ContactEmail,
             ContactPhone: it.contactPhone ?? it.ContactPhone,
+            AuditDeletionDate: it.auditDeletionDate ?? it.AuditDeletionDate,
             AuditCreationUser: it.auditCreationUser ?? it.AuditCreationUser,
             AuditCreationDate: it.auditCreationDate ?? it.AuditCreationDate,
             AuditModificationUser: it.auditModificationUser ?? it.AuditModificationUser,

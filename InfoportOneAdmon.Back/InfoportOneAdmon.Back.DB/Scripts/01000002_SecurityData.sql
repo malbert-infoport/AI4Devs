@@ -135,6 +135,12 @@ VALUES
 	(2002, 202, 'Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(2003, 204, 'Organization', 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
+	-- Organizations groups controllers
+	(2017, 200, 'OrganizationGroup', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2018, 201, 'OrganizationGroup', 3, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2019, 202, 'OrganizationGroup', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(2020, 204, 'OrganizationGroup', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	
 	-- VTA_Organization controllers
 	(2004, 200, 'VTA_Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(2005, 201, 'VTA_Organization', 1, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
