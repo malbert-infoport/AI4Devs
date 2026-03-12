@@ -1,4 +1,21 @@
 .organization-modules {
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2f3e46;
+  }
+
+  .section-title-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #4a6b78;
+  }
+
   .modules-modal-overlay {
     position: fixed;
     inset: 0;

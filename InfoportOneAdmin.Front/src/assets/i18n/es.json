@@ -5,6 +5,7 @@
 		"ASSIGNED_MODULES": "Módulos asignados",
 		"NO_MODULES": "Sin módulos asignados",
 		"MODULES": {
+			"TITLE_ASSIGNMENT": "Asignación de Módulos",
 			"NO_VIEW_PERMISSION": "No dispone de permisos para consultar los módulos de la organización.",
 			"SELECT_MODULES": "Selecciona los módulos de la aplicación para esta organización.",
 			"LOADING_MODULES": "Cargando módulos..."
@@ -33,7 +34,7 @@
 			},
 			"TABS": {
 				"GENERAL_DATA": "Datos de organización",
-				"MODULES": "Módulos y permisos",
+				"MODULES": "Módulos Aplicaciones",
 				"AUDIT": "Auditoría"
 			},
 			"PLACEHOLDERS": {
@@ -73,5 +74,106 @@
 			"CANCEL": "Cancelar",
 			"CLOSE": "Cerrar"
 		}
-	}
+	},
+	"ACCEPT": "Aceptar",
+	"ACTIVATE": "Elemento activado con éxito",
+	"ATTACHMENTS": {
+		"ACTIONS": {
+			"ADD": "Añadir adjunto",
+			"DOWNLOAD": "Descargar adjunto",
+			"UPLOAD": "Subir archivo"
+		},
+		"ATTACHMENTS_MANAGEMENT": "Gestión de adjuntos",
+		"ATTACHMENTS_TYPE": "Tipo de adjuntos",
+		"DESCRIPTION": "Descripción",
+		"ENTITY_NAME": "Entidad",
+		"FILE_EXTENSION": "Extensión",
+		"FILE_NAME": "Nombre del archivo",
+		"FILE_SIZE": "Tamaño (KB)",
+		"MESSAGES": {
+			"ANY_ELEMENT_SELECTED": "Debe seleccionar al menos un elemento de la grid",
+			"NO_ELEMENT_SELECTED": "Debe seleccionar un elemento de la grid",
+			"NO_FILE": "No existe ningún archivo almacenado para: {{fileName}}"
+		},
+		"TYPE": "Tipo"
+	},
+	"AUDIT_FECHA_BAJA": "Fecha baja",
+	"CACHE_CLEAN_SUCCESS": "¡Se ha limpiado la caché de seguridad!",
+	"CANCEL": "Cancelar",
+	"CIF": "CIF",
+	"CLOSE": "Cerrar",
+	"COLLAPSE_NAVIGATION": "Colapsar navegación",
+	"COMPANY": "Empresa",
+	"CORE_LANGUAGE": "Idioma",
+	"COULD_NOT_CONNECT_IDENTITY_SERVER": "No se puede conectar a Identity Server, por favor compruebe su dirección: {{address}}",
+	"DESACTIVATE": "Elemento desactivado con éxito",
+	"DESCRIPTION": "Descripción",
+	"ERRORS": {
+		"404_DESCRIPTION": "La página que buscas ya no existe o no podemos encontrarla",
+		"404_TITLE": "Error 404",
+		"500_DESCRIPTION": "Ha habido un error interno. Estamos intentando solucionarlo.",
+		"500_TITLE": "Error 500",
+		"504_DESCRIPTION": "Ha habido un error interno. Estamos intentando solucionarlo.",
+		"504_TITLE": "Error 504",
+		"MAINTENANCE_DESCRIPTION": "En estos momentos estamos realizando labores de mantenimiento. Disculpe las molestias",
+		"MAINTENANCE_TITLE": "¡Ups!",
+		"UNATHORIZED": "No autorizado"
+	},
+	"EXPAND_NAVIGATION": "Expandir navegación",
+	"FORMS": {
+		"VALIDATORS": {
+			"CUSTOM": {
+				"INVALID_CIF": "El CIF es inválido"
+			},
+			"REQUIRED": "El campo {{title}} es requerido"
+		}
+	},
+	"GO_HOME": "Ir a página principal",
+	"IDENTITY_SERVER_CANNOT_CONNECT_MESSAGE": "No se puede conectar a Identity Server, por favor compruebe su dirección",
+	"INTERNAL_ERROR_MESSAGE": "Error interno:",
+	"INTERNAL_ERROR_SUBMESSAGE": "Ha habido un error interno, estamos intentando solucionarlo",
+	"MASTERS": {
+		"ATTACHMENTS": {
+			"TITLE": "Adjuntos"
+		}
+	},
+	"PAGE_NOT_FOUND_MESSAGE": "La página que estás buscando no existe :(",
+	"PREFERENCES": "Preferencias",
+	"REFRESH": "Refrescar",
+	"REMOVE_ROW_CONFIRMATION": "¿Está seguro de que quiere borrar esta fila?",
+	"ROLE": "Rol",
+	"SAVE": "Guardar",
+	"SAVE_CHANGE": "Cambios guardados con éxito",
+	"SECURITY_COMPANY_ID": "ID compañía seguridad",
+	"SYSTEM_OPTIONS": {
+		"SECURITY": {
+			"GENERAL_CONFIGURATION": {
+				"CIF": "CIF",
+				"COMPANY_NAME": "Nombre empresa",
+				"TITLE": "Configuración general"
+			},
+			"GENERAL_DATA": "Datos generales",
+			"PROFILES": {
+				"TITLE": "Perfiles"
+			},
+			"TITLE": "Seguridad"
+		},
+		"TITLE": "Opciones de sistema"
+	},
+	"THEME_LOOKUP": {
+		"NO_RECORDS_TEMPLATE": {
+			"TEXT": "No se han encontrado resultados aún. Realiza una búsqueda para ver los resultados correspondientes",
+			"TITLE": "Búsqueda de resultados"
+		}
+	},
+	"UPDATE_SUCCESS": "Actualizado con éxito",
+	"USER": "Usuario",
+	"VERSION": "Versión",
+	"BACK": "Volver",
+	"EDIT": "Editar",
+	"LOADING": "Cargando",
+	"NAVIGATE_TO_EDIT": "Navegar a edición",
+	"PATCH": "Parche",
+	"UNKNOWN_ERROR": "Error desconocido",
+	"UPDATE_OF": "Actualizar de"
 }

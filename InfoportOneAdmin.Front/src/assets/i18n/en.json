@@ -5,6 +5,7 @@
 		"ASSIGNED_MODULES": "Assigned modules",
 		"NO_MODULES": "No modules assigned",
 		"MODULES": {
+			"TITLE_ASSIGNMENT": "Module Assignment",
 			"NO_VIEW_PERMISSION": "You do not have permissions to view organization modules.",
 			"SELECT_MODULES": "Select the application modules for this organization.",
 			"LOADING_MODULES": "Loading modules..."
@@ -33,7 +34,7 @@
 			},
 			"TABS": {
 				"GENERAL_DATA": "Organization data",
-				"MODULES": "Modules and access",
+				"MODULES": "Application Modules",
 				"AUDIT": "Audit"
 			},
 			"PLACEHOLDERS": {
@@ -73,5 +74,106 @@
 			"CANCEL": "Cancel",
 			"CLOSE": "Close"
 		}
-	}
+	},
+	"ACCEPT": "Accept",
+	"ACTIVATE": "Item activated successfully",
+	"ATTACHMENTS": {
+		"ACTIONS": {
+			"ADD": "Add attachment",
+			"DOWNLOAD": "Download attachment",
+			"UPLOAD": "Upload file"
+		},
+		"ATTACHMENTS_MANAGEMENT": "Attachments management",
+		"ATTACHMENTS_TYPE": "Attachment type",
+		"DESCRIPTION": "Description",
+		"ENTITY_NAME": "Entity",
+		"FILE_EXTENSION": "Extension",
+		"FILE_NAME": "File name",
+		"FILE_SIZE": "Size (KB)",
+		"MESSAGES": {
+			"ANY_ELEMENT_SELECTED": "You must select at least one grid item",
+			"NO_ELEMENT_SELECTED": "You must select a grid item",
+			"NO_FILE": "No file stored for: {{fileName}}"
+		},
+		"TYPE": "Type"
+	},
+	"AUDIT_FECHA_BAJA": "Deactivation date",
+	"CACHE_CLEAN_SUCCESS": "Security cache has been cleaned!",
+	"CANCEL": "Cancel",
+	"CIF": "Tax ID",
+	"CLOSE": "Close",
+	"COLLAPSE_NAVIGATION": "Collapse navigation",
+	"COMPANY": "Company",
+	"CORE_LANGUAGE": "Language",
+	"COULD_NOT_CONNECT_IDENTITY_SERVER": "Cannot connect to Identity Server, please check your address: {{address}}",
+	"DESACTIVATE": "Item deactivated successfully",
+	"DESCRIPTION": "Description",
+	"ERRORS": {
+		"404_DESCRIPTION": "The page you're looking for no longer exists or we can't find it",
+		"404_TITLE": "Error 404",
+		"500_DESCRIPTION": "There has been an internal error. We are trying to fix it.",
+		"500_TITLE": "Error 500",
+		"504_DESCRIPTION": "There has been an internal error. We are trying to fix it.",
+		"504_TITLE": "Error 504",
+		"MAINTENANCE_DESCRIPTION": "We are currently performing maintenance. Sorry for the inconvenience",
+		"MAINTENANCE_TITLE": "Oops!",
+		"UNATHORIZED": "Unauthorized"
+	},
+	"EXPAND_NAVIGATION": "Expand navigation",
+	"FORMS": {
+		"VALIDATORS": {
+			"CUSTOM": {
+				"INVALID_CIF": "The tax ID is invalid"
+			},
+			"REQUIRED": "The {{title}} field is required"
+		}
+	},
+	"GO_HOME": "Go to home page",
+	"IDENTITY_SERVER_CANNOT_CONNECT_MESSAGE": "Cannot connect to Identity Server, please check your address",
+	"INTERNAL_ERROR_MESSAGE": "Internal error:",
+	"INTERNAL_ERROR_SUBMESSAGE": "There has been an internal error, we are trying to fix it",
+	"MASTERS": {
+		"ATTACHMENTS": {
+			"TITLE": "Attachments"
+		}
+	},
+	"PAGE_NOT_FOUND_MESSAGE": "The page you are looking for does not exist :(",
+	"PREFERENCES": "Preferences",
+	"REFRESH": "Refresh",
+	"REMOVE_ROW_CONFIRMATION": "Are you sure you want to delete this row?",
+	"ROLE": "Role",
+	"SAVE": "Save",
+	"SAVE_CHANGE": "Changes saved successfully",
+	"SECURITY_COMPANY_ID": "Security company ID",
+	"SYSTEM_OPTIONS": {
+		"SECURITY": {
+			"GENERAL_CONFIGURATION": {
+				"CIF": "Tax ID",
+				"COMPANY_NAME": "Company name",
+				"TITLE": "General configuration"
+			},
+			"GENERAL_DATA": "General data",
+			"PROFILES": {
+				"TITLE": "Profiles"
+			},
+			"TITLE": "Security"
+		},
+		"TITLE": "System options"
+	},
+	"THEME_LOOKUP": {
+		"NO_RECORDS_TEMPLATE": {
+			"TEXT": "No results found yet. Perform a search to see the corresponding results",
+			"TITLE": "Search results"
+		}
+	},
+	"UPDATE_SUCCESS": "Updated successfully",
+	"USER": "User",
+	"VERSION": "Version",
+	"BACK": "Back",
+	"EDIT": "Edit",
+	"LOADING": "Loading",
+	"NAVIGATE_TO_EDIT": "Navigate to edit",
+	"PATCH": "Patch",
+	"UNKNOWN_ERROR": "Unknown error",
+	"UPDATE_OF": "Update of"
 }

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatIconModule } from '@angular/material/icon';
 import { take } from 'rxjs';
 import {
   ApplicationClient,
@@ -25,7 +26,7 @@ interface OrganizationModulesAppItem {
 @Component({
   selector: 'app-organization-modules',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, MatIconModule],
   providers: [OrganizationClient, ApplicationClient, OrganizationModulesService],
   templateUrl: './organization-modules.component.html',
   styleUrls: ['./organization-modules.component.scss'],

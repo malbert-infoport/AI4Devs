@@ -1,5 +1,8 @@
 <div class="organization-modules p-4">
-  <h4>{{ 'ORGANIZATIONS.FORM.TABS.MODULES' | translate }}</h4>
+  <h3 class="section-title">
+    <mat-icon class="section-title-icon" aria-hidden="true">admin_panel_settings</mat-icon>
+    {{ 'ORGANIZATIONS.MODULES.TITLE_ASSIGNMENT' | translate }}
+  </h3>
 
   <div *ngIf="!canViewModules" class="mt-3 text-muted">
     {{ 'ORGANIZATIONS.MODULES.NO_VIEW_PERMISSION' | translate }}
