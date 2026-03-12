@@ -1,5 +1,4 @@
 {
-  "REFRESH": "Refresh",
   "kendo": {
     "slider": {
       "increment": "Increase value",
@@ -335,6 +334,24 @@
       "searchField": "Search field",
       "value": "Value",
       "noResults": "No results found"
+    }
+  },
+  "ORGANIZATIONS": {
+    "APPLICATION": "Application",
+    "ASSIGNED_MODULES": "Assigned modules",
+    "NO_MODULES": "No modules assigned",
+    "MODULES": {
+      "NO_VIEW_PERMISSION": "You do not have permissions to view organization modules.",
+      "SELECT_MODULES": "Select the application modules for this organization.",
+      "LOADING_MODULES": "Loading modules..."
+    },
+    "COLUMNS": {
+      "ACTIONS": "Actions"
+    },
+    "FORM": {
+      "TABS": {
+        "MODULES": "Modules and access"
+      }
     }
   }
 }

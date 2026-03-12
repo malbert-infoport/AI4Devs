@@ -1,6 +1,14 @@
 {
 	"ORGANIZATIONS": {
 		"TITLE": "Organizations",
+		"APPLICATION": "Application",
+		"ASSIGNED_MODULES": "Assigned modules",
+		"NO_MODULES": "No modules assigned",
+		"MODULES": {
+			"NO_VIEW_PERMISSION": "You do not have permissions to view organization modules.",
+			"SELECT_MODULES": "Select the application modules for this organization.",
+			"LOADING_MODULES": "Loading modules..."
+		},
 		"FORM": {
 			"TITLE_NEW": "New organization",
 			"TITLE_EDIT": "Edit organization",
@@ -31,7 +39,8 @@
 			"PLACEHOLDERS": {
 				"GENERAL_DATA": "Tab 1 under implementation: general data form.",
 				"MODULES": "Tab 2 under implementation: organization modules management.",
-				"AUDIT": "Tab 3 under implementation: paged audit history."
+				"AUDIT": "Tab 3 under implementation: paged audit history.",
+				"SAVE_FIRST_FOR_MODULES": "Save the organization first to manage modules and permissions."
 			}
 		},
 		"COLUMNS": {
@@ -58,7 +67,11 @@
 			"EDIT": "Edit",
 			"DEACTIVATE": "Deactivate",
 			"REACTIVATE": "Reactivate",
-			"COLUMNS": "Columns"
+			"COLUMNS": "Columns",
+			"EDIT_MODULES": "Edit modules",
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"CLOSE": "Close"
 		}
 	}
 }

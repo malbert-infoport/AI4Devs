@@ -25,6 +25,7 @@ namespace InfoportOneAdmon.Back.Api.Endpoints.Base.Generator
         public static void MapApplicationEndpoints(this WebApplication app)
         {
             EndpointHelper.GenerateGetByIdEndpoint<ApplicationService, ApplicationView, Application, ApplicationViewMetadata>(app, "/api/Application/GetById", new EndpointAccess(HelixEnums.SecurityLevel.Read));
+            EndpointHelper.GenerateGetAllEndpoint<ApplicationService, ApplicationView, Application, ApplicationViewMetadata>(app, "/api/Application/GetAll", new EndpointAccess(HelixEnums.SecurityLevel.Read));
         }
     }
 }

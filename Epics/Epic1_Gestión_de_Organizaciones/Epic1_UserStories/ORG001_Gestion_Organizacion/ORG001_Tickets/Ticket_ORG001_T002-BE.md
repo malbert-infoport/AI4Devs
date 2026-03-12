@@ -846,6 +846,28 @@ El servicio debe publicar eventos a ActiveMQ Artemis en tópico `infoportone.eve
 - ✅ Cuando se activa/desactiva la organización (soft delete)
 - ❌ NO publicar al cambiar solo datos básicos (Name, TaxId, Address, etc.)
 
+### Endpoint adicional recomendado: `Application/GetById` (configuración `ApplicationWithModules`)
+
+Para facilitar la selección de módulos en la Pestaña 2 desde frontend, se recomienda exponer un endpoint que devuelva una `Application` con sus módulos asociados en una sola llamada.
+
+- **Endpoint**: `GET /api/Application/GetById`
+- **Parámetros**: `id:int` (query), `configurationName:string` (sugerir `"ApplicationWithModules"`), `Accept-Language` (header opcional)
+- **Permisos**: `Application query` (reusar permiso existente o documentar nuevo permiso si aplica)
+- **Response esperado**: `ApplicationView` que incluya:
+   - `id`, `appName`, `description`, `rolePrefix`
+   - `applicationModules`: arreglo de módulos activos con campos: `{ id (APPLICATIONMODULE.Id), moduleName, description, displayOrder, applicationId }`
+
+Beneficios:
+- Evita múltiples llamadas desde FE al listar aplicaciones y sus módulos.
+- Permite al editor de módulos (Pestaña 2) mostrar el catálogo completo por aplicación para asignar nuevos módulos.
+
+Pasos de implementación backend:
+1. Añadir configuración de carga `ApplicationWithModules` en `ApplicationRepository` incluyendo navegación a `ApplicationModules` (filtrar `AuditDeletionDate IS NULL`).
+2. Asegurar que el endpoint `GetById` acepte `configurationName` y devuelva la navegación cuando se solicite `ApplicationWithModules`.
+3. Regenerar Swagger/NSwag y notificar al equipo frontend para regenerar clientes TypeScript.
+
+Nota FE: Una vez desplegado, el frontend llamará `ApplicationClient.getById(appId, 'ApplicationWithModules')` para obtener el catálogo de módulos disponibles por aplicación y construir el multiselect de asignación.
+
 ## GUÍA DE IMPLEMENTACIÓN CON HELIX6
 
 Esta sección describe los pasos ordenados para implementar la entidad Organization siguiendo los patrones del Framework Helix6. **No incluye código completo**, solo la secuencia de acciones y decisiones de diseño.

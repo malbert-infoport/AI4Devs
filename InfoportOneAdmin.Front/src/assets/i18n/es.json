@@ -1,6 +1,14 @@
 {
 	"ORGANIZATIONS": {
 		"TITLE": "Organizaciones",
+		"APPLICATION": "Aplicación",
+		"ASSIGNED_MODULES": "Módulos asignados",
+		"NO_MODULES": "Sin módulos asignados",
+		"MODULES": {
+			"NO_VIEW_PERMISSION": "No dispone de permisos para consultar los módulos de la organización.",
+			"SELECT_MODULES": "Selecciona los módulos de la aplicación para esta organización.",
+			"LOADING_MODULES": "Cargando módulos..."
+		},
 		"FORM": {
 			"TITLE_NEW": "Nueva organización",
 			"TITLE_EDIT": "Editar organización",
@@ -31,7 +39,8 @@
 			"PLACEHOLDERS": {
 				"GENERAL_DATA": "Pestaña 1 en implementación: formulario de datos generales.",
 				"MODULES": "Pestaña 2 en implementación: gestión de módulos por organización.",
-				"AUDIT": "Pestaña 3 en implementación: histórico de auditoría con paginación."
+				"AUDIT": "Pestaña 3 en implementación: histórico de auditoría con paginación.",
+				"SAVE_FIRST_FOR_MODULES": "Guarda primero la organización para gestionar módulos y permisos."
 			}
 		},
 		"COLUMNS": {
@@ -58,7 +67,11 @@
 			"EDIT": "Editar",
 			"DEACTIVATE": "Desactivar",
 			"REACTIVATE": "Reactivar",
-			"COLUMNS": "Columnas"
+			"COLUMNS": "Columnas",
+			"EDIT_MODULES": "Editar módulos",
+			"SAVE": "Guardar",
+			"CANCEL": "Cancelar",
+			"CLOSE": "Cerrar"
 		}
 	}
 }

@@ -1,5 +1,4 @@
 {
-  "REFRESH": "Refrescar",
   "kendo": {
     "slider": {
       "increment": "Incrementar valor",
@@ -335,6 +334,24 @@
       "searchField": "Campo de búsqueda",
       "value": "Valor",
       "noResults": "No se han encontrado resultados"
+    }
+  },
+  "ORGANIZATIONS": {
+    "APPLICATION": "Aplicación",
+    "ASSIGNED_MODULES": "Módulos asignados",
+    "NO_MODULES": "Sin módulos asignados",
+    "MODULES": {
+      "NO_VIEW_PERMISSION": "No dispone de permisos para consultar los módulos de la organización.",
+      "SELECT_MODULES": "Selecciona los módulos de la aplicación para esta organización.",
+      "LOADING_MODULES": "Cargando módulos..."
+    },
+    "COLUMNS": {
+      "ACTIONS": "Acciones"
+    },
+    "FORM": {
+      "TABS": {
+        "MODULES": "Módulos y permisos"
+      }
     }
   }
 }

@@ -19,6 +19,15 @@ export class AccessService {
   // Observable que emite cuando los permisos están listos
   public permissionsReady$: Observable<boolean> = this.emitPermissionsObs.pipe(filter((ready) => ready === true));
 
+  private hasAnyPermission(accesses: Array<Access | undefined>): boolean {
+    return accesses.some((access) => {
+      if (access === undefined || access === null) {
+        return false;
+      }
+      return this.authService.hasPermissions(this.permissions, access);
+    });
+  }
+
 
   init() {
     // Suscribirse al observable de permisos del AuthenticationService
@@ -148,6 +157,24 @@ export class AccessService {
   // Modificación Organizations (menu left) - verifica opción 201
   organizationModification() {
     return this.authService.hasPermissions(this.permissions, Access['Organization modification']);
+  }
+
+  // Consulta de módulos de organización - verifica opción 202
+  organizationModulesQuery() {
+    return this.hasAnyPermission([
+      Access['Organization modules query'],
+      Access['Organization modules modification'],
+      Access['Organization query'],
+      Access['Organization modification']
+    ]);
+  }
+
+  // Modificación de módulos de organización - verifica opción 204
+  organizationModulesModification() {
+    return this.hasAnyPermission([
+      Access['Organization modules modification'],
+      Access['Organization modification']
+    ]);
   }
 
 

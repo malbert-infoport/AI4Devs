@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<HelixEntities>
+﻿<HelixEntities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Entities>
     <EntityName>Application</EntityName>
     <ViewName>ApplicationView</ViewName>
@@ -42,7 +41,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -56,7 +55,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -81,23 +80,27 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints>
-      <Methods>
-        <Method>GetById</Method>
-      </Methods>
-    </Endpoints>
     <Configurations>
       <ConfigurationName>ApplicationWithModules</ConfigurationName>
       <Includes>
-        <EntityBase>ApplicationModule</EntityBase>
-        <ReadOnly>true</ReadOnly>
+        <IncludeName>ApplicationModule</IncludeName>
+        <IncludeType>SoloLectura</IncludeType>
+        <IncludeTypeDB>ApplicationModule</IncludeTypeDB>
+        <IsList>true</IsList>
       </Includes>
       <Orders>
-        <Field>Id</Field>
-        <Order>Ascending</Order>
+        <OrderFieldName>Description</OrderFieldName>
+        <OrderType>Ascending</OrderType>
       </Orders>
-      <Endpoints />
     </Configurations>
+    <Endpoints>
+      <Methods>
+        <Method>GetById</Method>
+        <Method>GetAll</Method>
+      </Methods>
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>ApplicationModule</EntityName>
@@ -118,6 +121,13 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
+      <EntityFieldName>ModuleName</EntityFieldName>
+      <ViewFieldName>ModuleName</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
       <EntityFieldName>Description</EntityFieldName>
       <ViewFieldName>Description</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -132,13 +142,6 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>ModuleName</EntityFieldName>
-      <ViewFieldName>ModuleName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
       <EntityFieldName>AuditCreationUser</EntityFieldName>
       <ViewFieldName>AuditCreationUser</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -148,7 +151,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -162,7 +165,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -194,7 +197,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>ApplicationRole</EntityName>
@@ -215,15 +222,15 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Description</EntityFieldName>
-      <ViewFieldName>Description</ViewFieldName>
+      <EntityFieldName>Name</EntityFieldName>
+      <ViewFieldName>Name</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Name</EntityFieldName>
-      <ViewFieldName>Name</ViewFieldName>
+      <EntityFieldName>Description</EntityFieldName>
+      <ViewFieldName>Description</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -238,7 +245,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -252,7 +259,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -277,7 +284,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>ApplicationSecurity</EntityName>
@@ -342,7 +353,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -356,7 +367,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -381,7 +392,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>AuditLog</EntityName>
@@ -395,15 +410,8 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Action</EntityFieldName>
-      <ViewFieldName>Action</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>CorrelationId</EntityFieldName>
-      <ViewFieldName>CorrelationId</ViewFieldName>
+      <EntityFieldName>EntityType</EntityFieldName>
+      <ViewFieldName>EntityType</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -416,9 +424,16 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>EntityType</EntityFieldName>
-      <ViewFieldName>EntityType</ViewFieldName>
+      <EntityFieldName>Action</EntityFieldName>
+      <ViewFieldName>Action</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>UserId</EntityFieldName>
+      <ViewFieldName>UserId</ViewFieldName>
+      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -430,9 +445,9 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>UserId</EntityFieldName>
-      <ViewFieldName>UserId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
+      <EntityFieldName>CorrelationId</EntityFieldName>
+      <ViewFieldName>CorrelationId</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -446,7 +461,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -460,7 +475,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -478,7 +493,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>EventHash</EntityName>
@@ -492,16 +511,16 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>EntityId</EntityFieldName>
-      <ViewFieldName>EntityId</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
+      <EntityFieldName>EntityType</EntityFieldName>
+      <ViewFieldName>EntityType</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>EntityType</EntityFieldName>
-      <ViewFieldName>EntityType</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <EntityFieldName>EntityId</EntityFieldName>
+      <ViewFieldName>EntityId</ViewFieldName>
+      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -529,7 +548,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -543,7 +562,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -561,90 +580,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
-  </Entities>
-  <Entities>
-    <EntityName>Organization_ApplicationModule</EntityName>
-    <ViewName>Organization_ApplicationModuleView</ViewName>
-    <DefaultFilterField>Id</DefaultFilterField>
-    <Fields>
-      <EntityFieldName>Id</EntityFieldName>
-      <ViewFieldName>Id</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationModuleId</EntityFieldName>
-      <ViewFieldName>ApplicationModuleId</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>OrganizationId</EntityFieldName>
-      <ViewFieldName>OrganizationId</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationUser</EntityFieldName>
-      <ViewFieldName>AuditCreationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationDate</EntityFieldName>
-      <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationUser</EntityFieldName>
-      <ViewFieldName>AuditModificationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationDate</EntityFieldName>
-      <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditDeletionDate</EntityFieldName>
-      <ViewFieldName>AuditDeletionDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationModule</EntityFieldName>
-      <ViewFieldName>ApplicationModule</ViewFieldName>
-      <EntityFieldTypeDB>ApplicationModule</EntityFieldTypeDB>
-      <IsEntidadBase>true</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Organization</EntityFieldName>
-      <ViewFieldName>Organization</ViewFieldName>
-      <EntityFieldTypeDB>Organization</EntityFieldTypeDB>
-      <IsEntidadBase>true</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <OrderFieldName>Id</OrderFieldName>
-        <OrderType>Ascending</OrderType>
-      </Orders>
-    </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>Organization</EntityName>
@@ -658,8 +598,36 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
+      <EntityFieldName>SecurityCompanyId</EntityFieldName>
+      <ViewFieldName>SecurityCompanyId</ViewFieldName>
+      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>GroupId</EntityFieldName>
+      <ViewFieldName>GroupId</ViewFieldName>
+      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>Name</EntityFieldName>
+      <ViewFieldName>Name</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
       <EntityFieldName>Acronym</EntityFieldName>
       <ViewFieldName>Acronym</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>TaxId</EntityFieldName>
+      <ViewFieldName>TaxId</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -679,6 +647,20 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
+      <EntityFieldName>PostalCode</EntityFieldName>
+      <ViewFieldName>PostalCode</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>Country</EntityFieldName>
+      <ViewFieldName>Country</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
       <EntityFieldName>ContactEmail</EntityFieldName>
       <ViewFieldName>ContactEmail</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -693,48 +675,6 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Country</EntityFieldName>
-      <ViewFieldName>Country</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>GroupId</EntityFieldName>
-      <ViewFieldName>GroupId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Name</EntityFieldName>
-      <ViewFieldName>Name</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>PostalCode</EntityFieldName>
-      <ViewFieldName>PostalCode</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>SecurityCompanyId</EntityFieldName>
-      <ViewFieldName>SecurityCompanyId</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>TaxId</EntityFieldName>
-      <ViewFieldName>TaxId</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
       <EntityFieldName>AuditCreationUser</EntityFieldName>
       <ViewFieldName>AuditCreationUser</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -744,7 +684,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -758,7 +698,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -803,6 +743,18 @@
         <IncludeType>Modificable</IncludeType>
         <IncludeTypeDB>Organization_ApplicationModule</IncludeTypeDB>
         <IsList>true</IsList>
+        <Includes>
+          <IncludeName>ApplicationModule</IncludeName>
+          <IncludeType>SoloLectura</IncludeType>
+          <IncludeTypeDB>ApplicationModule</IncludeTypeDB>
+          <IsList>false</IsList>
+          <Includes>
+            <IncludeName>Application</IncludeName>
+            <IncludeType>SoloLectura</IncludeType>
+            <IncludeTypeDB>Application</IncludeTypeDB>
+            <IsList>false</IsList>
+          </Includes>
+        </Includes>
       </Includes>
     </Configurations>
     <Endpoints>
@@ -814,6 +766,8 @@
         <Method>DeleteUndeleteLogicById</Method>
       </Methods>
     </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>OrganizationApplicationModule</EntityName>
@@ -827,15 +781,15 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>ApplicationModuleId</EntityFieldName>
-      <ViewFieldName>ApplicationModuleId</ViewFieldName>
+      <EntityFieldName>OrganizationId</EntityFieldName>
+      <ViewFieldName>OrganizationId</ViewFieldName>
       <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>OrganizationId</EntityFieldName>
-      <ViewFieldName>OrganizationId</ViewFieldName>
+      <EntityFieldName>ApplicationModuleId</EntityFieldName>
+      <ViewFieldName>ApplicationModuleId</ViewFieldName>
       <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -850,7 +804,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -864,7 +818,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -896,7 +850,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>OrganizationGroup</EntityName>
@@ -910,15 +868,15 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Description</EntityFieldName>
-      <ViewFieldName>Description</ViewFieldName>
+      <EntityFieldName>GroupName</EntityFieldName>
+      <ViewFieldName>GroupName</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>GroupName</EntityFieldName>
-      <ViewFieldName>GroupName</ViewFieldName>
+      <EntityFieldName>Description</EntityFieldName>
+      <ViewFieldName>Description</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -933,7 +891,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -947,7 +905,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -977,6 +935,95 @@
         <Method>GetAll</Method>
       </Methods>
     </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
+  </Entities>
+  <Entities>
+    <EntityName>Organization_ApplicationModule</EntityName>
+    <ViewName>Organization_ApplicationModuleView</ViewName>
+    <DefaultFilterField>Id</DefaultFilterField>
+    <Fields>
+      <EntityFieldName>Id</EntityFieldName>
+      <ViewFieldName>Id</ViewFieldName>
+      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>ApplicationModuleId</EntityFieldName>
+      <ViewFieldName>ApplicationModuleId</ViewFieldName>
+      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>OrganizationId</EntityFieldName>
+      <ViewFieldName>OrganizationId</ViewFieldName>
+      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>AuditCreationUser</EntityFieldName>
+      <ViewFieldName>AuditCreationUser</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>AuditCreationDate</EntityFieldName>
+      <ViewFieldName>AuditCreationDate</ViewFieldName>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>AuditModificationUser</EntityFieldName>
+      <ViewFieldName>AuditModificationUser</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>AuditModificationDate</EntityFieldName>
+      <ViewFieldName>AuditModificationDate</ViewFieldName>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>AuditDeletionDate</EntityFieldName>
+      <ViewFieldName>AuditDeletionDate</ViewFieldName>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>ApplicationModule</EntityFieldName>
+      <ViewFieldName>ApplicationModule</ViewFieldName>
+      <EntityFieldTypeDB>ApplicationModule</EntityFieldTypeDB>
+      <IsEntidadBase>true</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>Organization</EntityFieldName>
+      <ViewFieldName>Organization</ViewFieldName>
+      <EntityFieldTypeDB>Organization</EntityFieldTypeDB>
+      <IsEntidadBase>true</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Configurations>
+      <ConfigurationName>Defecto</ConfigurationName>
+      <Orders>
+        <OrderFieldName>Id</OrderFieldName>
+        <OrderType>Ascending</OrderType>
+      </Orders>
+    </Configurations>
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>UserCache</EntityName>
@@ -986,6 +1033,13 @@
       <EntityFieldName>Id</EntityFieldName>
       <ViewFieldName>Id</ViewFieldName>
       <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>Email</EntityFieldName>
+      <ViewFieldName>Email</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1004,9 +1058,9 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Email</EntityFieldName>
-      <ViewFieldName>Email</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <EntityFieldName>LastUpdated</EntityFieldName>
+      <ViewFieldName>LastUpdated</ViewFieldName>
+      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1018,13 +1072,6 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>LastUpdated</EntityFieldName>
-      <ViewFieldName>LastUpdated</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
       <EntityFieldName>AuditCreationUser</EntityFieldName>
       <ViewFieldName>AuditCreationUser</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -1034,7 +1081,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1048,7 +1095,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1066,108 +1113,15 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
-    <EntityName>VTA_ActiveApplicationModules</EntityName>
-    <ViewName>VTA_ActiveApplicationModulesView</ViewName>
-    <DefaultFilterField>Id</DefaultFilterField>
-    <Fields>
-      <EntityFieldName>Id</EntityFieldName>
-      <ViewFieldName>Id</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Acronym</EntityFieldName>
-      <ViewFieldName>Acronym</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AppBusinessId</EntityFieldName>
-      <ViewFieldName>AppBusinessId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationId</EntityFieldName>
-      <ViewFieldName>ApplicationId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationModuleName</EntityFieldName>
-      <ViewFieldName>ApplicationModuleName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationName</EntityFieldName>
-      <ViewFieldName>ApplicationName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Description</EntityFieldName>
-      <ViewFieldName>Description</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationUser</EntityFieldName>
-      <ViewFieldName>AuditCreationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationDate</EntityFieldName>
-      <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationUser</EntityFieldName>
-      <ViewFieldName>AuditModificationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationDate</EntityFieldName>
-      <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditDeletionDate</EntityFieldName>
-      <ViewFieldName>AuditDeletionDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <OrderFieldName>Id</OrderFieldName>
-        <OrderType>Ascending</OrderType>
-      </Orders>
-    </Configurations>
-    <Endpoints />
-  </Entities>
-  <Entities>
-    <EntityName>VTA_ActiveApplications</EntityName>
-    <ViewName>VTA_ActiveApplicationsView</ViewName>
+    <EntityName>VTA_Organization</EntityName>
+    <ViewName>VTA_OrganizationView</ViewName>
     <DefaultFilterField>Name</DefaultFilterField>
     <Fields>
       <EntityFieldName>Id</EntityFieldName>
@@ -1177,22 +1131,15 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Acronym</EntityFieldName>
-      <ViewFieldName>Acronym</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationId</EntityFieldName>
-      <ViewFieldName>ApplicationId</ViewFieldName>
+      <EntityFieldName>SecurityCompanyId</EntityFieldName>
+      <ViewFieldName>SecurityCompanyId</ViewFieldName>
       <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Description</EntityFieldName>
-      <ViewFieldName>Description</ViewFieldName>
+      <EntityFieldName>GroupName</EntityFieldName>
+      <ViewFieldName>GroupName</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -1205,63 +1152,15 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>AuditCreationUser</EntityFieldName>
-      <ViewFieldName>AuditCreationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationDate</EntityFieldName>
-      <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationUser</EntityFieldName>
-      <ViewFieldName>AuditModificationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationDate</EntityFieldName>
-      <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditDeletionDate</EntityFieldName>
-      <ViewFieldName>AuditDeletionDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <OrderFieldName>Id</OrderFieldName>
-        <OrderType>Ascending</OrderType>
-      </Orders>
-    </Configurations>
-    <Endpoints />
-  </Entities>
-  <Entities>
-    <EntityName>VTA_ActiveOrganizations</EntityName>
-    <ViewName>VTA_ActiveOrganizationsView</ViewName>
-    <DefaultFilterField>Name</DefaultFilterField>
-    <Fields>
-      <EntityFieldName>Id</EntityFieldName>
-      <ViewFieldName>Id</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
       <EntityFieldName>Acronym</EntityFieldName>
       <ViewFieldName>Acronym</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>TaxId</EntityFieldName>
+      <ViewFieldName>TaxId</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
@@ -1281,6 +1180,20 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
+      <EntityFieldName>PostalCode</EntityFieldName>
+      <ViewFieldName>PostalCode</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
+      <EntityFieldName>Country</EntityFieldName>
+      <ViewFieldName>Country</ViewFieldName>
+      <EntityFieldTypeDB>String</EntityFieldTypeDB>
+      <IsEntidadBase>false</IsEntidadBase>
+      <IsList>false</IsList>
+    </Fields>
+    <Fields>
       <EntityFieldName>ContactEmail</EntityFieldName>
       <ViewFieldName>ContactEmail</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -1295,41 +1208,6 @@
       <IsList>false</IsList>
     </Fields>
     <Fields>
-      <EntityFieldName>Country</EntityFieldName>
-      <ViewFieldName>Country</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>GroupId</EntityFieldName>
-      <ViewFieldName>GroupId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Name</EntityFieldName>
-      <ViewFieldName>Name</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>SecurityCompanyId</EntityFieldName>
-      <ViewFieldName>SecurityCompanyId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>TaxId</EntityFieldName>
-      <ViewFieldName>TaxId</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
       <EntityFieldName>AuditCreationUser</EntityFieldName>
       <ViewFieldName>AuditCreationUser</ViewFieldName>
       <EntityFieldTypeDB>String</EntityFieldTypeDB>
@@ -1339,7 +1217,7 @@
     <Fields>
       <EntityFieldName>AuditCreationDate</EntityFieldName>
       <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1353,7 +1231,7 @@
     <Fields>
       <EntityFieldName>AuditModificationDate</EntityFieldName>
       <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
+      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1364,141 +1242,10 @@
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <OrderFieldName>Id</OrderFieldName>
-        <OrderType>Ascending</OrderType>
-      </Orders>
-    </Configurations>
-    <Endpoints />
-  </Entities>
-  <Entities>
-    <EntityName>VTA_ApplicationSecurityCredentials</EntityName>
-    <ViewName>VTA_ApplicationSecurityCredentialsView</ViewName>
-    <DefaultFilterField>Id</DefaultFilterField>
     <Fields>
-      <EntityFieldName>Id</EntityFieldName>
-      <ViewFieldName>Id</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AppBusinessId</EntityFieldName>
-      <ViewFieldName>AppBusinessId</ViewFieldName>
+      <EntityFieldName>ModuleCount</EntityFieldName>
+      <ViewFieldName>ModuleCount</ViewFieldName>
       <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationId</EntityFieldName>
-      <ViewFieldName>ApplicationId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationName</EntityFieldName>
-      <ViewFieldName>ApplicationName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ClientId</EntityFieldName>
-      <ViewFieldName>ClientId</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ClientType</EntityFieldName>
-      <ViewFieldName>ClientType</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>CredentialType</EntityFieldName>
-      <ViewFieldName>CredentialType</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Description</EntityFieldName>
-      <ViewFieldName>Description</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationUser</EntityFieldName>
-      <ViewFieldName>AuditCreationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationDate</EntityFieldName>
-      <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationUser</EntityFieldName>
-      <ViewFieldName>AuditModificationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationDate</EntityFieldName>
-      <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditDeletionDate</EntityFieldName>
-      <ViewFieldName>AuditDeletionDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <OrderFieldName>Id</OrderFieldName>
-        <OrderType>Ascending</OrderType>
-      </Orders>
-    </Configurations>
-    <Endpoints />
-  </Entities>
-  <Entities>
-    <EntityName>VTA_Organization</EntityName>
-    <ViewName>VTA_OrganizationView</ViewName>
-    <DefaultFilterField>Name</DefaultFilterField>
-    <Fields>
-      <EntityFieldName>Id</EntityFieldName>
-      <ViewFieldName>Id</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Acronym</EntityFieldName>
-      <ViewFieldName>Acronym</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Address</EntityFieldName>
-      <ViewFieldName>Address</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
@@ -1516,111 +1263,6 @@
       <IsEntidadBase>false</IsEntidadBase>
       <IsList>false</IsList>
     </Fields>
-    <Fields>
-      <EntityFieldName>City</EntityFieldName>
-      <ViewFieldName>City</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ContactEmail</EntityFieldName>
-      <ViewFieldName>ContactEmail</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ContactPhone</EntityFieldName>
-      <ViewFieldName>ContactPhone</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Country</EntityFieldName>
-      <ViewFieldName>Country</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>GroupName</EntityFieldName>
-      <ViewFieldName>GroupName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ModuleCount</EntityFieldName>
-      <ViewFieldName>ModuleCount</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>Name</EntityFieldName>
-      <ViewFieldName>Name</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>PostalCode</EntityFieldName>
-      <ViewFieldName>PostalCode</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>SecurityCompanyId</EntityFieldName>
-      <ViewFieldName>SecurityCompanyId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>TaxId</EntityFieldName>
-      <ViewFieldName>TaxId</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationUser</EntityFieldName>
-      <ViewFieldName>AuditCreationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationDate</EntityFieldName>
-      <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationUser</EntityFieldName>
-      <ViewFieldName>AuditModificationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationDate</EntityFieldName>
-      <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditDeletionDate</EntityFieldName>
-      <ViewFieldName>AuditDeletionDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
     <Configurations>
       <ConfigurationName>Defecto</ConfigurationName>
       <Orders>
@@ -1628,118 +1270,11 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
-  </Entities>
-  <Entities>
-    <EntityName>VTA_OrganizationModuleAccess</EntityName>
-    <ViewName>VTA_OrganizationModuleAccessView</ViewName>
-    <DefaultFilterField>Id</DefaultFilterField>
-    <Fields>
-      <EntityFieldName>Id</EntityFieldName>
-      <ViewFieldName>Id</ViewFieldName>
-      <EntityFieldTypeDB>Int32</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AppBusinessId</EntityFieldName>
-      <ViewFieldName>AppBusinessId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationId</EntityFieldName>
-      <ViewFieldName>ApplicationId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationModuleId</EntityFieldName>
-      <ViewFieldName>ApplicationModuleId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationModuleName</EntityFieldName>
-      <ViewFieldName>ApplicationModuleName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>ApplicationName</EntityFieldName>
-      <ViewFieldName>ApplicationName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>OrganizationId</EntityFieldName>
-      <ViewFieldName>OrganizationId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>OrganizationName</EntityFieldName>
-      <ViewFieldName>OrganizationName</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>SecurityCompanyId</EntityFieldName>
-      <ViewFieldName>SecurityCompanyId</ViewFieldName>
-      <EntityFieldTypeDB>Int32?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationUser</EntityFieldName>
-      <ViewFieldName>AuditCreationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditCreationDate</EntityFieldName>
-      <ViewFieldName>AuditCreationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationUser</EntityFieldName>
-      <ViewFieldName>AuditModificationUser</ViewFieldName>
-      <EntityFieldTypeDB>String</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditModificationDate</EntityFieldName>
-      <ViewFieldName>AuditModificationDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Fields>
-      <EntityFieldName>AuditDeletionDate</EntityFieldName>
-      <ViewFieldName>AuditDeletionDate</ViewFieldName>
-      <EntityFieldTypeDB>DateTime?</EntityFieldTypeDB>
-      <IsEntidadBase>false</IsEntidadBase>
-      <IsList>false</IsList>
-    </Fields>
-    <Configurations>
-      <ConfigurationName>Defecto</ConfigurationName>
-      <Orders>
-        <OrderFieldName>Id</OrderFieldName>
-        <OrderType>Ascending</OrderType>
-      </Orders>
-    </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods />
+    </Endpoints>
+    <IsVersionEntity>false</IsVersionEntity>
+    <IsValidityEntity>false</IsValidityEntity>
   </Entities>
   <Entities>
     <EntityName>Attachment</EntityName>

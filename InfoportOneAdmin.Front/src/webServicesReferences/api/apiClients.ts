@@ -14,6 +14,219 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angula
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
+export interface IApplicationClient {
+    /**
+     * Obtiene una entidad en base a su identificador esté o no de baja lógica.
+     * @param configurationName (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getById(id: number, configurationName?: string | undefined, accept_Language?: string | undefined): Observable<ApplicationView>;
+    /**
+     * Obtiene la lista de todas las entidades.
+     * @param configurationName (optional) 
+     * @param includeDeleted (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getAll(configurationName?: string | undefined, includeDeleted?: boolean | undefined, accept_Language?: string | undefined): Observable<ApplicationView[]>;
+}
+
+@Injectable()
+export class ApplicationClient implements IApplicationClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Obtiene una entidad en base a su identificador esté o no de baja lógica.
+     * @param configurationName (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getById(id: number, configurationName?: string | undefined, accept_Language?: string | undefined): Observable<ApplicationView> {
+        let url_ = this.baseUrl + "/api/Application/GetById?";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined and cannot be null.");
+        else
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        if (configurationName === null)
+            throw new globalThis.Error("The parameter 'configurationName' cannot be null.");
+        else if (configurationName !== undefined)
+            url_ += "configurationName=" + encodeURIComponent("" + configurationName) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept-Language": accept_Language !== undefined && accept_Language !== null ? "" + accept_Language : "",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetById(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetById(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<ApplicationView>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<ApplicationView>;
+        }));
+    }
+
+    protected processGetById(response: HttpResponseBase): Observable<ApplicationView> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApplicationView.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status === 403) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status === 500) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ProblemDetails.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * Obtiene la lista de todas las entidades.
+     * @param configurationName (optional) 
+     * @param includeDeleted (optional) 
+     * @param accept_Language (optional) 
+     * @return OK
+     */
+    getAll(configurationName?: string | undefined, includeDeleted?: boolean | undefined, accept_Language?: string | undefined): Observable<ApplicationView[]> {
+        let url_ = this.baseUrl + "/api/Application/GetAll?";
+        if (configurationName === null)
+            throw new globalThis.Error("The parameter 'configurationName' cannot be null.");
+        else if (configurationName !== undefined)
+            url_ += "configurationName=" + encodeURIComponent("" + configurationName) + "&";
+        if (includeDeleted === null)
+            throw new globalThis.Error("The parameter 'includeDeleted' cannot be null.");
+        else if (includeDeleted !== undefined)
+            url_ += "includeDeleted=" + encodeURIComponent("" + includeDeleted) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept-Language": accept_Language !== undefined && accept_Language !== null ? "" + accept_Language : "",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetAll(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<ApplicationView[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<ApplicationView[]>;
+        }));
+    }
+
+    protected processGetAll(response: HttpResponseBase): Observable<ApplicationView[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ApplicationView.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status === 403) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            }));
+        } else if (status === 500) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ProblemDetails.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
 export interface IAttachmentClient {
     /**
      * Obtiene el contenido de un fichero adjunto en Base64 en base al identificador del adjunto.
@@ -2133,6 +2346,16 @@ export class OrganizationClient implements IOrganizationClient {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            try {
+                console.log('[ORG-MODULES-DEBUG] OrganizationClient.processGetById.raw', {
+                    hasCamel: !!resultData200?.organization_ApplicationModule,
+                    hasPascal: !!resultData200?.Organization_ApplicationModule,
+                    camelCount: Array.isArray(resultData200?.organization_ApplicationModule) ? resultData200.organization_ApplicationModule.length : 0,
+                    pascalCount: Array.isArray(resultData200?.Organization_ApplicationModule) ? resultData200.Organization_ApplicationModule.length : 0,
+                    keys: resultData200 ? Object.keys(resultData200) : []
+                });
+            } catch {
+            }
             result200 = OrganizationView.fromJS(resultData200);
             return _observableOf(result200);
             }));
@@ -2288,6 +2511,20 @@ export class OrganizationClient implements IOrganizationClient {
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
+        try {
+            const parsedBody = JSON.parse(content_);
+            console.log('[ORG-MODULES-DEBUG] OrganizationClient.update.request', {
+                configurationName,
+                reloadView,
+                hasModules: Array.isArray(parsedBody?.organization_ApplicationModule),
+                modulesCount: Array.isArray(parsedBody?.organization_ApplicationModule) ? parsedBody.organization_ApplicationModule.length : 0,
+                moduleIds: Array.isArray(parsedBody?.organization_ApplicationModule)
+                    ? parsedBody.organization_ApplicationModule.map((x: any) => x?.applicationModuleId)
+                    : [],
+                body: parsedBody,
+            });
+        } catch {
+        }
 
         let options_ : any = {
             body: content_,
@@ -4605,9 +4842,13 @@ export class ApplicationModuleView implements IApplicationModuleView {
             this.auditModificationDate = _data["auditModificationDate"] ? new Date(_data["auditModificationDate"].toString()) : undefined as any;
             this.auditDeletionDate = _data["auditDeletionDate"] ? new Date(_data["auditDeletionDate"].toString()) : undefined as any;
             this.application = _data["application"] ? ApplicationView.fromJS(_data["application"]) : undefined as any;
-            if (Array.isArray(_data["organization_ApplicationModule"])) {
+            const organizationModulesRaw =
+                Array.isArray(_data["organization_ApplicationModule"])
+                    ? _data["organization_ApplicationModule"]
+                    : (Array.isArray(_data["Organization_ApplicationModule"]) ? _data["Organization_ApplicationModule"] : undefined);
+            if (Array.isArray(organizationModulesRaw)) {
                 this.organization_ApplicationModule = [] as any;
-                for (let item of _data["organization_ApplicationModule"])
+                for (let item of organizationModulesRaw)
                     this.organization_ApplicationModule!.push(Organization_ApplicationModuleView.fromJS(item));
             }
         }

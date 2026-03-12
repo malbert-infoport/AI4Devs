@@ -1,0 +1,27 @@
+.organization-modules {
+  .modules-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modules-modal {
+    width: min(680px, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    overflow: auto;
+  }
+
+  .modules-list {
+    max-height: 50vh;
+    overflow: auto;
+  }
+}

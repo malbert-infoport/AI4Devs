@@ -33,6 +33,11 @@ namespace InfoportOneAdmon.Back.Services
             _organizationGroupService = organizationGroupService;
         }
 
+        public override Task<bool> Update(OrganizationView view, SetParamsService setParams)
+        {
+            return base.Update(view, setParams);
+        }
+
         public override async Task ValidateView(
             HelixValidationProblem validations,
             OrganizationView? view,

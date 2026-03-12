@@ -10,8 +10,9 @@ import { ClComboBoxComponent, ClInputComponent } from '@cl/common-library/cl-for
 import { MatIconModule } from '@angular/material/icon';
 import { ThemeLoadingComponent } from '@app/theme/components/theme-loading/theme-loading.component';
 import { SharedMessageService } from '@app/theme/services/shared-message.service';
-import { OrganizationClient, OrganizationGroupClient, OrganizationGroupView, OrganizationView } from '../../../../../webServicesReferences/api/apiClients';
+import { OrganizationClient, OrganizationGroupClient, OrganizationGroupView, OrganizationView, Organization_ApplicationModuleView } from '../../../../../webServicesReferences/api/apiClients';
 import { take } from 'rxjs';
+import { OrganizationModulesComponent } from '../organization-modules/organization-modules.component';
 
 @Component({
   selector: 'app-organization-form-page',
@@ -25,7 +26,8 @@ import { take } from 'rxjs';
     ClComboBoxComponent,
     ClInputComponent,
     MatIconModule,
-    ThemeLoadingComponent
+    ThemeLoadingComponent,
+    OrganizationModulesComponent
   ],
   providers: [OrganizationClient, OrganizationGroupClient],
   templateUrl: './organization-form-page.component.html',
@@ -44,10 +46,15 @@ export class OrganizationFormPageComponent implements OnInit {
   @ViewChild('generalDataTab', { static: true }) generalDataTab!: TemplateRef<any>;
   @ViewChild('modulesTab', { static: true }) modulesTab!: TemplateRef<any>;
   @ViewChild('auditTab', { static: true }) auditTab!: TemplateRef<any>;
+  @ViewChild(OrganizationModulesComponent) organizationModulesComponent?: OrganizationModulesComponent;
 
   tabsData: IClTabData[] = [];
   selectedTabIndex = 0;
   organizationId = 0;
+  organizationLoaded: OrganizationView | null = null;
+  stagedOrganizationModules: Organization_ApplicationModuleView[] = [];
+  originalOrganizationModules: Organization_ApplicationModuleView[] = [];
+  modulesEdited = false;
   loading = false;
   saving = false;
   organizationGroups: OrganizationGroupView[] = [];
@@ -100,11 +107,31 @@ export class OrganizationFormPageComponent implements OnInit {
       return;
     }
 
+    this.syncModulesFromChild();
+    console.log('[ORG-MODULES-DEBUG] onSave.beforePayload', {
+      organizationId: this.organizationId,
+      modulesEdited: this.modulesEdited,
+      originalCount: this.originalOrganizationModules.length,
+      stagedCount: this.stagedOrganizationModules.length,
+      loadedCount: this.organizationLoaded?.organization_ApplicationModule?.length ?? 0,
+    });
+
     this.saving = true;
     const rawValue = this.organizationForm.getRawValue() as any;
+    const assignmentsSource = this.modulesEdited
+      ? this.stagedOrganizationModules
+      : (this.originalOrganizationModules.length > 0 ? this.originalOrganizationModules : this.stagedOrganizationModules);
+
     const payload = new OrganizationView({
       ...rawValue,
-      groupId: this.normalizeGroupId(rawValue.groupId)
+      groupId: this.normalizeGroupId(rawValue.groupId),
+      organization_ApplicationModule: this.normalizeAssignments(assignmentsSource)
+    });
+    console.log('[ORG-MODULES-DEBUG] onSave.payloadSummary', {
+      organizationId: payload.id,
+      moduleCount: payload.organization_ApplicationModule?.length ?? 0,
+      moduleIds: (payload.organization_ApplicationModule ?? []).map((x) => x.applicationModuleId),
+      payload: payload.toJSON(),
     });
     const endpoint = payload.id && payload.id > 0
       ? this.organizationClient.update(payload, 'OrganizationComplete', true)
@@ -114,6 +141,11 @@ export class OrganizationFormPageComponent implements OnInit {
       next: (saved) => {
         this.saving = false;
         this.organizationId = Number(saved?.id ?? this.organizationId ?? 0);
+        this.organizationLoaded = saved ?? this.organizationLoaded;
+        const savedAssignments = this.normalizeAssignments(saved?.organization_ApplicationModule ?? this.stagedOrganizationModules);
+        this.stagedOrganizationModules = [...savedAssignments];
+        this.originalOrganizationModules = [...savedAssignments];
+        this.modulesEdited = false;
         this.patchForm(saved);
 
         const messageKey = (saved?.id ?? 0) > 0 && (payload.id ?? 0) > 0 ? 'UPDATE_SUCCESS' : 'INSERT_SUCCESS';
@@ -155,6 +187,16 @@ export class OrganizationFormPageComponent implements OnInit {
 
     endpoint.pipe(take(1)).subscribe({
       next: (organization) => {
+        console.log('[ORG-MODULES-DEBUG] loadGeneralData.response', {
+          organizationId: organization?.id,
+          moduleCount: organization?.organization_ApplicationModule?.length ?? 0,
+          moduleIds: (organization?.organization_ApplicationModule ?? []).map((x) => x.applicationModuleId),
+        });
+        this.organizationLoaded = organization ?? null;
+        const loadedAssignments = this.normalizeAssignments(organization?.organization_ApplicationModule ?? []);
+        this.stagedOrganizationModules = [...loadedAssignments];
+        this.originalOrganizationModules = [...loadedAssignments];
+        this.modulesEdited = false;
         this.patchForm(organization);
         this.loading = false;
       },
@@ -218,5 +260,47 @@ export class OrganizationFormPageComponent implements OnInit {
     }
 
     return null;
+  }
+
+  onOrganizationModulesChanged(assignments: Organization_ApplicationModuleView[]): void {
+    this.stagedOrganizationModules = this.normalizeAssignments(assignments ?? []);
+    this.modulesEdited = true;
+
+    if (!this.organizationLoaded) {
+      this.organizationLoaded = new OrganizationView({ id: this.organizationId });
+    }
+
+    this.organizationLoaded.organization_ApplicationModule = [...this.stagedOrganizationModules];
+  }
+
+  private syncModulesFromChild(): void {
+    const childAssignments = this.organizationModulesComponent?.getStagedAssignments() ?? [];
+    if (childAssignments.length > 0) {
+      this.stagedOrganizationModules = this.normalizeAssignments(childAssignments);
+      if (this.organizationLoaded) {
+        this.organizationLoaded.organization_ApplicationModule = [...this.stagedOrganizationModules];
+      }
+      return;
+    }
+
+    if ((this.organizationLoaded?.organization_ApplicationModule?.length ?? 0) > 0) {
+      this.stagedOrganizationModules = this.normalizeAssignments(this.organizationLoaded?.organization_ApplicationModule ?? []);
+    }
+  }
+
+  private normalizeAssignments(assignments: Organization_ApplicationModuleView[]): Organization_ApplicationModuleView[] {
+    const organizationId = this.organizationId;
+
+    return (assignments ?? [])
+      .filter((assignment) => (assignment?.applicationModuleId ?? 0) > 0)
+      .map(
+        (assignment) =>
+          new Organization_ApplicationModuleView({
+            id: assignment.id,
+            applicationModuleId: assignment.applicationModuleId,
+            organizationId: assignment.organizationId ?? organizationId,
+            auditDeletionDate: assignment.auditDeletionDate,
+          })
+      );
   }
 }

@@ -72,9 +72,21 @@
 
   <ng-template #modulesTab>
     <div class="tab-content p-3">
-      <div class="placeholder-box">
-        {{ 'ORGANIZATIONS.FORM.PLACEHOLDERS.MODULES' | translate }}
-      </div>
+      @if (isNew || organizationId <= 0) {
+        <div class="placeholder-box">
+          {{ 'ORGANIZATIONS.FORM.PLACEHOLDERS.SAVE_FIRST_FOR_MODULES' | translate }}
+        </div>
+      } @else if (!organizationLoaded) {
+        <div class="placeholder-box">
+          {{ 'LOADING' | translate }}
+        </div>
+      } @else {
+        <app-organization-modules
+          [organizationId]="organizationId"
+          [preloadedOrganization]="organizationLoaded"
+          (organizationModulesChanged)="onOrganizationModulesChanged($event)"
+        ></app-organization-modules>
+      }
     </div>
   </ng-template>
 
