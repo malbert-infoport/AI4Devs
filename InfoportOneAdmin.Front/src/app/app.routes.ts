@@ -26,13 +26,14 @@ export const APP_ROUTES: Routes = [
     component: ThemeLayoutComponent,
     canActivate: [OidcGuardService],
     children: [
-      { path: '', redirectTo: 'organizations', pathMatch: 'full' },
-          {
-        path: 'one',
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      {
+        path: 'home',
         loadChildren: () => import('@app/modules/one/one.routes').then((m) => m.ONE_ROUTES),
         canActivate: [mastersGuard],
-        title: 'ROUTES.ONE.TITLE'
+        title: 'ROUTES.HOME.TITLE'
       },
+      { path: 'one', redirectTo: 'home', pathMatch: 'full' },
       {
         path: 'organizations',
         loadChildren: () => import('@app/modules/organizations/organizations.routes').then((m) => m.ORGANIZATIONS_ROUTES),

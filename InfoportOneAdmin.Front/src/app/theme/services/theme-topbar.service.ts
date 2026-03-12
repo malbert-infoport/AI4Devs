@@ -35,18 +35,6 @@ export class ThemeTopBarService {
   getTopMenu() {
     return [
       {
-        identifier: '#test11',
-        toolTip: 'ATTACHMENTS.ATTACHMENTS_MANAGEMENT',
-        url: '/protected/attachments/attachments-management',
-        class: 'me-2',
-        iconName: 'attach_file',
-        xPosition: 'before',
-        overlapTrigger: false,
-        hasChildren: false,
-        hidden: false,
-        disabled: false
-      },
-      {
         identifier: '#test3',
         toolTip: 'SYSTEM_OPTIONS.TITLE',
         url: '',

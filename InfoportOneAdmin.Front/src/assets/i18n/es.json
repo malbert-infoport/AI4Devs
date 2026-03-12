@@ -176,4 +176,27 @@
 	"PATCH": "Parche",
 	"UNKNOWN_ERROR": "Error desconocido",
 	"UPDATE_OF": "Actualizar de"
+	,
+	"HOME": {
+		"TITLE": "Inicio",
+		"HEADLINE": "Bienvenido a InfoportOne Administración",
+		"SUBTITLE": "Seleccione un módulo para comenzar la gestión de sus servicios portuarios.",
+		"CARDS": {
+			"OPEN_MODULE": "Acceder al módulo",
+			"ORGANIZATIONS": {
+				"TITLE": "Gestión de Organizaciones",
+				"DESCRIPTION": "Administre la red de empresas y entidades. Configure perfiles corporativos, accesos y relaciones en el entorno portuario."
+			},
+			"APPLICATIONS": {
+				"TITLE": "Gestión de Aplicaciones",
+				"DESCRIPTION": "Configure y supervise las herramientas digitales del puerto. Este módulo estará disponible próximamente.",
+				"COMING_SOON": "Próximamente"
+			}
+		}
+	},
+	"ROUTES": {
+		"HOME": {
+			"TITLE": "Inicio"
+		}
+	}
 }

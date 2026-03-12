@@ -70,6 +70,8 @@ export class ThemeTopbarComponent implements OnInit {
   topMenu!: Array<any>;
   environmentTopbar!: string;
   colorEnvironmentTopbar!: string;
+  environmentTextColorTopbar!: string;
+  environmentBorderColorTopbar!: string;
 
   /**
    * @ignore
@@ -137,7 +139,18 @@ export class ThemeTopbarComponent implements OnInit {
   getEnvironment() {
     this.environmentTopbar = this.environment.trim();
     this.colorEnvironment = this.colorEnvironment.trim();
+
+    const isDevEnvironment = this.environmentTopbar.toLowerCase() === 'dev';
+    if (isDevEnvironment) {
+      this.colorEnvironmentTopbar = '#ffffff';
+      this.environmentTextColorTopbar = '#00acc1';
+      this.environmentBorderColorTopbar = '#00acc1';
+      return;
+    }
+
     this.colorEnvironmentTopbar = this.colorEnvironment ? this.colorEnvironment : '#b139c5';
+    this.environmentTextColorTopbar = '#ffffff';
+    this.environmentBorderColorTopbar = 'transparent';
   }
 
   /**

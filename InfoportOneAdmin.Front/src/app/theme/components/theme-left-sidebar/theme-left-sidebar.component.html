@@ -2,7 +2,9 @@
   <!-- TITLE-->
   <mat-tree class="leftnav-tree" [dataSource]="title" [treeControl]="titleTreeControl">
     <mat-tree-node class="title w-100" *matTreeNodeDef="let node">
-      <img alt="logo" class="logo" src="{{ node.logo }}" />
+      <a [routerLink]="['/protected/home']" (click)="highlightService.closeSidenav.emit()">
+        <img alt="logo" class="logo" src="{{ node.logo }}" />
+      </a>
       @if (!sidebarClosed) {
         <div>
           <span class="mat-headline-6 title pt-1 mb-0"

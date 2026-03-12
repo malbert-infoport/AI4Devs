@@ -9,6 +9,6 @@
   "silent_redirect_uri": "http://localhost:4200/silent-callback.html",
   "automaticSilentRenew": false,
   "urlAuthorize": "https://localhost:42002/api/Security/GetPermissions",
-  "environment": "Test",
-  "color_environment": ""
+  "environment": "Dev",
+  "color_environment": "#b7e4c7"
 }

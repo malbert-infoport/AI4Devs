@@ -59,14 +59,6 @@ export class ThemeLeftSidebarService {
   getMenu() {
     return [
       {
-        translateKey: 'FIRST_LEVEL_MENU',
-        iconname: 'looks_one',
-        url: '/protected/one',
-        exactUrl: true,
-        disabled: false,
-        hasParent: false
-      },
-      {
         translateKey: 'ORGANIZATIONS.TITLE',
         iconname: 'groups',
         url: '/protected/organizations',

@@ -6,7 +6,7 @@
 
   <span class="mat-body-2 ps-2">{{ 'USER' | translate }}: {{ name }}</span>
   @if (environmentTopbar) {
-    <span class="badge rounded-pill mat-caption ms-2 ps-3 pe-3" [ngStyle]="{ 'background-color': [colorEnvironmentTopbar] }">{{
+    <span class="badge rounded-pill mat-caption ms-2 ps-3 pe-3" [ngStyle]="{ 'background-color': [colorEnvironmentTopbar], color: environmentTextColorTopbar, border: '1px solid ' + environmentBorderColorTopbar }">{{
       environmentTopbar | titlecase
     }}</span>
   }

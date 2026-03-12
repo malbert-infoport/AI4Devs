@@ -176,4 +176,27 @@
 	"PATCH": "Patch",
 	"UNKNOWN_ERROR": "Unknown error",
 	"UPDATE_OF": "Update of"
+	,
+	"HOME": {
+		"TITLE": "Home",
+		"HEADLINE": "Welcome to InfoportOne Administration",
+		"SUBTITLE": "Select a module to start managing your port services.",
+		"CARDS": {
+			"OPEN_MODULE": "Open module",
+			"ORGANIZATIONS": {
+				"TITLE": "Organizations Management",
+				"DESCRIPTION": "Manage your network of companies and entities. Configure corporate profiles, access, and relationships in the port environment."
+			},
+			"APPLICATIONS": {
+				"TITLE": "Applications Management",
+				"DESCRIPTION": "Configure and supervise the port's digital tools. This module will be available soon.",
+				"COMING_SOON": "Coming soon"
+			}
+		}
+	},
+	"ROUTES": {
+		"HOME": {
+			"TITLE": "Home"
+		}
+	}
 }
