@@ -4,6 +4,10 @@ public static class Consts
 {
     public struct LoadingConfigurations
     {
+            public struct Application
+            {
+                public const string APPLICATION_WITH_MODULES = "ApplicationWithModules";
+            }
         public struct Organization
         {
             public const string ORGANIZATION_COMPLETE = "OrganizationComplete";

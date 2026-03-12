@@ -81,7 +81,23 @@
         <OrderType>Ascending</OrderType>
       </Orders>
     </Configurations>
-    <Endpoints />
+    <Endpoints>
+      <Methods>
+        <Method>GetById</Method>
+      </Methods>
+    </Endpoints>
+    <Configurations>
+      <ConfigurationName>ApplicationWithModules</ConfigurationName>
+      <Includes>
+        <EntityBase>ApplicationModule</EntityBase>
+        <ReadOnly>true</ReadOnly>
+      </Includes>
+      <Orders>
+        <Field>Id</Field>
+        <Order>Ascending</Order>
+      </Orders>
+      <Endpoints />
+    </Configurations>
   </Entities>
   <Entities>
     <EntityName>ApplicationModule</EntityName>
