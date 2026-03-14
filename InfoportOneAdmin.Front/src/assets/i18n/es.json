@@ -223,4 +223,10 @@
     "SIGNIN_CALLBACK": "Callback de inicio de sesión",
     "SIGNOUT_CALLBACK": "Callback de cierre de sesión"
   }
+  ,
+  "APPLICATIONS": {
+    "TITLE": "Aplicaciones",
+    "DESCRIPTION": "Gestión de Aplicaciones",
+    "COMING_SOON": "Próximamente"
+  }
 }

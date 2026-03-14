@@ -110,13 +110,6 @@ export class OrganizationFormPageComponent implements OnInit {
     }
 
     this.syncModulesFromChild();
-    console.log('[ORG-MODULES-DEBUG] onSave.beforePayload', {
-      organizationId: this.organizationId,
-      modulesEdited: this.modulesEdited,
-      originalCount: this.originalOrganizationModules.length,
-      stagedCount: this.stagedOrganizationModules.length,
-      loadedCount: this.organizationLoaded?.organization_ApplicationModule?.length ?? 0,
-    });
 
     this.saving = true;
     const rawValue = this.organizationForm.getRawValue() as any;
@@ -129,12 +122,7 @@ export class OrganizationFormPageComponent implements OnInit {
       groupId: this.normalizeGroupId(rawValue.groupId),
       organization_ApplicationModule: this.normalizeAssignments(assignmentsSource)
     });
-    console.log('[ORG-MODULES-DEBUG] onSave.payloadSummary', {
-      organizationId: payload.id,
-      moduleCount: payload.organization_ApplicationModule?.length ?? 0,
-      moduleIds: (payload.organization_ApplicationModule ?? []).map((x) => x.applicationModuleId),
-      payload: payload.toJSON(),
-    });
+    // Debug logs removed in production build
     const endpoint = payload.id && payload.id > 0
       ? this.organizationClient.update(payload, 'OrganizationComplete', true)
       : this.organizationClient.insert(payload, 'OrganizationComplete', true);
@@ -198,12 +186,8 @@ export class OrganizationFormPageComponent implements OnInit {
     const endpoint = this.isNew ? this.organizationClient.getNewEntity() : this.organizationClient.getById(this.organizationId, 'OrganizationComplete');
 
     endpoint.pipe(take(1)).subscribe({
-      next: (organization) => {
-        console.log('[ORG-MODULES-DEBUG] loadGeneralData.response', {
-          organizationId: organization?.id,
-          moduleCount: organization?.organization_ApplicationModule?.length ?? 0,
-          moduleIds: (organization?.organization_ApplicationModule ?? []).map((x) => x.applicationModuleId),
-        });
+        next: (organization) => {
+        // loadGeneralData: debug logs removed
         this.organizationLoaded = organization ?? null;
         const loadedAssignments = this.normalizeAssignments(organization?.organization_ApplicationModule ?? []);
         this.stagedOrganizationModules = [...loadedAssignments];

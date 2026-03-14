@@ -298,7 +298,6 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
 
   loadData(state: State | ClGridState) {
     const kState = state as State;
-    console.log('[VtaOrganization] loadData state', kState);
     // Send the full Kendo `state` directly to the generated client (Sintraport pattern)
     this.showSpinner = true;
     this.orgService

@@ -250,13 +250,12 @@ export class AuthenticationService {
   localStoragePermissions(permissions: AuthApplication[], language: string) {
     // OBTENEMOS LOS PERMISOS DEL API
     // GetPermissions
-    console.log('[AuthService] GetPermissions response:', permissions);
     // Buscar los permisos de la aplicación actual; si no existe, usar el primero
     const permission = Array.isArray(permissions)
       ? permissions.find((p: any) => p.application === appName) || permissions[0]
       : permissions[0];
 
-    console.log('[AuthService] Selected permission for appName=', appName, permission);
+    
 
     // OBTENEMOS LOS PERMISOS ALMACENADOS EN EL LOCALSTORAGE
     const localStoragePermissions: AuthApplication[] = localStorage.getItem('permissions')
@@ -287,8 +286,6 @@ export class AuthenticationService {
     try {
       if (JSON.stringify(current) !== JSON.stringify(localStoragePermissions)) {
         this.allPermissionsSubject.next(localStoragePermissions);
-      } else {
-        console.log('[AuthService] Permissions unchanged, skipping emit');
       }
     } catch (e) {
       // en caso de algún problema con stringify, emitir para no bloquear la app

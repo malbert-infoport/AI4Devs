@@ -193,13 +193,6 @@ export class OrganizationModulesComponent implements OnInit {
       }
 
       const rebuiltAssignments = this.buildAssignmentsFromApps();
-      console.log('[ORG-MODULES-DEBUG] modules.saveModules.rebuiltAssignments', {
-        organizationId: this.organization?.id ?? this.organizationId,
-        appId: editedAppId,
-        selectedModuleIds: updatedAppModuleIds,
-        rebuiltCount: rebuiltAssignments.length,
-        rebuiltModuleIds: rebuiltAssignments.map((x) => x.applicationModuleId),
-      });
       this.organization.organization_ApplicationModule = rebuiltAssignments;
 
       if (this.preloadedOrganization) {
@@ -207,9 +200,6 @@ export class OrganizationModulesComponent implements OnInit {
       }
 
       this.organizationModulesChanged.emit([...rebuiltAssignments]);
-      console.log('[ORG-MODULES-DEBUG] modules.emit.organizationModulesChanged', {
-        count: rebuiltAssignments.length,
-      });
 
       // No mostrar mensajes al usuario tras editar módulos — sólo preparamos los cambios
       this.closeEdit();

@@ -38,7 +38,6 @@ export class AccessService {
         take(1)
       )
       .subscribe((allPermissions: AuthApplication[]) => {
-        console.log('[AccessService] allPermissions from AuthenticationService:', allPermissions);
 
         // Obtener los permisos de la aplicación actual (intentar coincidir exacto, case-insensitive, o hacer fallback al primero)
         let currentAppPermissions = allPermissions.find((app) => app.application === appName);
@@ -51,7 +50,7 @@ export class AccessService {
           currentAppPermissions = allPermissions[0];
         }
 
-        console.log('[AccessService] Selected currentAppPermissions:', currentAppPermissions);
+        
         this.permissions = [
           {
             application: currentAppPermissions.application,

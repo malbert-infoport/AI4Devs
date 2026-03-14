@@ -24,10 +24,218 @@
 				"NO_PERMISSION": "You do not have permissions to access this module."
 				"GROUP": "Group",
 				"NAME": "Name",
-    
-				"TAX_ID": "Tax ID",
-				"CONTACT_EMAIL": "Contact email",
-				"CONTACT_PHONE": "Contact phone",
+	{
+		"ORGANIZATIONS": {
+			"TITLE": "Organizations",
+			"APPLICATION": "Application",
+			"ASSIGNED_MODULES": "Assigned modules",
+			"NO_MODULES": "No modules assigned",
+			"MODULES": {
+				"TITLE_ASSIGNMENT": "Module Assignment",
+				"NO_VIEW_PERMISSION": "You do not have permissions to view organization modules.",
+				"SELECT_MODULES": "Select the application modules for this organization.",
+				"LOADING_MODULES": "Loading modules..."
+			},
+			"FORM": {
+				"TITLE_NEW": "New organization",
+				"TITLE_EDIT": "Edit organization",
+				"SECTIONS": {
+					"BASIC": "Basic information",
+					"LOCATION": "Location",
+					"CONTACT": "Contact"
+				},
+				"FIELDS": {
+					"COMPANY_ID": "Company id",
+					"GROUP_ID": "Group id",
+					"GROUP": "Group",
+					"NAME": "Name",
+					"TAX_ID": "Tax id",
+					"CONTACT_EMAIL": "Contact email",
+					"CONTACT_PHONE": "Contact phone",
+					"ADDRESS": "Address",
+					"CITY": "City",
+					"POSTAL_CODE": "Postal code",
+					"COUNTRY": "Country"
+				},
+				"TABS": {
+					"GENERAL_DATA": "Organization data",
+					"MODULES": "Application Modules",
+					"AUDIT": "Audit"
+				},
+				"PLACEHOLDERS": {
+					"GENERAL_DATA": "Tab 1 under implementation: general data form.",
+					"MODULES": "Tab 2 under implementation: organization modules management.",
+					"AUDIT": "Tab 3 under implementation: paged audit history.",
+					"SAVE_FIRST_FOR_MODULES": "Save the organization first to manage modules and permissions."
+				}
+			},
+			"COLUMNS": {
+				"COMPANY": "Company",
+				"NAME": "Name",
+				"TAXID": "Tax id",
+				"EMAIL": "Email",
+				"PHONE": "Phone",
+				"DELETION_DATE": "Deactivation date",
+				"GROUP": "Group",
+				"APPS": "Apps",
+				"MODULES": "Modules",
+				"ACTIONS": "Actions"
+			},
+			"PLACEHOLDERS": {
+				"SEARCH": "Search organizations...",
+				"NO_RECORDS": "No records"
+			},
+			"COLUMN_MODAL": {
+				"TITLE": "Configure columns"
+			},
+			"BUTTONS": {
+				"NEW": "New",
+				"EDIT": "Edit",
+				"DEACTIVATE": "Deactivate",
+				"REACTIVATE": "Reactivate",
+				"COLUMNS": "Columns",
+				"EDIT_MODULES": "Edit modules",
+				"SAVE": "Save",
+				"CANCEL": "Cancel",
+				"CLOSE": "Close"
+			},
+			"MESSAGES": {
+				"EVENT_SENT": "Organization event published.",
+				"EVENT_NOT_SENT": "Organization event was not published."
+			}
+		},
+		"APPLICATIONS": {
+			"TITLE": "Applications",
+			"DESCRIPTION": "Applications management",
+			"COMING_SOON": "Coming soon"
+		},
+		"ACCEPT": "Accept",
+		"ACTIVATE": "Item activated successfully",
+		"ATTACHMENTS": {
+			"ACTIONS": {
+				"ADD": "Add attachment",
+				"DOWNLOAD": "Download attachment",
+				"UPLOAD": "Upload file"
+			},
+			"ATTACHMENTS_MANAGEMENT": "Attachments management",
+			"ATTACHMENTS_TYPE": "Attachment type",
+			"DESCRIPTION": "Description",
+			"ENTITY_NAME": "Entity",
+			"FILE_EXTENSION": "Extension",
+			"FILE_NAME": "File name",
+			"FILE_SIZE": "Size (KB)",
+			"MESSAGES": {
+				"ANY_ELEMENT_SELECTED": "You must select at least one grid item",
+				"NO_ELEMENT_SELECTED": "You must select a grid item",
+				"NO_FILE": "No file stored for: {{fileName}}"
+			},
+			"TYPE": "Type"
+		},
+		"AUDIT_FECHA_BAJA": "Deactivation date",
+		"CACHE_CLEAN_SUCCESS": "Security cache has been cleaned!",
+		"CANCEL": "Cancel",
+		"CIF": "Tax ID",
+		"CLOSE": "Close",
+		"COLLAPSE_NAVIGATION": "Collapse navigation",
+		"COMPANY": "Company",
+		"CORE_LANGUAGE": "Language",
+		"CORE_SIGN_OUT": "Sign out",
+		"COULD_NOT_CONNECT_IDENTITY_SERVER": "Cannot connect to Identity Server, please check your address: {{address}}",
+		"DESACTIVATE": "Item deactivated successfully",
+		"DESCRIPTION": "Description",
+		"HOME": {
+			"TITLE": "Home",
+			"HEADLINE": "Welcome to InfoportOne Administration",
+			"SUBTITLE": "Select a module to start managing your port services.",
+			"CARDS": {
+				"OPEN_MODULE": "Open module",
+				"ORGANIZATIONS": {
+					"TITLE": "Organizations Management",
+					"DESCRIPTION": "Manage the network of companies and entities. Configure corporate profiles, accesses and relationships in the port environment."
+				},
+				"APPLICATIONS": {
+					"TITLE": "Applications Management",
+					"DESCRIPTION": "Configure and monitor the port's digital tools. This module will be available soon.",
+					"COMING_SOON": "Coming soon"
+				},
+				"NO_PERMISSION": "You do not have permissions to access this module."
+			}
+		},
+		"REQUIRED": "The {{title}} field is required",
+		"GO_HOME": "Go to home page",
+		"IDENTITY_SERVER_CANNOT_CONNECT_MESSAGE": "Cannot connect to Identity Server, please check your address",
+		"INTERNAL_ERROR_MESSAGE": "Internal error:",
+		"INTERNAL_ERROR_SUBMESSAGE": "There has been an internal error, we are trying to fix it",
+		"MASTERS": {
+			"ATTACHMENTS": {
+				"TITLE": "Attachments"
+			}
+		},
+		"PAGE_NOT_FOUND_MESSAGE": "The page you are looking for does not exist :(",
+		"PREFERENCES": "Preferences",
+		"REFRESH": "Refresh",
+		"REMOVE_ROW_CONFIRMATION": "Are you sure you want to delete this row?",
+		"ROLE": "Role",
+		"SAVE": "Save",
+		"SAVE_CHANGE": "Changes saved successfully",
+		"SECURITY_COMPANY_ID": "Security company ID",
+		"SYSTEM_OPTIONS": {
+			"SECURITY": {
+				"GENERAL_CONFIGURATION": {
+					"CIF": "Tax ID",
+					"COMPANY_NAME": "Company name",
+					"TITLE": "General configuration"
+				},
+				"GENERAL_DATA": "General data",
+				"PROFILES": {
+					"TITLE": "Profiles"
+				},
+				"TITLE": "Security"
+			},
+			"TITLE": "System options"
+		},
+		"THEME_LOOKUP": {
+			"NO_RECORDS_TEMPLATE": {
+				"TEXT": "No results found yet. Perform a search to see the corresponding results",
+				"TITLE": "Search results"
+			}
+		},
+		"UPDATE_SUCCESS": "Updated successfully.",
+		"USER": "User",
+		"USER_SUPPORT": "User support",
+		"VERSION": "Version",
+		"BACK": "Back",
+		"EDIT": "Edit",
+		"LOADING": "Loading",
+		"NAVIGATE_TO_EDIT": "Navigate to edit",
+		"PATCH": "Patch",
+		"UNKNOWN_ERROR": "Unknown error",
+		"UPDATE_OF": "Update of",
+		"AUDITLOG": {
+			"TITLE": "Audit Log",
+			"COLUMNS": {
+				"TIMESTAMP": "Timestamp",
+				"ACTION": "Action",
+				"USER": "User",
+				"ENTITY": "Entity",
+				"ENTITY_ID": "Entity Id",
+				"CONTENT": "Details"
+			},
+			"PLACEHOLDERS": {
+				"NO_RECORDS": "No audit records"
+			}
+		},
+		"ROUTES": {
+			"HOME": {
+				"TITLE": "Home"
+			},
+			"ORGANIZATIONS": {
+				"TITLE": "Organizations"
+			},
+			"SIGNIN_CALLBACK": "Sign-in callback",
+			"SIGNOUT_CALLBACK": "Sign-out callback"
+		}
+	}
 				"ADDRESS": "Address",
 				"CITY": "City",
 				"POSTAL_CODE": "Postal code",

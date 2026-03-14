@@ -1,7 +1,7 @@
 <nav #leftSidebar class="wrapper-sidebar" [ngClass]="{ 'sidebar-closed': sidebarClosed }">
   <!-- TITLE-->
   <mat-tree class="leftnav-tree" [dataSource]="title" [treeControl]="titleTreeControl">
-    <mat-tree-node class="title w-100" *matTreeNodeDef="let node">
+    <mat-nested-tree-node class="title w-100" *matTreeNodeDef="let node; when: isLeaf">
       <a [routerLink]="['/protected/home']" (click)="highlightService.closeSidenav.emit()">
         <img alt="logo" class="logo" src="{{ node.logo }}" />
       </a>
@@ -13,12 +13,12 @@
           <a class="mat-caption mb-0 version" (click)="openReleaseNotes()">{{ node.version }}</a>
         </div>
       }
-    </mat-tree-node>
+    </mat-nested-tree-node>
   </mat-tree>
 
   <!-- MENU-->
-  <mat-tree class="leftnav-tree leftnav-body" [dataSource]="menu" [treeControl]="nestedTreeControl">
-    <mat-tree-node class="leftnav-node" *matTreeNodeDef="let node">
+  <mat-tree class="leftnav-tree leftnav-body" [dataSource]="menu" [treeControl]="menuTreeControl">
+    <mat-nested-tree-node class="leftnav-node" *matTreeNodeDef="let node; when: isLeaf">
       <div class="leftnav-button w-100">
         @if (node.disabled) {
           <a
@@ -66,7 +66,7 @@
           </a>
         }
       </div>
-    </mat-tree-node>
+    </mat-nested-tree-node>
 
     <mat-nested-tree-node [disabled]="node.disabled" class="leftnav-node" *matTreeNodeDef="let node; when: hasChild">
       <div class="mat-tree-node leftnav-button w-100">
@@ -119,7 +119,7 @@
           </a>
         }
       </div>
-      <ul [hidden]="!nestedTreeControl.isExpanded(node)">
+      <ul [hidden]="!menuTreeControl.isExpanded(node)">
         <ng-container matTreeNodeOutlet></ng-container>
       </ul>
     </mat-nested-tree-node>
@@ -129,8 +129,8 @@
 
   <div class="sidebar-toggler d-xl-block" (click)="toggleSideBar()">
     <!-- CONTACT INFO-->
-    <mat-tree class="leftnav-tree leftnav-body" [dataSource]="contactinfo" [treeControl]="nestedTreeControl">
-      <mat-tree-node class="leftnav-node" *matTreeNodeDef="let node">
+    <mat-tree class="leftnav-tree leftnav-body" [dataSource]="contactinfo" [treeControl]="contactTreeControl">
+      <mat-nested-tree-node class="leftnav-node" *matTreeNodeDef="let node; when: isLeaf">
         <div class="leftnav-button w-100">
           @if (node.disabled) {
             <a
@@ -170,7 +170,7 @@
             </a>
           }
         </div>
-      </mat-tree-node>
+      </mat-nested-tree-node>
 
       <mat-nested-tree-node [disabled]="node.disabled" class="leftnav-node" *matTreeNodeDef="let node; when: hasChild">
         <div class="mat-tree-node leftnav-button w-100">
@@ -210,7 +210,7 @@
             >
               @if (node.iconname) {
                 <mat-icon
-                  [ngClass]="{ 'icon-color': node.translateKey === 'USER' }"
+                  [ngClass]="{ 'icon-color': node.iconname === 'account_circle' }"
                   aria-hidden="false"
                   fontIcon="{{ node.iconname ? node.iconname : '' }}"
                 ></mat-icon>
@@ -221,15 +221,15 @@
             </a>
           }
         </div>
-        <ul [hidden]="!nestedTreeControl.isExpanded(node)">
+        <ul [hidden]="!contactTreeControl.isExpanded(node)">
           <ng-container matTreeNodeOutlet></ng-container>
         </ul>
       </mat-nested-tree-node>
     </mat-tree>
 
     <!-- USER MENU-->
-    <mat-tree class="leftnav-tree leftnav-body" [dataSource]="usermenu" [treeControl]="nestedTreeControl">
-      <mat-tree-node class="leftnav-node" *matTreeNodeDef="let node">
+    <mat-tree class="leftnav-tree leftnav-body" [dataSource]="usermenu" [treeControl]="usermenuTreeControl">
+      <mat-nested-tree-node class="leftnav-node" *matTreeNodeDef="let node; when: isLeaf">
         <div class="leftnav-button w-100">
           @if (node.disabled) {
             <a
@@ -291,7 +291,7 @@
             </a>
           }
         </div>
-      </mat-tree-node>
+      </mat-nested-tree-node>
       <mat-nested-tree-node [disabled]="node.disabled" class="leftnav-node" *matTreeNodeDef="let node; when: hasChild">
         <div class="mat-tree-node leftnav-button w-100">
           @if (node.disabled) {
@@ -346,7 +346,7 @@
             </a>
           }
         </div>
-        <ul [hidden]="!nestedTreeControl.isExpanded(node)">
+        <ul [hidden]="!usermenuTreeControl.isExpanded(node)">
           <ng-container matTreeNodeOutlet></ng-container>
         </ul>
       </mat-nested-tree-node>

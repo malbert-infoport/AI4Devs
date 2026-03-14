@@ -12,7 +12,6 @@ import { MatIcon } from '@angular/material/icon';
 import {
   MatTree,
   MatTreeNodeDef,
-  MatTreeNode,
   MatNestedTreeNode,
   MatTreeNodeToggle,
   MatTreeNodeOutlet
@@ -41,7 +40,6 @@ import { DialogRef } from '@progress/kendo-angular-dialog';
     NgClass,
     MatTree,
     MatTreeNodeDef,
-    MatTreeNode,
     MatAnchor,
     MatTooltip,
     MatIcon,
@@ -98,9 +96,16 @@ export class ThemeLeftSidebarComponent implements OnInit, OnDestroy {
    */
   getChildren = (node: TreeNode) => of(node.children || []);
   // tslint:disable-next-line: member-ordering
-  nestedTreeControl = new NestedTreeControl<any>(this.getChildren);
+  menuTreeControl = new NestedTreeControl<any>(this.getChildren);
+  // tslint:disable-next-line: member-ordering
+  contactTreeControl = new NestedTreeControl<any>(this.getChildren);
+  // tslint:disable-next-line: member-ordering
+  usermenuTreeControl = new NestedTreeControl<any>(this.getChildren);
   // tslint:disable-next-line: member-ordering
   titleTreeControl = new NestedTreeControl<any>(this.getChildren);
+
+  // Track last active tree control (used when toggling/collapsing)
+  private lastActiveTreeControl: NestedTreeControl<any> | null = null;
 
   /**
    * @Internal Comprueba que exista menú anidado en un item de menú
@@ -110,13 +115,21 @@ export class ThemeLeftSidebarComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Comprueba si el nodo es hoja (no tiene hijos)
+   */
+  isLeaf(_: number, node: TreeNode) {
+    return !node.children || node.children.length === 0;
+  }
+
+  /**
    * @ignore
    */
   ngOnInit() {
     this.sidebarClosed = true;
-
     this.highlightServiceSubscription = this.highlightService.collpaseSidebarNodes.subscribe(() => {
-      this.nestedTreeControl.collapseAll();
+      this.menuTreeControl.collapseAll();
+      this.contactTreeControl.collapseAll();
+      this.usermenuTreeControl.collapseAll();
     });
     this.getTitle();
     this.getMenu();
@@ -134,7 +147,9 @@ export class ThemeLeftSidebarComponent implements OnInit, OnDestroy {
    */
   toggleSideBar(hasParent?: any) {
     if (!this.sidebarClosed) {
-      this.nestedTreeControl.collapseAll();
+      this.menuTreeControl.collapseAll();
+      this.contactTreeControl.collapseAll();
+      this.usermenuTreeControl.collapseAll();
     }
 
     const parentSelectedElement = this.highlightService.getParentSelectedElement();
@@ -173,8 +188,15 @@ export class ThemeLeftSidebarComponent implements OnInit, OnDestroy {
 
     const parentSelectedElement = this.highlightService.getParentSelectedElement();
 
-    if (this.selectedNode?.children && this.nestedTreeControl.expansionModel.selected.length > 0) {
-      this.nestedTreeControl.collapseAll();
+    const activeSelectedCount =
+      (this.menuTreeControl.expansionModel.selected.length || 0) +
+      (this.usermenuTreeControl.expansionModel.selected.length || 0) +
+      (this.contactTreeControl.expansionModel.selected.length || 0);
+
+    if (this.selectedNode?.children && activeSelectedCount > 0) {
+      this.menuTreeControl.collapseAll();
+      this.usermenuTreeControl.collapseAll();
+      this.contactTreeControl.collapseAll();
 
       if (parentSelectedElement) {
         parentSelectedElement._elementRef.nativeElement.classList.remove('highlight-parent-node');
@@ -184,7 +206,9 @@ export class ThemeLeftSidebarComponent implements OnInit, OnDestroy {
 
       this.highlightService.setParentSelectedElement(element);
 
-      this.nestedTreeControl.toggle(this.selectedNode);
+      // Toggle on the control that contains the selected node, fallback to menuTreeControl
+      const control = this.lastActiveTreeControl || this.menuTreeControl;
+      control.toggle(this.selectedNode);
     }
 
     // Open the sidebar
@@ -197,10 +221,27 @@ export class ThemeLeftSidebarComponent implements OnInit, OnDestroy {
    * @internal Temas del funcionamiento visual del menú
    */
   getSelectedNode(): void {
-    if (this.nestedTreeControl.expansionModel.selected.length > 0) {
-      const lastIndex = this.nestedTreeControl.expansionModel.selected.length - 1;
-      this.selectedNode = this.nestedTreeControl.expansionModel.selected[lastIndex];
+    // Check each tree control for selected nodes and set the selectedNode and lastActiveTreeControl
+    if (this.menuTreeControl.expansionModel.selected.length > 0) {
+      const lastIndex = this.menuTreeControl.expansionModel.selected.length - 1;
+      this.selectedNode = this.menuTreeControl.expansionModel.selected[lastIndex];
+      this.lastActiveTreeControl = this.menuTreeControl;
+      return;
     }
+    if (this.usermenuTreeControl.expansionModel.selected.length > 0) {
+      const lastIndex = this.usermenuTreeControl.expansionModel.selected.length - 1;
+      this.selectedNode = this.usermenuTreeControl.expansionModel.selected[lastIndex];
+      this.lastActiveTreeControl = this.usermenuTreeControl;
+      return;
+    }
+    if (this.contactTreeControl.expansionModel.selected.length > 0) {
+      const lastIndex = this.contactTreeControl.expansionModel.selected.length - 1;
+      this.selectedNode = this.contactTreeControl.expansionModel.selected[lastIndex];
+      this.lastActiveTreeControl = this.contactTreeControl;
+      return;
+    }
+    this.selectedNode = null;
+    this.lastActiveTreeControl = null;
   }
 
   /**
