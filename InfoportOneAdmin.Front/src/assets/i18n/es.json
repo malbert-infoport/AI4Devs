@@ -74,6 +74,11 @@
 			"CANCEL": "Cancelar",
 			"CLOSE": "Cerrar"
 		}
+		,
+		"MESSAGES": {
+			"EVENT_SENT": "Evento de organización enviado.",
+			"EVENT_NOT_SENT": "No se ha enviado el evento de organización."
+		}
 	},
 	"ACCEPT": "Aceptar",
 	"ACTIVATE": "Elemento activado con éxito",
@@ -167,7 +172,7 @@
 			"TITLE": "Búsqueda de resultados"
 		}
 	},
-	"UPDATE_SUCCESS": "Actualizado con éxito",
+	"UPDATE_SUCCESS": "Actualizado con éxito.",
 	"USER": "Usuario",
 	"USER_SUPPORT": "Soporte de usuario",
 	"VERSION": "Versión",

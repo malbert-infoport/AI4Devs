@@ -5990,6 +5990,8 @@ export class OrganizationView implements IOrganizationView {
     auditDeletionDate?: Date | undefined;
     group?: OrganizationGroupView;
     organization_ApplicationModule?: Organization_ApplicationModuleView[] | undefined;
+    publishOrganizationEvent?: boolean;
+    eventSent?: boolean | undefined;
 
     constructor(data?: IOrganizationView) {
         if (data) {
@@ -6025,6 +6027,8 @@ export class OrganizationView implements IOrganizationView {
                 for (let item of _data["organization_ApplicationModule"])
                     this.organization_ApplicationModule!.push(Organization_ApplicationModuleView.fromJS(item));
             }
+            this.publishOrganizationEvent = _data["publishOrganizationEvent"];
+            this.eventSent = _data["eventSent"];
         }
     }
 
@@ -6060,6 +6064,8 @@ export class OrganizationView implements IOrganizationView {
             for (let item of this.organization_ApplicationModule)
                 data["organization_ApplicationModule"].push(item ? item.toJSON() : undefined as any);
         }
+        data["publishOrganizationEvent"] = this.publishOrganizationEvent;
+        data["eventSent"] = this.eventSent;
         return data;
     }
 }
@@ -6084,6 +6090,8 @@ export interface IOrganizationView {
     auditDeletionDate?: Date | undefined;
     group?: OrganizationGroupView;
     organization_ApplicationModule?: Organization_ApplicationModuleView[] | undefined;
+    publishOrganizationEvent?: boolean;
+    eventSent?: boolean | undefined;
 }
 
 export class Organization_ApplicationModuleView implements IOrganization_ApplicationModuleView {

@@ -77,6 +77,8 @@ public static class Consts
         public const string OrganizationAutoDeactivated = "OrganizationAutoDeactivated";
         public const string OrganizationReactivatedManual = "OrganizationReactivatedManual";
         public const string GroupChanged = "GroupChanged";
+        public const string OrganizationEventPublished = "OrganizationEventPublished";
+        public const string OrganizationEventNotPublished = "OrganizationEventNotPublished";
     }
 
     public struct EntityTypes

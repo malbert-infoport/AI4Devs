@@ -74,6 +74,11 @@
 			"CANCEL": "Cancel",
 			"CLOSE": "Close"
 		}
+		,
+		"MESSAGES": {
+			"EVENT_SENT": "Organization event published.",
+			"EVENT_NOT_SENT": "Organization event was not published."
+		}
 	},
 	"ACCEPT": "Accept",
 	"ACTIVATE": "Item activated successfully",
@@ -167,7 +172,7 @@
 			"TITLE": "Search results"
 		}
 	},
-	"UPDATE_SUCCESS": "Updated successfully",
+	"UPDATE_SUCCESS": "Updated successfully.",
 	"USER": "User",
 	"USER_SUPPORT": "User support",
 	"VERSION": "Version",

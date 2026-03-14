@@ -7,9 +7,9 @@ using Helix6.Base.Domain;
 using Helix6.Base.Domain.Parameters;
 using Helix6.Base.Domain.Security;
 using Helix6.Base.Domain.Validations;
+using Helix6.Base.Repository;
 using Helix6.Base.Service;
 using InfoportOneAdmon.Back.Data.Repository.Interfaces;
-using Helix6.Base.Repository;
 using InfoportOneAdmon.Back.DataModel;
 using InfoportOneAdmon.Back.Entities;
 using InfoportOneAdmon.Back.Entities.Views;
@@ -145,9 +145,12 @@ namespace InfoportOneAdmon.Back.Services
         {
             try
             {
-                await ProcessModuleChangesAsync(original, view);
-                await ProcessGroupChangeAsync(original, view);
-                await HandleManualDeactivateReactivateAsync(original, view, actionType);
+                var modulesChanged = await ProcessModuleChangesAsync(original, view);
+                var groupChanged = await ProcessGroupChangeAsync(original, view);
+                var lifecycleChanged = await HandleManualDeactivateReactivateAsync(original, view, actionType);
+
+                // Decide whether an OrganizationEvent should be published after persistence
+                view.PublishOrganizationEvent = modulesChanged || groupChanged || lifecycleChanged;
             }
             catch (Exception ex)
             {
@@ -155,12 +158,12 @@ namespace InfoportOneAdmon.Back.Services
             }
         }
 
-        private async Task ProcessModuleChangesAsync(OrganizationView? original, OrganizationView view)
+        private async Task<bool> ProcessModuleChangesAsync(OrganizationView? original, OrganizationView view)
         {
             var originalModuleIds = original?.Organization_ApplicationModule?.Select(m => m.ApplicationModuleId).ToList() ?? new List<int>();
             var newModuleIds = view.Organization_ApplicationModule?.Select(m => m.ApplicationModuleId).ToList() ?? new List<int>();
 
-                var added = newModuleIds.Except(originalModuleIds).ToList();
+            var added = newModuleIds.Except(originalModuleIds).ToList();
             if (added.Any())
             {
                 _logger?.LogInformation("Modules added for orgId={OrgId}: {Modules}", view.Id, string.Join(',', added));
@@ -193,9 +196,10 @@ namespace InfoportOneAdmon.Back.Services
                     await LogAudit(view.Id > 0 ? view.Id : (int?)null, Consts.EventLogTypes.ModuleRemoved, $"Organization '{view.Name}' (Id={view.Id}) removed Module '{moduleText}'");
                 }
             }
+            return added.Any() || removed.Any();
         }
 
-        private async Task ProcessGroupChangeAsync(OrganizationView? original, OrganizationView view)
+        private async Task<bool> ProcessGroupChangeAsync(OrganizationView? original, OrganizationView view)
         {
             if (original != null && original.GroupId != view.GroupId)
             {
@@ -203,28 +207,55 @@ namespace InfoportOneAdmon.Back.Services
                 string oldGroupName = original.GroupId.HasValue ? (await _organizationGroupService.GetById(original.GroupId.Value))?.GroupName ?? original.GroupId.Value.ToString() : "(none)";
                 string newGroupName = view.GroupId.HasValue ? (await _organizationGroupService.GetById(view.GroupId.Value))?.GroupName ?? view.GroupId.Value.ToString() : "(none)";
                 await LogAudit(view.Id > 0 ? view.Id : (int?)null, Consts.EventLogTypes.GroupChanged, $"Organization '{view.Name}' (Id={view.Id}) group changed from '{oldGroupName}' to '{newGroupName}'");
+                return true;
             }
+            return false;
         }
 
-        private async Task HandleManualDeactivateReactivateAsync(OrganizationView? original, OrganizationView view, HelixEnums.EnumActionType actionType)
+        private async Task<bool> HandleManualDeactivateReactivateAsync(OrganizationView? original, OrganizationView view, HelixEnums.EnumActionType actionType)
         {
-            if (actionType != HelixEnums.EnumActionType.LogicDelete || original == null) return;
+            if (actionType != HelixEnums.EnumActionType.LogicDelete || original == null) return false;
 
             if (original.AuditDeletionDate == null && view.AuditDeletionDate != null)
             {
                 _logger?.LogInformation("Organization manually deactivated orgId={OrgId}", view.Id);
                 await LogAudit(view.Id, Consts.EventLogTypes.OrganizationDeactivatedManual, $"Organization '{original.Name}' (Id={view.Id}) manually deactivated");
+                return true;
             }
             else if (original.AuditDeletionDate != null && view.AuditDeletionDate == null)
             {
                 _logger?.LogInformation("Organization manually reactivated orgId={OrgId}", view.Id);
                 await LogAudit(view.Id, Consts.EventLogTypes.OrganizationReactivatedManual, $"Organization '{original.Name}' (Id={view.Id}) manually reactivated");
+                return true;
             }
+
+            return false;
         }
 
         public override async Task EndActions(OrganizationView? view, HelixEnums.EnumActionType actionType, string? configurationName)
         {
-            // Placeholder: event publication can be implemented here if needed
+            try
+            {
+                if (view != null && (actionType == HelixEnums.EnumActionType.Insert || actionType == HelixEnums.EnumActionType.Update))
+                {
+                    // Simulate event publication: if PublishOrganizationEvent==true we mark EventSent=true, else false.
+                    if (view.PublishOrganizationEvent)
+                    {
+                        view.EventSent = true; // simulated success
+                        await LogAudit(view.Id > 0 ? view.Id : (int?)null, Consts.EventLogTypes.OrganizationEventPublished, $"Organization event simulated as SENT for '{view.Name}' (Id={view.Id})");
+                    }
+                    else
+                    {
+                        view.EventSent = false; // not sent
+                        await LogAudit(view.Id > 0 ? view.Id : (int?)null, Consts.EventLogTypes.OrganizationEventNotPublished, $"Organization event simulated as NOT SENT for '{view.Name}' (Id={view.Id})");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error during PostActions simulation for orgId={OrgId}", view?.Id);
+            }
+
             await base.EndActions(view, actionType, configurationName);
         }
 

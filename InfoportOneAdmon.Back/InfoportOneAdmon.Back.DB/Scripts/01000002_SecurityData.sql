@@ -205,8 +205,8 @@ INSERT INTO "Helix6_Security"."SecurityProfile" AS t (
 )
 OVERRIDING SYSTEM VALUE
 VALUES
-	(1, 1, 'Admin', 'HLX_admin', NULL, '1#hlxadm', '2025-07-29 09:31:23.800', '2025-07-29 09:31:23.800', NULL),
-	(2, 1, 'User', 'HLX_user', '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.803', '2025-07-29 09:31:23.803', NULL),
+	(1, 1, 'Admin', 'ADMON_admin', NULL, '1#hlxadm', '2025-07-29 09:31:23.800', '2025-07-29 09:31:23.800', NULL),
+	(2, 1, 'User', 'ADMON_user', '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.803', '2025-07-29 09:31:23.803', NULL),
 	(5, 1, 'Organization Manager', 'ADMON_organizationmanager', '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(6, 1, 'Security Manager', 'ADMON_securitymanager', '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(7, 1, 'Application Manager', 'ADMON_applicationmanager', '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL)

@@ -151,7 +151,17 @@ export class OrganizationFormPageComponent implements OnInit {
         this.patchForm(saved);
 
         const messageKey = (saved?.id ?? 0) > 0 && (payload.id ?? 0) > 0 ? 'UPDATE_SUCCESS' : 'INSERT_SUCCESS';
-        this.sharedMessageService.showMessage(this.translate.instant(messageKey));
+        let messageText = this.translate.instant(messageKey);
+        try {
+          const shouldPublish = !!(saved as any)?.publishOrganizationEvent;
+          if (shouldPublish) {
+            const sent = !!(saved as any)?.eventSent;
+            messageText = `${messageText} ${this.translate.instant(sent ? 'ORGANIZATIONS.MESSAGES.EVENT_SENT' : 'ORGANIZATIONS.MESSAGES.EVENT_NOT_SENT')}`;
+          }
+        } catch (e) {
+          // ignore and show base message
+        }
+        this.sharedMessageService.showMessage(messageText);
 
         if (this.organizationId > 0 && this.route.snapshot.paramMap.get('id') !== String(this.organizationId)) {
           this.router.navigate(['/protected/organizations', this.organizationId]);
