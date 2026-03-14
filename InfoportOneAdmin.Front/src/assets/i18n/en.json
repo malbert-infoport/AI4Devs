@@ -105,6 +105,7 @@
 	"COLLAPSE_NAVIGATION": "Collapse navigation",
 	"COMPANY": "Company",
 	"CORE_LANGUAGE": "Language",
+	"CORE_SIGN_OUT": "Sign out",
 	"COULD_NOT_CONNECT_IDENTITY_SERVER": "Cannot connect to Identity Server, please check your address: {{address}}",
 	"DESACTIVATE": "Item deactivated successfully",
 	"DESCRIPTION": "Description",
@@ -168,6 +169,7 @@
 	},
 	"UPDATE_SUCCESS": "Updated successfully",
 	"USER": "User",
+	"USER_SUPPORT": "User support",
 	"VERSION": "Version",
 	"BACK": "Back",
 	"EDIT": "Edit",
@@ -215,5 +217,8 @@
 		"ORGANIZATIONS": {
 			"TITLE": "Organizations"
 		}
+		,
+		"SIGNIN_CALLBACK": "Sign-in callback",
+		"SIGNOUT_CALLBACK": "Sign-out callback"
 	}
 }

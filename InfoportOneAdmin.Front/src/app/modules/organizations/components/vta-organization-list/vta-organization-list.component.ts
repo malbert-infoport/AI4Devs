@@ -131,6 +131,7 @@ export class VtaOrganizationListComponent implements OnInit, OnDestroy {
       showColumnsConfigurator: true,
       // Place a text refresh button on the right (like Viajes) and hide the default refresh placed at the end
       showRefreshButton: false,
+      reorderable: true,
       exportToExcel: new ClExcelExport({
         fileName: 'Organizaciones.xlsx',
         endpoint: (s: State) =>

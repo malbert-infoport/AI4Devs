@@ -68,6 +68,7 @@ export class AuditlogListComponent implements OnInit, OnDestroy, OnChanges {
       persistState: false,
       filterable: new ClFilterableSettings({ hideToolbarFilter: false, hideSearcherFilter: true }),
       showRefreshButton: false,
+      reorderable: true,
       showColumnsConfigurator: true,
       gridConfiguratorEndpoints: gridConfiguratorEndpoints,
       exportToExcel: new ClExcelExport({

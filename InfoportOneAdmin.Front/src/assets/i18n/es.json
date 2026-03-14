@@ -105,6 +105,7 @@
 	"COLLAPSE_NAVIGATION": "Colapsar navegación",
 	"COMPANY": "Empresa",
 	"CORE_LANGUAGE": "Idioma",
+	"CORE_SIGN_OUT": "Cerrar sesión",
 	"COULD_NOT_CONNECT_IDENTITY_SERVER": "No se puede conectar a Identity Server, por favor compruebe su dirección: {{address}}",
 	"DESACTIVATE": "Elemento desactivado con éxito",
 	"DESCRIPTION": "Descripción",
@@ -168,6 +169,7 @@
 	},
 	"UPDATE_SUCCESS": "Actualizado con éxito",
 	"USER": "Usuario",
+	"USER_SUPPORT": "Soporte de usuario",
 	"VERSION": "Versión",
 	"BACK": "Volver",
 	"EDIT": "Editar",
@@ -215,5 +217,8 @@
 		"ORGANIZATIONS": {
 			"TITLE": "Organizaciones"
 		}
+		,
+		"SIGNIN_CALLBACK": "Callback de inicio de sesión",
+		"SIGNOUT_CALLBACK": "Callback de cierre de sesión"
 	}
 }

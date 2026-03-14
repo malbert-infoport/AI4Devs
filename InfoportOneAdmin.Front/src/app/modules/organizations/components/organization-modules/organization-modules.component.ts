@@ -211,10 +211,11 @@ export class OrganizationModulesComponent implements OnInit {
         count: rebuiltAssignments.length,
       });
 
-      this.sharedMessageService.showMessage('Cambios de módulos preparados. Pulsa Save para guardar la organización.');
+      // No mostrar mensajes al usuario tras editar módulos — sólo preparamos los cambios
       this.closeEdit();
     } catch (err) {
-      this.sharedMessageService.showMessage('Error guardando asignaciones', 'error');
+      // No mostrar mensajes en caso de error aquí; dejar que el flujo superior gestione errores si procede
+      this.closeEdit();
     }
   }
 
