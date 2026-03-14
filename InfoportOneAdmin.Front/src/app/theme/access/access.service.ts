@@ -177,6 +177,34 @@ export class AccessService {
     ]);
   }
 
+  /********** APPLICATIONS *******/
+  // Consulta Applications (menu left) - verifica cualquier permiso 300..308
+  applicationsConsulta() {
+    return this.hasAnyPermission([
+      Access['Application data query'],
+      Access['Application data modification'],
+      Access['Application modules query'],
+      Access['Application modules modification'],
+      Access['Application roles query'],
+      Access['Application roles modification'],
+      Access['Application credentials query'],
+      Access['Application credentials modification'],
+      Access['Application audit query']
+    ]);
+  }
+
+  // Modificación Applications - verifica permisos de modificación 301/303/305/307
+  applicationsModification() {
+    return this.hasAnyPermission([
+      Access['Application data modification'],
+      Access['Application modules modification'],
+      Access['Application roles modification'],
+      Access['Application credentials modification']
+    ]);
+  }
+
+  /********** END APPLICATIONS  *******/
+
 
   /********** END MAESTROS  *******/
 

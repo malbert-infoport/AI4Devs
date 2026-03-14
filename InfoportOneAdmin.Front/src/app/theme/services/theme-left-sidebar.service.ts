@@ -66,6 +66,14 @@ export class ThemeLeftSidebarService {
         disabled: !this.accessService.organizationsConsulta(),
         hasParent: false
       },
+      {
+        translateKey: 'APPLICATIONS.TITLE',
+        iconname: 'apps',
+        url: '/protected/applications',
+        exactUrl: true,
+        disabled: !this.accessService.applicationsConsulta(),
+        hasParent: false
+      },
 
 
     ];

@@ -1,229 +1,226 @@
 {
-	"ORGANIZATIONS": {
-		"TITLE": "Organizaciones",
-		"APPLICATION": "Aplicación",
-		"ASSIGNED_MODULES": "Módulos asignados",
-		"NO_MODULES": "Sin módulos asignados",
-		"MODULES": {
-			"TITLE_ASSIGNMENT": "Asignación de Módulos",
-			"NO_VIEW_PERMISSION": "No dispone de permisos para consultar los módulos de la organización.",
-			"SELECT_MODULES": "Selecciona los módulos de la aplicación para esta organización.",
-			"LOADING_MODULES": "Cargando módulos..."
-		},
-		"FORM": {
-			"TITLE_NEW": "Nueva organización",
-			"TITLE_EDIT": "Editar organización",
-			"SECTIONS": {
-				"BASIC": "Información básica",
-				"LOCATION": "Ubicación",
-				"CONTACT": "Contacto"
-			},
-			"FIELDS": {
-				"COMPANY_ID": "Id empresa",
-				"GROUP_ID": "Id grupo",
-				"GROUP": "Grupo",
-				"NAME": "Nombre",
-				"ACRONYM": "Acrónimo",
-				"TAX_ID": "NIF/CIF",
-				"CONTACT_EMAIL": "Correo de contacto",
-				"CONTACT_PHONE": "Teléfono de contacto",
-				"ADDRESS": "Dirección",
-				"CITY": "Ciudad",
-				"POSTAL_CODE": "Código postal",
-				"COUNTRY": "País"
-			},
-			"TABS": {
-				"GENERAL_DATA": "Datos de organización",
-				"MODULES": "Módulos Aplicaciones",
-				"AUDIT": "Auditoría"
-			},
-			"PLACEHOLDERS": {
-				"GENERAL_DATA": "Pestaña 1 en implementación: formulario de datos generales.",
-				"MODULES": "Pestaña 2 en implementación: gestión de módulos por organización.",
-				"AUDIT": "Pestaña 3 en implementación: histórico de auditoría con paginación.",
-				"SAVE_FIRST_FOR_MODULES": "Guarda primero la organización para gestionar módulos y permisos."
-			}
-		},
-		"COLUMNS": {
-			"COMPANY": "Empresa",
-			"NAME": "Nombre",
-			"TAXID": "NIF/CIF",
-			"EMAIL": "Correo",
-			"PHONE": "Teléfono",
-			"DELETION_DATE": "Fecha baja",
-			"GROUP": "Grupo",
-			"APPS": "Apps",
-			"MODULES": "Módulos",
-			"ACTIONS": "Acciones"
-		},
-		"PLACEHOLDERS": {
-			"SEARCH": "Buscar organizaciones...",
-			"NO_RECORDS": "No hay registros"
-		},
-		"COLUMN_MODAL": {
-			"TITLE": "Configurar columnas"
-		},
-		"BUTTONS": {
-			"NEW": "Nuevo",
-			"EDIT": "Editar",
-			"DEACTIVATE": "Desactivar",
-			"REACTIVATE": "Reactivar",
-			"COLUMNS": "Columnas",
-			"EDIT_MODULES": "Editar módulos",
-			"SAVE": "Guardar",
-			"CANCEL": "Cancelar",
-			"CLOSE": "Cerrar"
-		}
-		,
-		"MESSAGES": {
-			"EVENT_SENT": "Evento de organización enviado.",
-			"EVENT_NOT_SENT": "No se ha enviado el evento de organización."
-		}
-	},
-	"ACCEPT": "Aceptar",
-	"ACTIVATE": "Elemento activado con éxito",
-	"ATTACHMENTS": {
-		"ACTIONS": {
-			"ADD": "Añadir adjunto",
-			"DOWNLOAD": "Descargar adjunto",
-			"UPLOAD": "Subir archivo"
-		},
-		"ATTACHMENTS_MANAGEMENT": "Gestión de adjuntos",
-		"ATTACHMENTS_TYPE": "Tipo de adjuntos",
-		"DESCRIPTION": "Descripción",
-		"ENTITY_NAME": "Entidad",
-		"FILE_EXTENSION": "Extensión",
-		"FILE_NAME": "Nombre del archivo",
-		"FILE_SIZE": "Tamaño (KB)",
-		"MESSAGES": {
-			"ANY_ELEMENT_SELECTED": "Debe seleccionar al menos un elemento de la grid",
-			"NO_ELEMENT_SELECTED": "Debe seleccionar un elemento de la grid",
-			"NO_FILE": "No existe ningún archivo almacenado para: {{fileName}}"
-		},
-		"TYPE": "Tipo"
-	},
-	"AUDIT_FECHA_BAJA": "Fecha baja",
-	"CACHE_CLEAN_SUCCESS": "¡Se ha limpiado la caché de seguridad!",
-	"CANCEL": "Cancelar",
-	"CIF": "CIF",
-	"CLOSE": "Cerrar",
-	"COLLAPSE_NAVIGATION": "Colapsar navegación",
-	"COMPANY": "Empresa",
-	"CORE_LANGUAGE": "Idioma",
-	"CORE_SIGN_OUT": "Cerrar sesión",
-	"COULD_NOT_CONNECT_IDENTITY_SERVER": "No se puede conectar a Identity Server, por favor compruebe su dirección: {{address}}",
-	"DESACTIVATE": "Elemento desactivado con éxito",
-	"DESCRIPTION": "Descripción",
-	"ERRORS": {
-		"404_DESCRIPTION": "La página que buscas ya no existe o no podemos encontrarla",
-		"404_TITLE": "Error 404",
-		"500_DESCRIPTION": "Ha habido un error interno. Estamos intentando solucionarlo.",
-		"500_TITLE": "Error 500",
-		"504_DESCRIPTION": "Ha habido un error interno. Estamos intentando solucionarlo.",
-		"504_TITLE": "Error 504",
-		"MAINTENANCE_DESCRIPTION": "En estos momentos estamos realizando labores de mantenimiento. Disculpe las molestias",
-		"MAINTENANCE_TITLE": "¡Ups!",
-		"UNATHORIZED": "No autorizado"
-	},
-	"EXPAND_NAVIGATION": "Expandir navegación",
-	"FORMS": {
-		"VALIDATORS": {
-			"CUSTOM": {
-				"INVALID_CIF": "El CIF es inválido"
-			},
-			"REQUIRED": "El campo {{title}} es requerido"
-		}
-	},
-	"GO_HOME": "Ir a página principal",
-	"IDENTITY_SERVER_CANNOT_CONNECT_MESSAGE": "No se puede conectar a Identity Server, por favor compruebe su dirección",
-	"INTERNAL_ERROR_MESSAGE": "Error interno:",
-	"INTERNAL_ERROR_SUBMESSAGE": "Ha habido un error interno, estamos intentando solucionarlo",
-	"MASTERS": {
-		"ATTACHMENTS": {
-			"TITLE": "Adjuntos"
-		}
-	},
-	"PAGE_NOT_FOUND_MESSAGE": "La página que estás buscando no existe :(",
-	"PREFERENCES": "Preferencias",
-	"REFRESH": "Refrescar",
-	"REMOVE_ROW_CONFIRMATION": "¿Está seguro de que quiere borrar esta fila?",
-	"ROLE": "Rol",
-	"SAVE": "Guardar",
-	"SAVE_CHANGE": "Cambios guardados con éxito",
-	"SECURITY_COMPANY_ID": "ID compañía seguridad",
-	"SYSTEM_OPTIONS": {
-		"SECURITY": {
-			"GENERAL_CONFIGURATION": {
-				"CIF": "CIF",
-				"COMPANY_NAME": "Nombre empresa",
-				"TITLE": "Configuración general"
-			},
-			"GENERAL_DATA": "Datos generales",
-			"PROFILES": {
-				"TITLE": "Perfiles"
-			},
-			"TITLE": "Seguridad"
-		},
-		"TITLE": "Opciones de sistema"
-	},
-	"THEME_LOOKUP": {
-		"NO_RECORDS_TEMPLATE": {
-			"TEXT": "No se han encontrado resultados aún. Realiza una búsqueda para ver los resultados correspondientes",
-			"TITLE": "Búsqueda de resultados"
-		}
-	},
-	"UPDATE_SUCCESS": "Actualizado con éxito.",
-	"USER": "Usuario",
-	"USER_SUPPORT": "Soporte de usuario",
-	"VERSION": "Versión",
-	"BACK": "Volver",
-	"EDIT": "Editar",
-	"LOADING": "Cargando",
-	"NAVIGATE_TO_EDIT": "Navegar a edición",
-	"PATCH": "Parche",
-	"UNKNOWN_ERROR": "Error desconocido",
-	"UPDATE_OF": "Actualizar de"
-	,
-	"HOME": {
-		"TITLE": "Inicio",
-		"HEADLINE": "Bienvenido a InfoportOne Administración",
-		"SUBTITLE": "Seleccione un módulo para comenzar la gestión de sus servicios portuarios.",
-		"CARDS": {
-			"OPEN_MODULE": "Acceder al módulo",
-			"ORGANIZATIONS": {
-				"TITLE": "Gestión de Organizaciones",
-				"DESCRIPTION": "Administre la red de empresas y entidades. Configure perfiles corporativos, accesos y relaciones en el entorno portuario."
-			},
-			"APPLICATIONS": {
-				"TITLE": "Gestión de Aplicaciones",
-				"DESCRIPTION": "Configure y supervise las herramientas digitales del puerto. Este módulo estará disponible próximamente.",
-				"COMING_SOON": "Próximamente"
-			}
-		}
-	},
-	"AUDITLOG": {
-		"TITLE": "Auditoría",
-		"COLUMNS": {
-			"TIMESTAMP": "Fecha y hora",
-			"ACTION": "Acción",
-			"USER": "Usuario",
-			"ENTITY": "Entidad",
-			"ENTITY_ID": "Id Entidad",
-			"CONTENT": "Descripción"
-		},
-		"PLACEHOLDERS": {
-			"NO_RECORDS": "No hay registros de auditoría"
-		}
-	},
-	"ROUTES": {
-		"HOME": {
-			"TITLE": "Inicio"
-		},
-		"ORGANIZATIONS": {
-			"TITLE": "Organizaciones"
-		}
-		,
-		"SIGNIN_CALLBACK": "Callback de inicio de sesión",
-		"SIGNOUT_CALLBACK": "Callback de cierre de sesión"
-	}
+  "ORGANIZATIONS": {
+    "TITLE": "Organizaciones",
+    "APPLICATION": "Aplicación",
+    "ASSIGNED_MODULES": "Módulos asignados",
+    "NO_MODULES": "Sin módulos asignados",
+    "MODULES": {
+      "TITLE_ASSIGNMENT": "Asignación de Módulos",
+      "NO_VIEW_PERMISSION": "No dispone de permisos para consultar los módulos de la organización.",
+      "SELECT_MODULES": "Selecciona los módulos de la aplicación para esta organización.",
+      "LOADING_MODULES": "Cargando módulos..."
+    },
+    "FORM": {
+      "TITLE_NEW": "Nueva organización",
+      "TITLE_EDIT": "Editar organización",
+      "SECTIONS": {
+        "BASIC": "Información básica",
+        "LOCATION": "Ubicación",
+        "CONTACT": "Contacto"
+      },
+      "FIELDS": {
+        "COMPANY_ID": "Id empresa",
+        "GROUP_ID": "Id grupo",
+        "GROUP": "Grupo",
+        "NAME": "Nombre",
+        "TAX_ID": "NIF/CIF",
+        "CONTACT_EMAIL": "Correo de contacto",
+        "CONTACT_PHONE": "Teléfono de contacto",
+        "ADDRESS": "Dirección",
+        "CITY": "Ciudad",
+        "POSTAL_CODE": "Código postal",
+        "COUNTRY": "País"
+      },
+      "TABS": {
+        "GENERAL_DATA": "Datos de organización",
+        "MODULES": "Módulos Aplicaciones",
+        "AUDIT": "Auditoría"
+      },
+      "PLACEHOLDERS": {
+        "GENERAL_DATA": "Pestaña 1 en implementación: formulario de datos generales.",
+        "MODULES": "Pestaña 2 en implementación: gestión de módulos por organización.",
+        "AUDIT": "Pestaña 3 en implementación: histórico de auditoría con paginación.",
+        "SAVE_FIRST_FOR_MODULES": "Guarda primero la organización para gestionar módulos y permisos."
+      }
+    },
+    "COLUMNS": {
+      "COMPANY": "Empresa",
+      "NAME": "Nombre",
+      "TAXID": "NIF/CIF",
+      "EMAIL": "Correo",
+      "PHONE": "Teléfono",
+      "DELETION_DATE": "Fecha baja",
+      "GROUP": "Grupo",
+      "APPS": "Apps",
+      "MODULES": "Módulos",
+      "ACTIONS": "Acciones"
+    },
+    "PLACEHOLDERS": {
+      "SEARCH": "Buscar organizaciones...",
+      "NO_RECORDS": "No hay registros"
+    },
+    "COLUMN_MODAL": {
+      "TITLE": "Configurar columnas"
+    },
+    "BUTTONS": {
+      "NEW": "Nuevo",
+      "EDIT": "Editar",
+      "DEACTIVATE": "Desactivar",
+      "REACTIVATE": "Reactivar",
+      "COLUMNS": "Columnas",
+      "EDIT_MODULES": "Editar módulos",
+      "SAVE": "Guardar",
+      "CANCEL": "Cancelar",
+      "CLOSE": "Cerrar"
+    },
+    "MESSAGES": {
+      "EVENT_SENT": "Evento de organización enviado.",
+      "EVENT_NOT_SENT": "No se ha enviado el evento de organización."
+    }
+  },
+  "ACCEPT": "Aceptar",
+  "ACTIVATE": "Elemento activado con éxito",
+  "ATTACHMENTS": {
+    "ACTIONS": {
+      "ADD": "Añadir adjunto",
+      "DOWNLOAD": "Descargar adjunto",
+      "UPLOAD": "Subir archivo"
+    },
+    "ATTACHMENTS_MANAGEMENT": "Gestión de adjuntos",
+    "ATTACHMENTS_TYPE": "Tipo de adjuntos",
+    "DESCRIPTION": "Descripción",
+    "ENTITY_NAME": "Entidad",
+    "FILE_EXTENSION": "Extensión",
+    "FILE_NAME": "Nombre del archivo",
+    "FILE_SIZE": "Tamaño (KB)",
+    "MESSAGES": {
+      "ANY_ELEMENT_SELECTED": "Debe seleccionar al menos un elemento de la grid",
+      "NO_ELEMENT_SELECTED": "Debe seleccionar un elemento de la grid",
+      "NO_FILE": "No existe ningún archivo almacenado para: {{fileName}}"
+    },
+    "TYPE": "Tipo"
+  },
+  "AUDIT_FECHA_BAJA": "Fecha baja",
+  "CACHE_CLEAN_SUCCESS": "¡Se ha limpiado la caché de seguridad!",
+  "CANCEL": "Cancelar",
+  "CIF": "CIF",
+  "CLOSE": "Cerrar",
+  "COLLAPSE_NAVIGATION": "Colapsar navegación",
+  "COMPANY": "Empresa",
+  "CORE_LANGUAGE": "Idioma",
+  "CORE_SIGN_OUT": "Cerrar sesión",
+  "COULD_NOT_CONNECT_IDENTITY_SERVER": "No se puede conectar a Identity Server, por favor compruebe su dirección: {{address}}",
+  "DESACTIVATE": "Elemento desactivado con éxito",
+  "DESCRIPTION": "Descripción",
+  "ERRORS": {
+    "404_DESCRIPTION": "La página que buscas ya no existe o no podemos encontrarla",
+    "404_TITLE": "Error 404",
+    "500_DESCRIPTION": "Ha habido un error interno. Estamos intentando solucionarlo.",
+    "500_TITLE": "Error 500",
+    "504_DESCRIPTION": "Ha habido un error interno. Estamos intentando solucionarlo.",
+    "504_TITLE": "Error 504",
+    "MAINTENANCE_DESCRIPTION": "En estos momentos estamos realizando labores de mantenimiento. Disculpe las molestias",
+    "MAINTENANCE_TITLE": "¡Ups!",
+    "UNATHORIZED": "No autorizado"
+  },
+  "EXPAND_NAVIGATION": "Expandir navegación",
+  "FORMS": {
+    "VALIDATORS": {
+      "CUSTOM": {
+        "INVALID_CIF": "El CIF es inválido"
+      },
+      "REQUIRED": "El campo {{title}} es requerido"
+    }
+  },
+  "GO_HOME": "Ir a página principal",
+  "IDENTITY_SERVER_CANNOT_CONNECT_MESSAGE": "No se puede conectar a Identity Server, por favor compruebe su dirección",
+  "INTERNAL_ERROR_MESSAGE": "Error interno:",
+  "INTERNAL_ERROR_SUBMESSAGE": "Ha habido un error interno, estamos intentando solucionarlo",
+  "MASTERS": {
+    "ATTACHMENTS": {
+      "TITLE": "Adjuntos"
+    }
+  },
+  "PAGE_NOT_FOUND_MESSAGE": "La página que estás buscando no existe :(",
+  "PREFERENCES": "Preferencias",
+  "REFRESH": "Refrescar",
+  "REMOVE_ROW_CONFIRMATION": "¿Está seguro de que quiere borrar esta fila?",
+  "ROLE": "Rol",
+  "SAVE": "Guardar",
+  "SAVE_CHANGE": "Cambios guardados con éxito",
+  "SECURITY_COMPANY_ID": "ID compañía seguridad",
+  "SYSTEM_OPTIONS": {
+    "SECURITY": {
+      "GENERAL_CONFIGURATION": {
+        "CIF": "CIF",
+        "COMPANY_NAME": "Nombre empresa",
+        "TITLE": "Configuración general"
+      },
+      "GENERAL_DATA": "Datos generales",
+      "PROFILES": {
+        "TITLE": "Perfiles"
+      },
+      "TITLE": "Seguridad"
+    },
+    "TITLE": "Opciones de sistema"
+  },
+  "THEME_LOOKUP": {
+    "NO_RECORDS_TEMPLATE": {
+      "TEXT": "No se han encontrado resultados aún. Realiza una búsqueda para ver los resultados correspondientes",
+      "TITLE": "Búsqueda de resultados"
+    }
+  },
+  "UPDATE_SUCCESS": "Actualizado con éxito.",
+  "USER": "Usuario",
+  "USER_SUPPORT": "Soporte de usuario",
+  "VERSION": "Versión",
+  "BACK": "Volver",
+  "EDIT": "Editar",
+  "LOADING": "Cargando",
+  "NAVIGATE_TO_EDIT": "Navegar a edición",
+  "PATCH": "Parche",
+  "UNKNOWN_ERROR": "Error desconocido",
+  "UPDATE_OF": "Actualizar de",
+  "HOME": {
+    "TITLE": "Inicio",
+    "HEADLINE": "Bienvenido a InfoportOne Administración",
+    "SUBTITLE": "Seleccione un módulo para comenzar la gestión de sus servicios portuarios.",
+    "CARDS": {
+      "OPEN_MODULE": "Acceder al módulo",
+      "ORGANIZATIONS": {
+        "TITLE": "Gestión de Organizaciones",
+        "DESCRIPTION": "Administre la red de empresas y entidades. Configure perfiles corporativos, accesos y relaciones en el entorno portuario."
+      },
+      "APPLICATIONS": {
+        "TITLE": "Gestión de Aplicaciones",
+        "DESCRIPTION": "Configure y supervise las herramientas digitales del puerto. Este módulo estará disponible próximamente.",
+        "COMING_SOON": "Próximamente"
+      },
+      "NO_PERMISSION": "No tienes permisos para acceder a este módulo."
+    }
+  },
+  "AUDITLOG": {
+    "TITLE": "Auditoría",
+    "COLUMNS": {
+      "TIMESTAMP": "Fecha y hora",
+      "ACTION": "Acción",
+      "USER": "Usuario",
+      "ENTITY": "Entidad",
+      "ENTITY_ID": "Id Entidad",
+      "CONTENT": "Descripción"
+    },
+    "PLACEHOLDERS": {
+      "NO_RECORDS": "No hay registros de auditoría"
+    }
+  },
+  "ROUTES": {
+    "HOME": {
+      "TITLE": "Inicio"
+    },
+    "ORGANIZATIONS": {
+      "TITLE": "Organizaciones"
+    },
+    "SIGNIN_CALLBACK": "Callback de inicio de sesión",
+    "SIGNOUT_CALLBACK": "Callback de cierre de sesión"
+  }
 }

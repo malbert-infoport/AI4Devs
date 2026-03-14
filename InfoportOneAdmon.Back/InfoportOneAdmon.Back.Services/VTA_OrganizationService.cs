@@ -25,5 +25,10 @@ namespace InfoportOneAdmon.Back.Services
         {
             _repository = repository;
         }
+
+        public async override Task<List<VTA_OrganizationView>> GetAll(QueryParams queryParams, IGenericFilter? genericFilter = null)
+        {
+            return await base.GetAll(queryParams, genericFilter);
+        }
     }
 }

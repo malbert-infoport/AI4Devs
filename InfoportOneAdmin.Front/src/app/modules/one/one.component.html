@@ -5,7 +5,7 @@
   </div>
 
   <div class="cards-grid">
-    <a class="module-card" [routerLink]="['/protected/organizations']">
+    <a class="module-card" [class.disabled]="!showOrganizations" [attr.aria-disabled]="!showOrganizations" [routerLink]="showOrganizations ? ['/protected/organizations'] : null" (click)="onCardClick($event, showOrganizations)" matTooltip="{{ !showOrganizations ? ('HOME.CARDS.NO_PERMISSION' | translate) : '' }}" matTooltipPosition="above">
       <div class="module-icon" aria-hidden="true">
         <mat-icon>corporate_fare</mat-icon>
       </div>
@@ -17,7 +17,7 @@
       </span>
     </a>
 
-    <a class="module-card" [routerLink]="['/protected/applications']">
+    <a class="module-card" [class.disabled]="!showApplications" [attr.aria-disabled]="!showApplications" [routerLink]="showApplications ? ['/protected/applications'] : null" (click)="onCardClick($event, showApplications)" matTooltip="{{ !showApplications ? ('HOME.CARDS.NO_PERMISSION' | translate) : '' }}" matTooltipPosition="above">
       <div class="module-icon" aria-hidden="true">
         <mat-icon>apps</mat-icon>
       </div>

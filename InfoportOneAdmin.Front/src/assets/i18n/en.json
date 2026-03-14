@@ -20,10 +20,11 @@
 			},
 			"FIELDS": {
 				"COMPANY_ID": "Company id",
-				"GROUP_ID": "Group id",
+				},
+				"NO_PERMISSION": "You do not have permissions to access this module."
 				"GROUP": "Group",
 				"NAME": "Name",
-				"ACRONYM": "Acronym",
+    
 				"TAX_ID": "Tax ID",
 				"CONTACT_EMAIL": "Contact email",
 				"CONTACT_PHONE": "Contact phone",
@@ -43,19 +44,18 @@
 				"AUDIT": "Tab 3 under implementation: paged audit history.",
 				"SAVE_FIRST_FOR_MODULES": "Save the organization first to manage modules and permissions."
 			}
-		},
-		"COLUMNS": {
-			"COMPANY": "Company",
-			"NAME": "Name",
-			"TAXID": "Tax ID",
-			"EMAIL": "Email",
-			"PHONE": "Phone",
-			"DELETION_DATE": "Deactivation date",
-			"GROUP": "Group",
-			"APPS": "Apps",
-			"MODULES": "Modules",
-			"ACTIONS": "Actions"
-		},
+				"FIELDS": {
+					"COMPANY_ID": "Company id",
+					"GROUP_ID": "Group id",
+					"GROUP": "Group",
+					"NAME": "Name",
+					"TAX_ID": "Tax id",
+					"CONTACT_EMAIL": "Contact email",
+					"CONTACT_PHONE": "Contact phone",
+					"ADDRESS": "Address",
+					"CITY": "City",
+					"POSTAL_CODE": "Postal code",
+					"COUNTRY": "Country"
 		"PLACEHOLDERS": {
 			"SEARCH": "Search organizations...",
 			"NO_RECORDS": "No records"
@@ -114,23 +114,24 @@
 	"COULD_NOT_CONNECT_IDENTITY_SERVER": "Cannot connect to Identity Server, please check your address: {{address}}",
 	"DESACTIVATE": "Item deactivated successfully",
 	"DESCRIPTION": "Description",
-	"ERRORS": {
-		"404_DESCRIPTION": "The page you're looking for no longer exists or we can't find it",
-		"404_TITLE": "Error 404",
-		"500_DESCRIPTION": "There has been an internal error. We are trying to fix it.",
-		"500_TITLE": "Error 500",
-		"504_DESCRIPTION": "There has been an internal error. We are trying to fix it.",
-		"504_TITLE": "Error 504",
-		"MAINTENANCE_DESCRIPTION": "We are currently performing maintenance. Sorry for the inconvenience",
-		"MAINTENANCE_TITLE": "Oops!",
-		"UNATHORIZED": "Unauthorized"
-	},
-	"EXPAND_NAVIGATION": "Expand navigation",
-	"FORMS": {
-		"VALIDATORS": {
-			"CUSTOM": {
-				"INVALID_CIF": "The tax ID is invalid"
+	"HOME": {
+		"TITLE": "Home",
+		"HEADLINE": "Welcome to InfoportOne Administration",
+		"SUBTITLE": "Select a module to start managing your port services.",
+		"CARDS": {
+			"OPEN_MODULE": "Open module",
+			"ORGANIZATIONS": {
+				"TITLE": "Organizations Management",
+				"DESCRIPTION": "Manage the network of companies and entities. Configure corporate profiles, accesses and relationships in the port environment."
 			},
+			"APPLICATIONS": {
+				"TITLE": "Applications Management",
+				"DESCRIPTION": "Configure and monitor the port's digital tools. This module will be available soon.",
+				"COMING_SOON": "Coming soon"
+			},
+			"NO_PERMISSION": "You do not have permissions to access this module."
+		}
+	},
 			"REQUIRED": "The {{title}} field is required"
 		}
 	},
@@ -201,6 +202,7 @@
 			}
 		}
 	},
+			,"NO_PERMISSION": "You do not have permissions to access this module."
 	"AUDITLOG": {
 		"TITLE": "Audit Log",
 		"COLUMNS": {

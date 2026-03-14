@@ -206,9 +206,7 @@ INSERT INTO "Helix6_Security"."SecurityProfile" AS t (
 OVERRIDING SYSTEM VALUE
 VALUES
 	(1, 1, 'Admin', 'ADMON_admin', NULL, '1#hlxadm', '2025-07-29 09:31:23.800', '2025-07-29 09:31:23.800', NULL),
-	(2, 1, 'User', 'ADMON_user', '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.803', '2025-07-29 09:31:23.803', NULL),
 	(5, 1, 'Organization Manager', 'ADMON_organizationmanager', '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(6, 1, 'Security Manager', 'ADMON_securitymanager', '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(7, 1, 'Application Manager', 'ADMON_applicationmanager', '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL)
 ON CONFLICT ("Id") DO UPDATE SET
 	"SecurityCompanyId" = EXCLUDED."SecurityCompanyId",
@@ -230,7 +228,6 @@ VALUES
 	(1, 1, 1, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.807', '2025-07-29 09:31:23.807', NULL),
 	(3, 1, 5, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.810', '2025-07-29 09:31:23.810', NULL),
 	(53, 1, 3, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(4, 2, 2, '1#hlxadm', '1#hlxadm', '2025-07-29 09:31:23.813', '2025-07-29 09:31:23.813', NULL),
 
 	-- Admin (profile 1): full access to core, organizations and applications
 	(5, 1, 2, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
@@ -250,9 +247,7 @@ VALUES
 	(19, 1, 307, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(20, 1, 308, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
-	-- User (profile 2): basic query access
-	(21, 2, 200, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(22, 2, 300, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+
 
 	-- OrganizationManager (profile 5): create/edit/list organizations, view audit
 	(37, 5, 200, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
@@ -261,10 +256,7 @@ VALUES
 	(40, 5, 203, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(54, 5, 204, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 
-	-- SecurityManager (profile 6): organization activate/deactivate and audit view
-	(41, 6, 201, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(42, 6, 200, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(43, 6, 203, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+
 
 	-- ApplicationManager (profile 7): manage applications/modules/roles/credentials
 	(44, 7, 300, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
@@ -275,7 +267,10 @@ VALUES
 	(49, 7, 305, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(50, 7, 306, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
 	(51, 7, 307, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
-	(52, 7, 308, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL)
+	(52, 7, 308, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+	(55, 7, 200, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+    (56, 7, 202, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL),
+    (57, 7, 204, '1#hlxadm', '1#hlxadm', '2026-02-15 10:00:00', '2026-02-15 10:00:00', NULL)
 ON CONFLICT ("Id") DO UPDATE SET
 	"SecurityProfileId" = EXCLUDED."SecurityProfileId",
 	"SecurityAccessOptionId" = EXCLUDED."SecurityAccessOptionId",

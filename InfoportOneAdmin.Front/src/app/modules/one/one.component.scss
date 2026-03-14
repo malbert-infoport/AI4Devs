@@ -47,6 +47,19 @@
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
+.module-card.disabled {
+  opacity: 0.5;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.module-card.disabled .module-link,
+.module-card.disabled .module-icon,
+.module-card.disabled h2,
+.module-card.disabled p {
+  color: rgba(0, 0, 0, 0.45);
+}
+
 .module-card:hover {
   transform: translateY(-3px);
   border-color: #8ebad8;
