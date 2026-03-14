@@ -8,6 +8,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:critical": "ng test --watch=false --browsers=ChromeHeadless --include=\"src/app/theme/access/access.service.spec.ts\" --include=\"src/app/theme/guards/masters.guard.spec.ts\" --include=\"src/app/theme/services/oidc-guard.service.spec.ts\" --include=\"src/app/modules/one/one.component.spec.ts\" --include=\"src/app/modules/organizations/components/organization-modules/organization-modules.component.spec.ts\" --include=\"src/app/modules/organizations/components/organization-form-page/organization-form-page.component.spec.ts\" --include=\"src/app/theme/services/theme-left-sidebar.service.spec.ts\" --include=\"src/app/theme/components/theme-left-sidebar/theme-left-sidebar.component.spec.ts\" --include=\"src/app/app.routes.spec.ts\"",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "production": "ng build --configuration production --output-path=\"dist/production\"",

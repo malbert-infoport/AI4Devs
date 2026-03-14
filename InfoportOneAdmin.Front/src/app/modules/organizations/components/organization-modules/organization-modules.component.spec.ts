@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService } from '@ngx-translate/core';
+import { of } from 'rxjs';
 import {
   ApplicationClient,
   ApplicationModuleView,
@@ -26,8 +27,9 @@ describe('OrganizationModulesComponent', () => {
   };
 
   const accessServiceMock = {
+    permissionsReady$: of(true),
     organizationModulesQuery: jasmine.createSpy('organizationModulesQuery').and.returnValue(true),
-    organizationModulesModification: jasmine.createSpy('organizationModulesModification').and.returnValue(true),
+    organizationModulesEdit: jasmine.createSpy('organizationModulesEdit').and.returnValue(true),
   };
 
   const sharedMessageServiceMock = {
@@ -67,10 +69,10 @@ describe('OrganizationModulesComponent', () => {
     organizationModulesServiceMock.buildOrganizationPayloadForAppSelection.calls.reset();
     organizationModulesServiceMock.saveOrganizationModules.calls.reset();
     accessServiceMock.organizationModulesQuery.calls.reset();
-    accessServiceMock.organizationModulesModification.calls.reset();
+    accessServiceMock.organizationModulesEdit.calls.reset();
 
     accessServiceMock.organizationModulesQuery.and.returnValue(true);
-    accessServiceMock.organizationModulesModification.and.returnValue(true);
+    accessServiceMock.organizationModulesEdit.and.returnValue(true);
 
     fixture = TestBed.createComponent(OrganizationModulesComponent);
     component = fixture.componentInstance;
@@ -82,12 +84,27 @@ describe('OrganizationModulesComponent', () => {
 
   it('should not load data when user cannot view modules', async () => {
     accessServiceMock.organizationModulesQuery.and.returnValue(false);
+    accessServiceMock.organizationModulesEdit.and.returnValue(false);
     component.organizationId = 10;
 
     await component.ngOnInit();
 
     expect(organizationModulesServiceMock.getOrganizationComplete).not.toHaveBeenCalled();
     expect(component.canViewModules).toBeFalse();
+  });
+
+  it('should allow viewing modules when query is false but edit is true (write implies read)', async () => {
+    accessServiceMock.organizationModulesQuery.and.returnValue(false);
+    accessServiceMock.organizationModulesEdit.and.returnValue(true);
+    organizationModulesServiceMock.getAllApplicationsWithModules.and.returnValue(Promise.resolve([]));
+
+    component.organizationId = 10;
+    component.preloadedOrganization = new OrganizationView({ id: 10, organization_ApplicationModule: [] });
+
+    await component.ngOnInit();
+
+    expect(component.canViewModules).toBeTrue();
+    expect(component.canEditModules).toBeTrue();
   });
 
   it('should load apps from full catalog and merge assigned modules', async () => {
