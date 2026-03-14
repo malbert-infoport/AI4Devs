@@ -214,8 +214,10 @@ export class OrganizationModulesComponent implements OnInit {
   }
 
   private refreshPermissions(): void {
-    this.canViewModules = this.accessService.organizationModulesQuery();
-    this.canEditModules = this.accessService.organizationModulesModification();
+    const canView = this.accessService.organizationModulesQuery();
+    const canEdit = this.accessService.organizationModulesEdit();
+    this.canViewModules = !!canView || !!canEdit; // write implies read
+    this.canEditModules = !!canEdit;
   }
 
   private buildAssignmentsFromApps(): Organization_ApplicationModuleView[] {

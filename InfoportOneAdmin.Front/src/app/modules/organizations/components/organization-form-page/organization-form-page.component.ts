@@ -12,7 +12,9 @@ import { ThemeLoadingComponent } from '@app/theme/components/theme-loading/theme
 import { AuditlogListComponent } from '../auditlog-list/auditlog-list.component';
 import { SharedMessageService } from '@app/theme/services/shared-message.service';
 import { OrganizationClient, OrganizationGroupClient, OrganizationGroupView, OrganizationView, Organization_ApplicationModuleView } from '../../../../../webServicesReferences/api/apiClients';
-import { take } from 'rxjs';
+import { take, combineLatest } from 'rxjs';
+import { AccessService } from '@app/theme/access/access.service';
+import { AuthenticationService } from '@app/theme/services/authentication.service';
 import { OrganizationModulesComponent } from '../organization-modules/organization-modules.component';
 
 @Component({
@@ -44,6 +46,8 @@ export class OrganizationFormPageComponent implements OnInit {
   private readonly organizationClient = inject(OrganizationClient);
   private readonly organizationGroupClient = inject(OrganizationGroupClient);
   private readonly sharedMessageService = inject(SharedMessageService);
+  private readonly accessService = inject(AccessService);
+  private readonly authenticationService = inject(AuthenticationService);
 
   @ViewChild('generalDataTab', { static: true }) generalDataTab!: TemplateRef<any>;
   @ViewChild('modulesTab', { static: true }) modulesTab!: TemplateRef<any>;
@@ -52,6 +56,8 @@ export class OrganizationFormPageComponent implements OnInit {
 
   tabsData: IClTabData[] = [];
   selectedTabIndex = 0;
+  previousTabIndex = 0;
+  canViewModules = false;
   organizationId = 0;
   organizationLoaded: OrganizationView | null = null;
   stagedOrganizationModules: Organization_ApplicationModuleView[] = [];
@@ -81,17 +87,63 @@ export class OrganizationFormPageComponent implements OnInit {
     return this.organizationId <= 0;
   }
 
+    canModifyOrganization = true;
+    canEditModules = false;
+
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     this.organizationId = idParam ? Number(idParam) : 0;
-
+    this.canModifyOrganization = true;
     this.buildTabs();
     this.loadGroupOptions();
     this.loadGeneralData();
+
+    // Disable organization data fields when the user lacks Organization modification permission (201)
+    this.accessService
+      .hasPermission(() => this.accessService.organizationModification())
+      .pipe(take(1))
+      .subscribe((canModifyOrg) => {
+        this.canModifyOrganization = !!canModifyOrg;
+        if (!canModifyOrg) {
+          this.disableOrganizationDataFields();
+        }
+      });
+
+    // Check modules permissions: view (202) OR edit (204) grants access; edit permission enables editing
+    combineLatest([
+      this.accessService.hasPermission(() => this.accessService.organizationModulesQuery()).pipe(take(1)),
+      this.accessService.hasPermission(() => this.accessService.organizationModulesEdit()).pipe(take(1)),
+    ]).subscribe(([canView, canEdit]) => {
+      this.canEditModules = !!canEdit;
+      this.canViewModules = !!canView || !!canEdit; // write implies read
+      this.buildTabs();
+    });
+
+    // Fallback: if permissions already in localStorage (before AccessService emitted), check synchronously for 201
+    try {
+      const stored = localStorage.getItem('permissions');
+      if (stored) {
+        const parsed = JSON.parse(stored) as any[];
+        const canModify = this.authenticationService.hasPermissions(parsed, (201 as unknown) as any);
+        this.canModifyOrganization = !!canModify;
+        if (!canModify) {
+          this.disableOrganizationDataFields();
+        }
+        // fallback check: write implies read (204 => view)
+        const canEdit = this.authenticationService.hasPermissions(parsed, (204 as unknown) as any);
+        this.canEditModules = !!canEdit;
+        const canView = this.authenticationService.hasPermissions(parsed, (202 as unknown) as any) || !!canEdit;
+        this.canViewModules = !!canView;
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
   }
 
   onTabSelected(tabSelected: SelectEvent): void {
-    this.selectedTabIndex = tabSelected.index;
+    const idx = tabSelected.index;
+    this.previousTabIndex = this.selectedTabIndex;
+    this.selectedTabIndex = idx;
   }
 
   onBack(): void {
@@ -149,7 +201,9 @@ export class OrganizationFormPageComponent implements OnInit {
         } catch (e) {
           // ignore and show base message
         }
-        this.sharedMessageService.showMessage(messageText);
+        // Defer showing the shared message to avoid triggering Kendo lifecycle checks
+        // while the dropdown is reconciling value types (prevents "Expected value of type Object" errors).
+        setTimeout(() => this.sharedMessageService.showMessage(messageText), 0);
 
         if (this.organizationId > 0 && this.route.snapshot.paramMap.get('id') !== String(this.organizationId)) {
           this.router.navigate(['/protected/organizations', this.organizationId]);
@@ -163,15 +217,20 @@ export class OrganizationFormPageComponent implements OnInit {
   }
 
   private buildTabs(): void {
+    const modulesTitle = this.translate.instant('ORGANIZATIONS.FORM.TABS.MODULES');
+
+    const modulesTabData: any = {
+      title: modulesTitle,
+      content: this.modulesTab,
+      disabled: !this.canViewModules,
+    };
+
     this.tabsData = [
       {
         title: this.translate.instant('ORGANIZATIONS.FORM.TABS.GENERAL_DATA'),
         content: this.generalDataTab
       },
-      {
-        title: this.translate.instant('ORGANIZATIONS.FORM.TABS.MODULES'),
-        content: this.modulesTab
-      },
+      modulesTabData,
       {
         title: this.translate.instant('ORGANIZATIONS.FORM.TABS.AUDIT'),
         content: this.auditTab
@@ -207,7 +266,9 @@ export class OrganizationFormPageComponent implements OnInit {
     this.organizationForm.patchValue({
       id: Number(organization?.id ?? 0),
       securityCompanyId: Number(organization?.securityCompanyId ?? 1),
-      groupId: organization?.groupId ?? null,
+      // Ensure we set the group as an object (the cl-combo-box expects an object when
+      // configured with valueField='id') to avoid Kendo runtime errors.
+      groupId: this.resolveGroupObject(organization?.groupId ?? null) as any,
       name: organization?.name ?? '',
       acronym: organization?.acronym ?? '',
       taxId: organization?.taxId ?? '',
@@ -220,6 +281,40 @@ export class OrganizationFormPageComponent implements OnInit {
     });
   }
 
+  // Resolve a group id or object into the group object from `organizationGroups`.
+  private resolveGroupObject(groupIdOrObj: unknown): OrganizationGroupView | null {
+    if (!groupIdOrObj) return null;
+    const id = typeof groupIdOrObj === 'object' && groupIdOrObj !== null ? (groupIdOrObj as any).id : Number(groupIdOrObj);
+    if (!id) return null;
+    const found = this.organizationGroups?.find((g) => Number(g.id) === Number(id));
+    if (found) return found;
+    // Fallback: create a lightweight view object to satisfy the combo component
+    return new OrganizationGroupView({ id: id as any, groupName: '' });
+  }
+
+  private disableOrganizationDataFields(): void {
+    const toDisable = [
+      'securityCompanyId',
+      'name',
+      'acronym',
+      'taxId',
+      'address',
+      'city',
+      'postalCode',
+      'country',
+      'contactEmail',
+      'contactPhone',
+      'groupId'
+    ];
+
+    toDisable.forEach((k) => {
+      const ctl = this.organizationForm.get(k as any);
+      if (ctl && !ctl.disabled) {
+        ctl.disable({ emitEvent: false });
+      }
+    });
+  }
+
   private loadGroupOptions(): void {
     this.organizationGroupClient
       .getAll(undefined, false)
@@ -227,6 +322,14 @@ export class OrganizationFormPageComponent implements OnInit {
       .subscribe({
         next: (groups) => {
           this.organizationGroups = groups ?? [];
+          // After loading groups, ensure the form control value is the matching object
+          const current = this.organizationForm.get('groupId')?.value;
+          if (current != null) {
+            const resolved = this.resolveGroupObject(current);
+            if (resolved) {
+              this.organizationForm.patchValue({ groupId: resolved as any } as any, { emitEvent: false });
+            }
+          }
         },
         error: (err) => {
           this.sharedMessageService.showError(err);

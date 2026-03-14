@@ -20,6 +20,7 @@
       },
       "FIELDS": {
         "COMPANY_ID": "Id empresa",
+          "ACRONYM": "Acrónimo",
         "GROUP_ID": "Id grupo",
         "GROUP": "Grupo",
         "NAME": "Nombre",

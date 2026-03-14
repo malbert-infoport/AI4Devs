@@ -160,11 +160,11 @@ export class AccessService {
 
   // Consulta de módulos de organización - verifica opción 202
   organizationModulesQuery() {
+    // Only module-specific permissions should grant viewing modules.
+    // Write (204) implies read (202), but general Organization (200/201) should NOT grant module access.
     return this.hasAnyPermission([
       Access['Organization modules query'],
-      Access['Organization modules modification'],
-      Access['Organization query'],
-      Access['Organization modification']
+      Access['Organization modules modification']
     ]);
   }
 
@@ -174,6 +174,11 @@ export class AccessService {
       Access['Organization modules modification'],
       Access['Organization modification']
     ]);
+  }
+
+  // Modificación de módulos de organización (edición específica): verifica opción 204 solamente
+  organizationModulesEdit() {
+    return this.authService.hasPermissions(this.permissions, Access['Organization modules modification']);
   }
 
   /********** APPLICATIONS *******/
