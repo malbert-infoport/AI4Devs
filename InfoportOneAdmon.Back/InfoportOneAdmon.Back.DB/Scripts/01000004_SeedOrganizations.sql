@@ -90,7 +90,7 @@ WITH ins_sintra AS (
   SELECT "Id" FROM "Admon"."Application" WHERE "AppName" = 'Sintraport' LIMIT 1
 ), ins_translate AS (
   INSERT INTO "Admon"."Application" ("AppName", "Description", "RolePrefix", "AuditCreationUser", "AuditCreationDate")
-  VALUES ('Translate', 'Servicio de mensajería y traducción', 'TLATE', 1, NOW())
+  VALUES ('Translate', 'Servicio de mensajeria y traduccion', 'TLATE', 1, NOW())
   ON CONFLICT ("AppName") DO NOTHING RETURNING "Id"
 ), translate AS (
   SELECT "Id" FROM ins_translate
@@ -118,34 +118,42 @@ WITH app AS (SELECT "Id" AS appid FROM "Admon"."Application" WHERE "AppName" = '
 INSERT INTO "Admon"."ApplicationModule" ("ApplicationId","ModuleName","Description","DisplayOrder","AuditCreationUser","AuditCreationDate")
 SELECT appid, mname, mdesc, morder, 1, NOW()
 FROM app, (VALUES
-  ('SINTRA_Trafico','Módulo de tráfico',10),
-  ('SINTRA_Tarifas','Módulo de tarifas',20),
-  ('SINTRA_Flotas','Módulo de flotas',30)
+  ('SINTRA_Trafico','Modulo de trafico',10),
+  ('SINTRA_Tarifas','Modulo de tarifas',20),
+  ('SINTRA_Flotas','Modulo de flotas',30)
 ) AS t(mname, mdesc, morder)
-ON CONFLICT ("ApplicationId","ModuleName") DO NOTHING;
+ON CONFLICT ("ApplicationId","ModuleName") DO UPDATE SET
+  "Description" = EXCLUDED."Description",
+  "DisplayOrder" = EXCLUDED."DisplayOrder";
 WITH app AS (SELECT "Id" AS appid FROM "Admon"."Application" WHERE "AppName" = 'Translate' LIMIT 1)
 INSERT INTO "Admon"."ApplicationModule" ("ApplicationId","ModuleName","Description","DisplayOrder","AuditCreationUser","AuditCreationDate")
 SELECT appid, mname, mdesc, morder, 1, NOW()
 FROM app, (VALUES
-  ('TLATE_Mensajeria','Mensajería y traducción',10)
+  ('TLATE_Mensajeria','Mensajeria y traduccion',10)
 ) AS t(mname, mdesc, morder)
-ON CONFLICT ("ApplicationId","ModuleName") DO NOTHING;
+ON CONFLICT ("ApplicationId","ModuleName") DO UPDATE SET
+  "Description" = EXCLUDED."Description",
+  "DisplayOrder" = EXCLUDED."DisplayOrder";
 WITH app AS (SELECT "Id" AS appid FROM "Admon"."Application" WHERE "AppName" = 'OneTrack' LIMIT 1)
 INSERT INTO "Admon"."ApplicationModule" ("ApplicationId","ModuleName","Description","DisplayOrder","AuditCreationUser","AuditCreationDate")
 SELECT appid, mname, mdesc, morder, 1, NOW()
 FROM app, (VALUES
   ('TRACK_Tracking','Tracking en tiempo real',10),
-  ('TRACK_Maps','Mapas y geolocalización',20)
+  ('TRACK_Maps','Mapas y geolocalizacion',20)
 ) AS t(mname, mdesc, morder)
-ON CONFLICT ("ApplicationId","ModuleName") DO NOTHING;
+ON CONFLICT ("ApplicationId","ModuleName") DO UPDATE SET
+  "Description" = EXCLUDED."Description",
+  "DisplayOrder" = EXCLUDED."DisplayOrder";
 WITH app AS (SELECT "Id" AS appid FROM "Admon"."Application" WHERE "AppName" = 'ShipTrace' LIMIT 1)
 INSERT INTO "Admon"."ApplicationModule" ("ApplicationId","ModuleName","Description","DisplayOrder","AuditCreationUser","AuditCreationDate")
 SELECT appid, mname, mdesc, morder, 1, NOW()
 FROM app, (VALUES
   ('SHIP_DCSA','DCSA compliance y documentos',10),
-  ('SHIP_Maps','Mapas y rutas marítimas',20)
+  ('SHIP_Maps','Mapas y rutas maritimas',20)
 ) AS t(mname, mdesc, morder)
-ON CONFLICT ("ApplicationId","ModuleName") DO NOTHING;
+ON CONFLICT ("ApplicationId","ModuleName") DO UPDATE SET
+  "Description" = EXCLUDED."Description",
+  "DisplayOrder" = EXCLUDED."DisplayOrder";
 INSERT INTO "Admon"."Organization_ApplicationModule" ("ApplicationModuleId","OrganizationId","AuditCreationUser","AuditCreationDate")
 SELECT am."Id", o."Id", 1, NOW()
 FROM (

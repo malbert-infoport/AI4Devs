@@ -1,0 +1,19 @@
+.auditlog-list-container {
+  .list-header {
+    margin-bottom: 1rem;
+  }
+
+  .no-records {
+    padding: 1.5rem;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.54);
+  }
+
+  > cl-grid {
+    /* behave like other lists: allow grid to size but not overflow the form */
+    flex: 1 1 auto;
+    min-height: 200px;
+    max-height: 520px;
+    overflow: auto;
+  }
+}

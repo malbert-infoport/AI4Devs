@@ -9,6 +9,7 @@ import { SelectEvent } from '@progress/kendo-angular-layout';
 import { ClComboBoxComponent, ClInputComponent } from '@cl/common-library/cl-form-fields';
 import { MatIconModule } from '@angular/material/icon';
 import { ThemeLoadingComponent } from '@app/theme/components/theme-loading/theme-loading.component';
+import { AuditlogListComponent } from '../auditlog-list/auditlog-list.component';
 import { SharedMessageService } from '@app/theme/services/shared-message.service';
 import { OrganizationClient, OrganizationGroupClient, OrganizationGroupView, OrganizationView, Organization_ApplicationModuleView } from '../../../../../webServicesReferences/api/apiClients';
 import { take } from 'rxjs';
@@ -27,7 +28,8 @@ import { OrganizationModulesComponent } from '../organization-modules/organizati
     ClInputComponent,
     MatIconModule,
     ThemeLoadingComponent,
-    OrganizationModulesComponent
+    OrganizationModulesComponent,
+    AuditlogListComponent
   ],
   providers: [OrganizationClient, OrganizationGroupClient],
   templateUrl: './organization-form-page.component.html',

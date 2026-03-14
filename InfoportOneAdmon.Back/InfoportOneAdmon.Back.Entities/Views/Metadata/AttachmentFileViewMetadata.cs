@@ -3,8 +3,7 @@ using Helix6.Base.Domain.Validations.ModelValidations;
 
 namespace InfoportOneAdmon.Back.Entities.Views.Metadata
 {
-	public class ApplicationRoleViewMetadata : IViewBaseMetadata
-	{
-	}
+    public class AttachmentFileViewMetadata : IViewBaseMetadata
+    {
+    }
 }
-

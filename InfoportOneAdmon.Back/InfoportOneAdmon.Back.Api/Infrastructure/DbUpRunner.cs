@@ -49,11 +49,11 @@ namespace InfoportOneAdmon.Back.Api.Infrastructure
 
             string envName = builder.Environment.EnvironmentName;
 
-            //if (envName == "Development" || envName == "Local")
-            //{
-            //    logger.LogInformation($"{databaseName}: No se aplican migraciones en entorno {envName}");
-            //    return;
-            //}
+            if (envName == "Development" || envName == "Local")
+            {
+                logger.LogInformation($"{databaseName}: No se aplican migraciones en entorno {envName}");
+                return;
+            }
 
             try
             {

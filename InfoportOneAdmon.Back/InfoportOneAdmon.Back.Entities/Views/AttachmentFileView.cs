@@ -14,29 +14,31 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(ApplicationRoleViewMetadata))]
-	public partial class ApplicationRoleView : IViewBase
+	[MetadataType(typeof(AttachmentFileViewMetadata))]
+    public partial class AttachmentFileView : IViewBase
 	{
+		[Key]
 		public Int32 Id { get; set; }
 
-		public Int32 ApplicationId { get; set; }
+		public String FileContent { get; set; }
 
-		public String Name { get; set; }
-
-		public String Description { get; set; }
-
+		[HelixStringLength(70)]
 		public String AuditCreationUser { get; set; }
 
-		public DateTime? AuditCreationDate { get; set; }
-
+		[HelixStringLength(70)]
 		public String AuditModificationUser { get; set; }
 
+		[Column(TypeName = "datetime")]
+		public DateTime? AuditCreationDate { get; set; }
+
+		[Column(TypeName = "datetime")]
 		public DateTime? AuditModificationDate { get; set; }
 
+		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
-		public ApplicationView Application { get; set; }
-
+		[InverseProperty("AttachmentFile")]
+		public List<AttachmentView> Attachment { get; set; } = new List<AttachmentView>();
 	}
 }
 

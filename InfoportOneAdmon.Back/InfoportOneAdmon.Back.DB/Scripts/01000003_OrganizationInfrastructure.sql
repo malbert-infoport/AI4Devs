@@ -1,283 +1,229 @@
--- =====================================================
--- Script   : 01020004_OrganizationInfrastructure.sql
--- Proyecto  : InfoportOneAdmon - Epic1 Organization Management
--- Motor     : PostgreSQL 15+
--- Nota      : Todos los campos de fecha usan TIMESTAMPTZ (timestamp with time zone)
--- Despliegue: DBUp (EmbeddedResource en InfoportOneAdmon.Back.DB)
--- Fecha     : 2026-03-02
--- Descripción:
---   Crea la infraestructura completa de tablas para la gestión
---   de organizaciones clientes: OrganizationGroup, Organization,
---   Application, ApplicationModule, Organization_ApplicationModule
---   y AuditLog.
---   El script es IDEMPOTENTE: puede ejecutarse múltiples veces
---   sin errores ni efectos secundarios.
--- =====================================================
 
--- -------------------------------------------------------
--- 0. Schema de la aplicación
--- -------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS citext;
+
 CREATE SCHEMA IF NOT EXISTS "Admon";
 
--- -------------------------------------------------------
--- 1. Secuencia para SecurityCompanyId (comienza en 1001)
--- -------------------------------------------------------
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_sequences
-        WHERE schemaname = 'Admon'
-          AND sequencename = 'Organization_SecurityCompanyId_seq'
-    ) THEN
-        CREATE SEQUENCE "Admon"."Organization_SecurityCompanyId_seq" START WITH 1001;
-    END IF;
-END
-$$;
-
--- -------------------------------------------------------
--- 2. Tabla OrganizationGroup
---    Agrupaciones lógicas de organizaciones (holdings,
---    consorcios, franquicias).
--- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "Admon"."OrganizationGroup" (
-    "Id"                    SERIAL          PRIMARY KEY,
-    "GroupName"             VARCHAR(200)    NOT NULL,
-    "Description"           VARCHAR(500),
-    "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ,
-    "AuditModificationUser" VARCHAR(255),
-    "AuditModificationDate" TIMESTAMPTZ,
-    "AuditDeletionDate"     TIMESTAMPTZ
-);
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE conname = 'UX_OrganizationGroup_GroupName'
-    ) THEN
-        ALTER TABLE "Admon"."OrganizationGroup"
-            ADD CONSTRAINT "UX_OrganizationGroup_GroupName" UNIQUE ("GroupName");
-    END IF;
-END
-$$;
-
--- -------------------------------------------------------
--- 3. Tabla Organization
---    Entidad principal de organizaciones clientes.
---    SecurityCompanyId es el identificador de negocio
---    inmutable (usado en JWT claim c_ids).
--- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "Admon"."Organization" (
-    "Id"                    SERIAL          PRIMARY KEY,
-    "SecurityCompanyId"     INTEGER         NOT NULL DEFAULT nextval('"Admon"."Organization_SecurityCompanyId_seq"'),
-    "GroupId"               INTEGER,
-    "Name"                  VARCHAR(200)    NOT NULL,
-    "Acronym"               VARCHAR(50),
-    "TaxId"                 VARCHAR(50)     NOT NULL,
-    "Address"               VARCHAR(300),
-    "City"                  VARCHAR(100),
-    "PostalCode"            VARCHAR(20),
-    "Country"               VARCHAR(100),
-    "ContactEmail"          VARCHAR(255),
-    "ContactPhone"          VARCHAR(50),
-    "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ,
-    "AuditModificationUser" VARCHAR(255),
-    "AuditModificationDate" TIMESTAMPTZ,
-    "AuditDeletionDate"     TIMESTAMPTZ
-);
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_Organization_SecurityCompanyId') THEN
-        ALTER TABLE "Admon"."Organization" ADD CONSTRAINT "UX_Organization_SecurityCompanyId" UNIQUE ("SecurityCompanyId");
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_Organization_Name') THEN
-        ALTER TABLE "Admon"."Organization" ADD CONSTRAINT "UX_Organization_Name" UNIQUE ("Name");
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_Organization_TaxId') THEN
-        ALTER TABLE "Admon"."Organization" ADD CONSTRAINT "UX_Organization_TaxId" UNIQUE ("TaxId");
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Organization_OrganizationGroup') THEN
-        ALTER TABLE "Admon"."Organization"
-            ADD CONSTRAINT "FK_Organization_OrganizationGroup"
-            FOREIGN KEY ("GroupId") REFERENCES "Admon"."OrganizationGroup"("Id") ON DELETE SET NULL;
-    END IF;
-END
-$$;
-
-CREATE INDEX IF NOT EXISTS "IX_Organization_GroupId" ON "Admon"."Organization"("GroupId");
-
--- -------------------------------------------------------
--- 4. Tabla Application
---    Catálogo de aplicaciones satélite del ecosistema.
---    RolePrefix se usa para nomenclatura de roles y módulos.
--- -------------------------------------------------------
+-- APPLICATION
 CREATE TABLE IF NOT EXISTS "Admon"."Application" (
-    "Id"                    SERIAL          PRIMARY KEY,
-    "AppName"               VARCHAR(100)    NOT NULL,
-    "Description"           VARCHAR(500),
-    "RolePrefix"            VARCHAR(10)     NOT NULL,
-    "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ,
-    "AuditModificationUser" VARCHAR(255),
-    "AuditModificationDate" TIMESTAMPTZ,
-    "AuditDeletionDate"     TIMESTAMPTZ
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "AppName" citext NOT NULL,
+    "Description" citext NULL,
+    "RolePrefix" citext NOT NULL,
+    "AuditCreationUser" citext NULL,
+    "AuditCreationDate" timestamptz NULL,
+    "AuditModificationUser" citext NULL,
+    "AuditModificationDate" timestamptz NULL,
+    "AuditDeletionDate" timestamptz NULL,
+
+    CONSTRAINT "UX_Application_AppName" UNIQUE ("AppName"),
+    CONSTRAINT "UX_Application_RolePrefix" UNIQUE ("RolePrefix"),
+
+    CONSTRAINT "CK_Application_AppName_len" CHECK (length("AppName") <= 100),
+    CONSTRAINT "CK_Application_Description_len" CHECK (length("Description") <= 500),
+    CONSTRAINT "CK_Application_RolePrefix_len" CHECK (length("RolePrefix") <= 10),
+    CONSTRAINT "CK_Application_AuditCreationUser_len" CHECK (length("AuditCreationUser") <= 255),
+    CONSTRAINT "CK_Application_AuditModificationUser_len" CHECK (length("AuditModificationUser") <= 255)
 );
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_Application_AppName') THEN
-        ALTER TABLE "Admon"."Application" ADD CONSTRAINT "UX_Application_AppName" UNIQUE ("AppName");
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_Application_RolePrefix') THEN
-        ALTER TABLE "Admon"."Application" ADD CONSTRAINT "UX_Application_RolePrefix" UNIQUE ("RolePrefix");
-    END IF;
-END
-$$;
-
--- -------------------------------------------------------
--- 5. Tabla ApplicationModule
---    Módulos funcionales de cada aplicación. Permite
---    habilitar/deshabilitar funcionalidades por organización.
--- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "Admon"."ApplicationModule" (
-    "Id"                    SERIAL          PRIMARY KEY,
-    "ApplicationId"         INTEGER         NOT NULL,
-    "ModuleName"            VARCHAR(100)    NOT NULL,
-    "Description"           VARCHAR(500),
-    "DisplayOrder"          INTEGER         DEFAULT 0,
-    "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ,
-    "AuditModificationUser" VARCHAR(255),
-    "AuditModificationDate" TIMESTAMPTZ,
-    "AuditDeletionDate"     TIMESTAMPTZ
-);
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_ApplicationModule_AppId_ModuleName') THEN
-        ALTER TABLE "Admon"."ApplicationModule"
-            ADD CONSTRAINT "UX_ApplicationModule_AppId_ModuleName" UNIQUE ("ApplicationId", "ModuleName");
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_ApplicationModule_Application') THEN
-        ALTER TABLE "Admon"."ApplicationModule"
-            ADD CONSTRAINT "FK_ApplicationModule_Application"
-            FOREIGN KEY ("ApplicationId") REFERENCES "Admon"."Application"("Id") ON DELETE CASCADE;
-    END IF;
-END
-$$;
-
-CREATE INDEX IF NOT EXISTS "IX_ApplicationModule_ApplicationId" ON "Admon"."ApplicationModule"("ApplicationId");
-
--- -------------------------------------------------------
--- 6. Tabla Organization_ApplicationModule
---    Relación N:M que define qué organizaciones tienen
---    acceso a qué módulos. AuditDeletionDate actúa como
---    revocación de acceso (soft delete).
--- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "Admon"."Organization_ApplicationModule" (
-    "Id"                    SERIAL          PRIMARY KEY,
-    "ApplicationModuleId"   INTEGER         NOT NULL,
-    "OrganizationId"        INTEGER         NOT NULL,
-    "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ,
-    "AuditModificationUser" VARCHAR(255),
-    "AuditModificationDate" TIMESTAMPTZ,
-    "AuditDeletionDate"     TIMESTAMPTZ
-);
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UX_OrgAppModule_ModuleId_OrgId') THEN
-        ALTER TABLE "Admon"."Organization_ApplicationModule"
-            ADD CONSTRAINT "UX_OrgAppModule_ModuleId_OrgId" UNIQUE ("ApplicationModuleId", "OrganizationId");
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_OrgAppModule_ApplicationModule') THEN
-        ALTER TABLE "Admon"."Organization_ApplicationModule"
-            ADD CONSTRAINT "FK_OrgAppModule_ApplicationModule"
-            FOREIGN KEY ("ApplicationModuleId") REFERENCES "Admon"."ApplicationModule"("Id") ON DELETE CASCADE;
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_OrgAppModule_Organization') THEN
-        ALTER TABLE "Admon"."Organization_ApplicationModule"
-            ADD CONSTRAINT "FK_OrgAppModule_Organization"
-            FOREIGN KEY ("OrganizationId") REFERENCES "Admon"."Organization"("Id") ON DELETE CASCADE;
-    END IF;
-END
-$$;
-
-CREATE INDEX IF NOT EXISTS "IX_OrgAppModule_OrganizationId" ON "Admon"."Organization_ApplicationModule"("OrganizationId");
-
--- -------------------------------------------------------
--- 7. Tabla AuditLog
---    Registro INMUTABLE (append-only) de acciones críticas.
---    No incluye campos OldValue/NewValue en esta fase.
---    AuditDeletionDate no se usa (tabla no soft-deleteable).
--- -------------------------------------------------------
+-- AUDIT LOG
 CREATE TABLE IF NOT EXISTS "Admon"."AuditLog" (
-    "Id"                    SERIAL          PRIMARY KEY,
-    "EntityType"            VARCHAR(50)     NOT NULL,
-    "EntityId"              VARCHAR(50)     NOT NULL,
-    "Action"                VARCHAR(100)    NOT NULL,
-    "UserId"                INTEGER,
-    "Timestamp"             TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "CorrelationId"         VARCHAR(100),
-    "AuditCreationUser"     VARCHAR(255),
-    "AuditCreationDate"     TIMESTAMPTZ,
-    "AuditModificationUser" VARCHAR(255),
-    "AuditModificationDate" TIMESTAMPTZ,
-    "AuditDeletionDate"     TIMESTAMPTZ
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "EntityType" citext NOT NULL,
+    "EntityId" citext NOT NULL,
+    "Action" citext NOT NULL,
+    "UserLogin" citext NOT NULL,
+    "Timestamp" timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "Content" citext NULL,
+    "AuditCreationUser" citext NULL,
+    "AuditCreationDate" timestamptz NULL,
+    "AuditModificationUser" citext NULL,
+    "AuditModificationDate" timestamptz NULL,
+    "AuditDeletionDate" timestamptz NULL,
+
+    CONSTRAINT "CK_AuditLog_EntityType_len" CHECK (length("EntityType") <= 50),
+    CONSTRAINT "CK_AuditLog_EntityId_len" CHECK (length("EntityId") <= 50),
+    CONSTRAINT "CK_AuditLog_Action_len" CHECK (length("Action") <= 100),
+    CONSTRAINT "CK_AuditLog_UserLogin_len" CHECK (length("UserLogin") <= 50),
+    CONSTRAINT "CK_AuditLog_Content_len" CHECK (length("Content") <= 1000),
+    CONSTRAINT "CK_AuditLog_AuditCreationUser_len" CHECK (length("AuditCreationUser") <= 255),
+    CONSTRAINT "CK_AuditLog_AuditModificationUser_len" CHECK (length("AuditModificationUser") <= 255)
 );
 
-CREATE INDEX IF NOT EXISTS "IX_AuditLog_EntityType_EntityId" ON "Admon"."AuditLog"("EntityType", "EntityId");
-CREATE INDEX IF NOT EXISTS "IX_AuditLog_Timestamp"           ON "Admon"."AuditLog"("Timestamp" DESC);
-CREATE INDEX IF NOT EXISTS "IX_AuditLog_UserId"              ON "Admon"."AuditLog"("UserId");
+-- ORGANIZATION GROUP
+CREATE TABLE IF NOT EXISTS "Admon"."OrganizationGroup" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "GroupName" citext NOT NULL,
+    "Description" citext NULL,
+    "AuditCreationUser" citext NULL,
+    "AuditCreationDate" timestamptz NULL,
+    "AuditModificationUser" citext NULL,
+    "AuditModificationDate" timestamptz NULL,
+    "AuditDeletionDate" timestamptz NULL,
 
--- -------------------------------------------------------
--- 8. Resincronización de secuencias SERIAL
---    Evita errores de clave duplicada tras seeds con Id explícito.
--- -------------------------------------------------------
-DO $$
-BEGIN
-    PERFORM setval(
-        pg_get_serial_sequence('"Admon"."Organization"', 'Id'),
-        COALESCE((SELECT MAX("Id") FROM "Admon"."Organization"), 0) + 1,
-        false
-    );
+    CONSTRAINT "UX_OrganizationGroup_GroupName" UNIQUE ("GroupName"),
 
-    PERFORM setval(
-        pg_get_serial_sequence('"Admon"."OrganizationGroup"', 'Id'),
-        COALESCE((SELECT MAX("Id") FROM "Admon"."OrganizationGroup"), 0) + 1,
-        false
-    );
+    CONSTRAINT "CK_OrganizationGroup_GroupName_len" CHECK (length("GroupName") <= 200),
+    CONSTRAINT "CK_OrganizationGroup_Description_len" CHECK (length("Description") <= 500),
+    CONSTRAINT "CK_OrganizationGroup_AuditCreationUser_len" CHECK (length("AuditCreationUser") <= 255),
+    CONSTRAINT "CK_OrganizationGroup_AuditModificationUser_len" CHECK (length("AuditModificationUser") <= 255)
+);
 
-    PERFORM setval(
-        pg_get_serial_sequence('"Admon"."Application"', 'Id'),
-        COALESCE((SELECT MAX("Id") FROM "Admon"."Application"), 0) + 1,
-        false
-    );
+-- APPLICATION MODULE
+CREATE TABLE IF NOT EXISTS "Admon"."ApplicationModule" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "ApplicationId" integer NOT NULL,
+    "ModuleName" citext NOT NULL,
+    "Description" citext NULL,
+    "DisplayOrder" integer DEFAULT 0 NULL,
+    "AuditCreationUser" citext NULL,
+    "AuditCreationDate" timestamptz NULL,
+    "AuditModificationUser" citext NULL,
+    "AuditModificationDate" timestamptz NULL,
+    "AuditDeletionDate" timestamptz NULL,
 
-    PERFORM setval(
-        pg_get_serial_sequence('"Admon"."ApplicationModule"', 'Id'),
-        COALESCE((SELECT MAX("Id") FROM "Admon"."ApplicationModule"), 0) + 1,
-        false
-    );
+    CONSTRAINT "UX_ApplicationModule_AppId_ModuleName"
+        UNIQUE ("ApplicationId","ModuleName"),
 
-    PERFORM setval(
-        pg_get_serial_sequence('"Admon"."Organization_ApplicationModule"', 'Id'),
-        COALESCE((SELECT MAX("Id") FROM "Admon"."Organization_ApplicationModule"), 0) + 1,
-        false
-    );
+    CONSTRAINT "CK_ApplicationModule_ModuleName_len" CHECK (length("ModuleName") <= 100),
+    CONSTRAINT "CK_ApplicationModule_Description_len" CHECK (length("Description") <= 500),
+    CONSTRAINT "CK_ApplicationModule_AuditCreationUser_len" CHECK (length("AuditCreationUser") <= 255),
+    CONSTRAINT "CK_ApplicationModule_AuditModificationUser_len" CHECK (length("AuditModificationUser") <= 255),
 
-    PERFORM setval(
-        pg_get_serial_sequence('"Admon"."AuditLog"', 'Id'),
-        COALESCE((SELECT MAX("Id") FROM "Admon"."AuditLog"), 0) + 1,
-        false
-    );
-END
-$$;
+    CONSTRAINT "FK_ApplicationModule_Application"
+        FOREIGN KEY ("ApplicationId")
+        REFERENCES "Admon"."Application"("Id")
+        ON DELETE CASCADE
+);
 
--- =====================================================
--- Fin del script 01000003_OrganizationInfrastructure
--- =====================================================
+CREATE INDEX IF NOT EXISTS "IX_ApplicationModule_ApplicationId"
+ON "Admon"."ApplicationModule" ("ApplicationId");
+
+-- ORGANIZATION
+CREATE TABLE IF NOT EXISTS "Admon"."Organization" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "SecurityCompanyId" integer GENERATED BY DEFAULT AS IDENTITY,
+    "GroupId" integer NULL,
+    "Name" citext NOT NULL,
+    "Acronym" citext NULL,
+    "TaxId" citext NOT NULL,
+    "Address" citext NULL,
+    "City" citext NULL,
+    "PostalCode" citext NULL,
+    "Country" citext NULL,
+    "ContactEmail" citext NULL,
+    "ContactPhone" citext NULL,
+    "AuditCreationUser" citext NULL,
+    "AuditCreationDate" timestamptz NULL,
+    "AuditModificationUser" citext NULL,
+    "AuditModificationDate" timestamptz NULL,
+    "AuditDeletionDate" timestamptz NULL,
+
+    CONSTRAINT "UX_Organization_Name" UNIQUE ("Name"),
+    CONSTRAINT "UX_Organization_SecurityCompanyId" UNIQUE ("SecurityCompanyId"),
+    CONSTRAINT "UX_Organization_TaxId" UNIQUE ("TaxId"),
+
+    CONSTRAINT "CK_Organization_Name_len" CHECK (length("Name") <= 200),
+    CONSTRAINT "CK_Organization_Acronym_len" CHECK (length("Acronym") <= 50),
+    CONSTRAINT "CK_Organization_TaxId_len" CHECK (length("TaxId") <= 50),
+    CONSTRAINT "CK_Organization_Address_len" CHECK (length("Address") <= 300),
+    CONSTRAINT "CK_Organization_City_len" CHECK (length("City") <= 100),
+    CONSTRAINT "CK_Organization_PostalCode_len" CHECK (length("PostalCode") <= 20),
+    CONSTRAINT "CK_Organization_Country_len" CHECK (length("Country") <= 100),
+    CONSTRAINT "CK_Organization_ContactEmail_len" CHECK (length("ContactEmail") <= 255),
+    CONSTRAINT "CK_Organization_ContactPhone_len" CHECK (length("ContactPhone") <= 50),
+    CONSTRAINT "CK_Organization_AuditCreationUser_len" CHECK (length("AuditCreationUser") <= 255),
+    CONSTRAINT "CK_Organization_AuditModificationUser_len" CHECK (length("AuditModificationUser") <= 255),
+
+    CONSTRAINT "FK_Organization_OrganizationGroup"
+        FOREIGN KEY ("GroupId")
+        REFERENCES "Admon"."OrganizationGroup"("Id")
+        ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS "IX_Organization_GroupId"
+ON "Admon"."Organization" ("GroupId");
+
+-- ORGANIZATION APPLICATION MODULE
+CREATE TABLE IF NOT EXISTS "Admon"."Organization_ApplicationModule" (
+    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    "ApplicationModuleId" integer NOT NULL,
+    "OrganizationId" integer NOT NULL,
+    "AuditCreationUser" citext NULL,
+    "AuditCreationDate" timestamptz NULL,
+    "AuditModificationUser" citext NULL,
+    "AuditModificationDate" timestamptz NULL,
+    "AuditDeletionDate" timestamptz NULL,
+
+    CONSTRAINT "UX_OrgAppModule_ModuleId_OrgId"
+        UNIQUE ("ApplicationModuleId","OrganizationId"),
+
+    CONSTRAINT "CK_OrgAppModule_AuditCreationUser_len" CHECK (length("AuditCreationUser") <= 255),
+    CONSTRAINT "CK_OrgAppModule_AuditModificationUser_len" CHECK (length("AuditModificationUser") <= 255),
+
+    CONSTRAINT "FK_OrgAppModule_ApplicationModule"
+        FOREIGN KEY ("ApplicationModuleId")
+        REFERENCES "Admon"."ApplicationModule"("Id")
+        ON DELETE CASCADE,
+
+    CONSTRAINT "FK_OrgAppModule_Organization"
+        FOREIGN KEY ("OrganizationId")
+        REFERENCES "Admon"."Organization"("Id")
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "IX_OrgAppModule_OrganizationId"
+ON "Admon"."Organization_ApplicationModule" ("OrganizationId");
+
+-- VIEW
+CREATE OR REPLACE VIEW "Admon"."VTA_Organization" AS
+SELECT
+    o."Id",
+    o."SecurityCompanyId",
+    og."GroupName",
+    o."Name",
+    o."Acronym",
+    o."TaxId",
+    o."Address",
+    o."City",
+    o."PostalCode",
+    o."Country",
+    o."ContactEmail",
+    o."ContactPhone",
+    o."AuditCreationUser",
+    o."AuditCreationDate",
+    o."AuditModificationUser",
+    o."AuditModificationDate",
+    o."AuditDeletionDate",
+    COALESCE((
+        SELECT count(DISTINCT oam2."ApplicationModuleId")
+        FROM "Admon"."Organization_ApplicationModule" oam2
+        WHERE oam2."OrganizationId" = o."Id"
+          AND oam2."AuditDeletionDate" IS NULL
+    ),0)::integer AS "ModuleCount",
+    COALESCE((
+        SELECT count(DISTINCT am2."ApplicationId")
+        FROM "Admon"."Organization_ApplicationModule" oam3
+        JOIN "Admon"."ApplicationModule" am2
+            ON am2."Id" = oam3."ApplicationModuleId"
+        JOIN "Admon"."Application" a2
+            ON a2."Id" = am2."ApplicationId"
+        WHERE oam3."OrganizationId" = o."Id"
+          AND oam3."AuditDeletionDate" IS NULL
+          AND am2."AuditDeletionDate" IS NULL
+          AND a2."AuditDeletionDate" IS NULL
+    ),0)::integer AS "AppCount",
+    COALESCE((
+        SELECT string_agg(DISTINCT a2."AppName"::text,' / ' ORDER BY a2."AppName"::text)
+        FROM "Admon"."Organization_ApplicationModule" oam4
+        JOIN "Admon"."ApplicationModule" am3
+            ON am3."Id" = oam4."ApplicationModuleId"
+        JOIN "Admon"."Application" a2
+            ON a2."Id" = am3."ApplicationId"
+        WHERE oam4."OrganizationId" = o."Id"
+          AND oam4."AuditDeletionDate" IS NULL
+          AND am3."AuditDeletionDate" IS NULL
+          AND a2."AuditDeletionDate" IS NULL
+    ),'') AS "AppList"
+FROM "Admon"."Organization" o
+LEFT JOIN "Admon"."OrganizationGroup" og
+    ON og."Id" = o."GroupId";

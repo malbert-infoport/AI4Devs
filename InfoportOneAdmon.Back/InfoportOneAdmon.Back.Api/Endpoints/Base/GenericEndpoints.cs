@@ -13,10 +13,11 @@ namespace InfoportOneAdmon.Back.Api.Endpoints.Base
     {
         public static void MapGenericEndpoints(this WebApplication app)
         {
-            app.MapVTA_OrganizationEndpoints();
+            app.MapApplicationEndpoints();
+            app.MapAuditLogEndpoints();
             app.MapOrganizationEndpoints();
             app.MapOrganizationGroupEndpoints();
-            app.MapApplicationEndpoints();
+            app.MapVTA_OrganizationEndpoints();
         }
     }
 }

@@ -92,9 +92,18 @@
 
   <ng-template #auditTab>
     <div class="tab-content p-3">
-      <div class="placeholder-box">
-        {{ 'ORGANIZATIONS.FORM.PLACEHOLDERS.AUDIT' | translate }}
+      <h3 class="section-title">
+        <mat-icon class="section-title-icon" aria-hidden="true">history</mat-icon>
+        {{ 'ORGANIZATIONS.FORM.TABS.AUDIT' | translate }}
+      </h3>
+      <div *ngIf="organizationId && organizationId > 0; else auditPlaceholder">
+        <app-auditlog-list [organizationId]="organizationId"></app-auditlog-list>
       </div>
+      <ng-template #auditPlaceholder>
+        <div class="placeholder-box">
+          {{ 'ORGANIZATIONS.FORM.PLACEHOLDERS.AUDIT' | translate }}
+        </div>
+      </ng-template>
     </div>
   </ng-template>
 </div>

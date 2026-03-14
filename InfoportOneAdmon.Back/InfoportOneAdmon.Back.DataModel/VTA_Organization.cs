@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Helix6.Base.Domain.BaseInterfaces;
-// using Microsoft.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore;
 
 namespace InfoportOneAdmon.Back.DataModel {
 
-// [Keyless]
+//[Keyless]
 [Table("VTA_Organization", Schema = "Admon")]
 public partial class VTA_Organization : IEntityBase
 {
@@ -15,42 +15,42 @@ public partial class VTA_Organization : IEntityBase
 
     public int? SecurityCompanyId { get; set; }
 
-    [StringLength(200)]
+    [Column(TypeName = "citext")]
     public string GroupName { get; set; }
 
-    [StringLength(200)]
+    [Column(TypeName = "citext")]
     public string Name { get; set; }
 
-    [StringLength(50)]
+    [Column(TypeName = "citext")]
     public string Acronym { get; set; }
 
-    [StringLength(50)]
+    [Column(TypeName = "citext")]
     public string TaxId { get; set; }
 
-    [StringLength(300)]
+    [Column(TypeName = "citext")]
     public string Address { get; set; }
 
-    [StringLength(100)]
+    [Column(TypeName = "citext")]
     public string City { get; set; }
 
-    [StringLength(20)]
+    [Column(TypeName = "citext")]
     public string PostalCode { get; set; }
 
-    [StringLength(100)]
+    [Column(TypeName = "citext")]
     public string Country { get; set; }
 
-    [StringLength(255)]
+    [Column(TypeName = "citext")]
     public string ContactEmail { get; set; }
 
-    [StringLength(50)]
+    [Column(TypeName = "citext")]
     public string ContactPhone { get; set; }
 
-    [StringLength(255)]
+    [Column(TypeName = "citext")]
     public string AuditCreationUser { get; set; }
 
     public DateTime? AuditCreationDate { get; set; }
 
-    [StringLength(255)]
+    [Column(TypeName = "citext")]
     public string AuditModificationUser { get; set; }
 
     public DateTime? AuditModificationDate { get; set; }

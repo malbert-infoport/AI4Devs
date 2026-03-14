@@ -1,0 +1,35 @@
+<div class="auditlog-list-container">
+  <ng-template #toolbarRight>
+    <cl-button
+      class="mx-1"
+      [text]="'REFRESH' | translate"
+      [icon]="{ name: 'ph ph-arrow-clockwise', classes: 'fill' }"
+      [theme]="'secondary'"
+      (clicked)="loadData(state)"
+    ></cl-button>
+  </ng-template>
+
+  <cl-grid
+    [config]="gridConfig"
+    [data]="gridData"
+    (dataStateChangeEvent)="onDataStateChange($event)"
+  >
+    <ng-template #noRecordsTemplate>
+      <div class="no-records">{{ 'AUDITLOG.PLACEHOLDERS.NO_RECORDS' | translate }}</div>
+    </ng-template>
+
+    <ng-template #clGridColumnTemplate let-dataItem let-column="column" *ngFor="let col of gridConfig.columns">
+      {{ dataItem[col.field] }}
+    </ng-template>
+  </cl-grid>
+
+  <ng-template #columnsTemplate>
+    <div class="columns-modal">
+      <div *ngFor="let c of columnsConfigurator" class="column-option">
+        <label>
+          <input type="checkbox" [(ngModel)]="c.hidden" /> {{ c.title }}
+        </label>
+      </div>
+    </div>
+  </ng-template>
+</div>

@@ -194,9 +194,26 @@
 			}
 		}
 	},
+	"AUDITLOG": {
+		"TITLE": "Audit Log",
+		"COLUMNS": {
+			"TIMESTAMP": "Timestamp",
+			"ACTION": "Action",
+			"USER": "User",
+			"ENTITY": "Entity",
+			"ENTITY_ID": "Entity Id",
+			"CONTENT": "Details"
+		},
+		"PLACEHOLDERS": {
+			"NO_RECORDS": "No audit records"
+		}
+	},
 	"ROUTES": {
 		"HOME": {
 			"TITLE": "Home"
+		},
+		"ORGANIZATIONS": {
+			"TITLE": "Organizations"
 		}
 	}
 }

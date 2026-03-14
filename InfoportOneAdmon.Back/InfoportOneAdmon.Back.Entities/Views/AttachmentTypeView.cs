@@ -14,29 +14,32 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 
 namespace InfoportOneAdmon.Back.Entities.Views
 {
-	[MetadataType(typeof(EventHashViewMetadata))]
-	public partial class EventHashView : IViewBase
+	[MetadataType(typeof(AttachmentTypeViewMetadata))]
+    public partial class AttachmentTypeView : IViewBase
 	{
+		[Key]
 		public Int32 Id { get; set; }
 
-		public String EntityType { get; set; }
+		[HelixStringLength(2000)]
+		public String Description { get; set; }
 
-		public Int32 EntityId { get; set; }
-
-		public String LastEventHash { get; set; }
-
-		public DateTime LastPublishedAt { get; set; }
-
+		[HelixStringLength(70)]
 		public String AuditCreationUser { get; set; }
 
-		public DateTime? AuditCreationDate { get; set; }
-
+		[HelixStringLength(70)]
 		public String AuditModificationUser { get; set; }
 
+		[Column(TypeName = "datetime")]
+		public DateTime? AuditCreationDate { get; set; }
+
+		[Column(TypeName = "datetime")]
 		public DateTime? AuditModificationDate { get; set; }
 
+		[Column(TypeName = "datetime")]
 		public DateTime? AuditDeletionDate { get; set; }
 
+		[InverseProperty("AttachmentType")]
+		public List<AttachmentView> Attachment { get; set; } = new List<AttachmentView>();
 	}
 }
 

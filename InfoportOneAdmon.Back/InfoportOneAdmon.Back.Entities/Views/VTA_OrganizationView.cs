@@ -15,36 +15,48 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 namespace InfoportOneAdmon.Back.Entities.Views
 {
 	[MetadataType(typeof(VTA_OrganizationViewMetadata))]
-	public partial class VTA_OrganizationView : IViewBase
+    public partial class VTA_OrganizationView : IViewBase
 	{
 		public Int32 Id { get; set; }
 
 		public Int32? SecurityCompanyId { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String GroupName { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String Name { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String Acronym { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String TaxId { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String Address { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String City { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String PostalCode { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String Country { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String ContactEmail { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String ContactPhone { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String AuditCreationUser { get; set; }
 
 		public DateTime? AuditCreationDate { get; set; }
 
+		[Column(TypeName = "citext")]
 		public String AuditModificationUser { get; set; }
 
 		public DateTime? AuditModificationDate { get; set; }
@@ -56,7 +68,6 @@ namespace InfoportOneAdmon.Back.Entities.Views
 		public Int32? AppCount { get; set; }
 
 		public String AppList { get; set; }
-
 	}
 }
 

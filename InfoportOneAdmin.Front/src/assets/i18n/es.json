@@ -194,9 +194,26 @@
 			}
 		}
 	},
+	"AUDITLOG": {
+		"TITLE": "Auditoría",
+		"COLUMNS": {
+			"TIMESTAMP": "Fecha y hora",
+			"ACTION": "Acción",
+			"USER": "Usuario",
+			"ENTITY": "Entidad",
+			"ENTITY_ID": "Id Entidad",
+			"CONTENT": "Descripción"
+		},
+		"PLACEHOLDERS": {
+			"NO_RECORDS": "No hay registros de auditoría"
+		}
+	},
 	"ROUTES": {
 		"HOME": {
 			"TITLE": "Inicio"
+		},
+		"ORGANIZATIONS": {
+			"TITLE": "Organizaciones"
 		}
 	}
 }

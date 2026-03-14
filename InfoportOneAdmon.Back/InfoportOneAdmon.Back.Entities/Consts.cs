@@ -4,10 +4,10 @@ public static class Consts
 {
     public struct LoadingConfigurations
     {
-            public struct Application
-            {
-                public const string APPLICATION_WITH_MODULES = "ApplicationWithModules";
-            }
+        public struct Application
+        {
+            public const string APPLICATION_WITH_MODULES = "ApplicationWithModules";
+        }
         public struct Organization
         {
             public const string ORGANIZATION_COMPLETE = "OrganizationComplete";
@@ -43,8 +43,17 @@ public static class Consts
 
     }
 
+    public struct Problems
+    {
+        public struct Attachments
+        {
+            public const string ATTACHMENT_FILE_NOT_FOUND = "ATTACHMENT_FILE_NOT_FOUND";
+        }
+    }
+
     public struct Validations
     {
+
         public struct Organization
         {
             public const string CREATE_FORBIDDEN = "ORGANIZATION_CREATE_FORBIDDEN";
@@ -58,6 +67,24 @@ public static class Consts
             public const string TAXID_ALREADY_EXISTS = "ORGANIZATION_TAXID_ALREADY_EXISTS";
             public const string GROUP_NOT_FOUND_OR_INACTIVE = "ORGANIZATION_GROUP_NOT_FOUND_OR_INACTIVE";
         }
+    }
+
+    public struct EventLogTypes
+    {
+        public const string ModuleAssigned = "ModuleAssigned";
+        public const string ModuleRemoved = "ModuleRemoved";
+        public const string OrganizationDeactivatedManual = "OrganizationDeactivatedManual";
+        public const string OrganizationAutoDeactivated = "OrganizationAutoDeactivated";
+        public const string OrganizationReactivatedManual = "OrganizationReactivatedManual";
+        public const string GroupChanged = "GroupChanged";
+    }
+
+    public struct EntityTypes
+    {
+        public const string Organization = "Organization";
+        public const string Application = "Application";
+        public const string ApplicationModule = "ApplicationModule";
+        public const string AuditLog = "AuditLog";
     }
 }
 

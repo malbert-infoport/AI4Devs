@@ -1,8 +1,9 @@
-﻿using InfoportOneAdmon.Back.Entities.Views.Base;
-using Helix6.Base.Attachments;
+﻿using Helix6.Base.Attachments;
 using Helix6.Base.Domain.Configuration;
 using Helix6.Base.Domain.Validations;
 using Helix6.Base.Utils.Helpers;
+using InfoportOneAdmon.Back.Entities;
+using InfoportOneAdmon.Back.Entities.Views.Base;
 
 namespace InfoportOneAdmon.Back.Api.Attachments
 {
@@ -24,7 +25,7 @@ namespace InfoportOneAdmon.Back.Api.Attachments
             }
             else
             {
-                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, InfoportOneAdmon.Back.Services.ServiceConsts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND);
+                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, Consts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND);
             }
             return Task.CompletedTask;
         }
@@ -40,7 +41,7 @@ namespace InfoportOneAdmon.Back.Api.Attachments
             }
             else
             {
-                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, InfoportOneAdmon.Back.Services.ServiceConsts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND, $"File path: {filePath}");
+                HelixProblem.ThrowHelixProblemException(System.Net.HttpStatusCode.NotFound, Consts.Problems.Attachments.ATTACHMENT_FILE_NOT_FOUND, $"File path: {filePath}");
             }
             return attachment;
         }
