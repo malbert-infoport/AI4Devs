@@ -2,7 +2,7 @@
 ---
 name: Helix6 Views Agent
 description: Agente Copilot responsable de generar y sincronizar las Views (DTO) y las clases de Metadata del backend Helix6 a partir del DataModel.
-version: 2.0
+version: 1.0
 commands:
   - name: /UpdateViews
     description: Generar o sincronizar las clases `Views` y `ViewMetadata` en `Back.Entities` a partir de las entidades definidas en `Back.DataModel`
