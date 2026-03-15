@@ -79,6 +79,36 @@ namespace InfoportOneAdmon.Back.Data.Tests.Repository
             Assert.Contains("\"DefaultConfiguration\" = True", capturedFilter!.WhereToSql);
         }
 
+        /// <summary>
+        /// Verifica que GetDefaultUserGridConfiguration devuelve null
+        /// cuando no hay configuraciones por defecto para el usuario.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "Critical")]
+        public async System.Threading.Tasks.Task GetDefaultUserGridConfiguration_ReturnsNull_WhenListIsEmpty()
+        {
+            var appContext = BuildApplicationContext();
+            var userContext = BuildUserContext();
+            var efRepo = new Mock<IBaseEFRepository<SecurityUserGridConfiguration>>();
+            var dapperRepo = new Mock<IBaseDapperRepository<SecurityUserGridConfiguration>>();
+
+            HelixFilter? capturedFilter = null;
+            dapperRepo
+                .Setup(x => x.GetAll(It.IsAny<QueryParams>(), It.IsAny<IGenericFilter>()))
+                .Callback<QueryParams, IGenericFilter?>((_, filter) => capturedFilter = filter as HelixFilter)
+                .ReturnsAsync(new List<SecurityUserGridConfiguration>());
+
+            var sut = new SecurityUserGridConfigurationRepository(appContext.Object, userContext.Object, efRepo.Object, dapperRepo.Object);
+
+            var result = await sut.GetDefaultUserGridConfiguration("Organization", 7);
+
+            Assert.Null(result);
+            Assert.NotNull(capturedFilter);
+            Assert.Contains("\"Entity\" = 'Organization'", capturedFilter!.WhereToSql);
+            Assert.Contains("\"SecurityUserId\" = 7", capturedFilter.WhereToSql);
+            Assert.Contains("\"DefaultConfiguration\" = True", capturedFilter.WhereToSql);
+        }
+
         private static Mock<IApplicationContext> BuildApplicationContext()
         {
             var appContext = new Mock<IApplicationContext>();

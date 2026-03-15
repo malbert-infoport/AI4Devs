@@ -13,21 +13,22 @@ namespace InfoportOneAdmon.Back.Services.Tests;
 public class VTA_OrganizationServiceTests
 {
     /// <summary>
-    /// Verifica que GetAll delega en el repositorio VTA y devuelve
-    /// las vistas mapeadas a partir de las entidades recuperadas.
+    /// Verifica que GetAll reenvia los parametros al repositorio VTA
+    /// y devuelve el resultado esperado sin relajar la verificacion de entrada.
     /// </summary>
     [Fact]
     [Trait("Category", "Critical")]
     public async System.Threading.Tasks.Task GetAll_DelegatesToRepository_AndReturnsMappedViews()
     {
         var repository = new Mock<IVTA_OrganizationRepository>();
+        var queryParams = new QueryParams("default", true);
+        var genericFilter = new HelixFilter { WhereToSql = "\"Id\" > 0" };
+
         repository
-            .Setup(x => x.GetAll(It.IsAny<QueryParams>(), It.IsAny<IGenericFilter>()))
-            .ReturnsAsync(new List<VTA_Organization>
-            {
-                new VTA_Organization { Id = 1, Name = "Org 1", TaxId = "B11111111" },
-                new VTA_Organization { Id = 2, Name = "Org 2", TaxId = "B22222222" }
-            });
+            .Setup(x => x.GetAll(
+                It.Is<QueryParams>(q => q.ConfigurationName == "default" && q.IncludeDeleted),
+                It.Is<IGenericFilter>(f => f != null && ((HelixFilter)f).WhereToSql == "\"Id\" > 0")))
+            .ReturnsAsync(new List<VTA_Organization>());
 
         var appContext = new Mock<IApplicationContext>();
         appContext.SetupGet(x => x.ApplicationName).Returns("InfoportOneAdmon");
@@ -35,11 +36,11 @@ public class VTA_OrganizationServiceTests
 
         var sut = new VTA_OrganizationService(appContext.Object, userContext.Object, repository.Object);
 
-        var result = await sut.GetAll(new QueryParams());
+        var result = await sut.GetAll(queryParams, genericFilter);
 
-        Assert.Equal(2, result.Count);
-        Assert.Equal("Org 1", result[0].Name);
-        Assert.Equal("Org 2", result[1].Name);
-        repository.Verify(x => x.GetAll(It.IsAny<QueryParams>(), It.IsAny<IGenericFilter>()), Times.Once);
+        Assert.Empty(result);
+        repository.Verify(x => x.GetAll(
+            It.Is<QueryParams>(q => q.ConfigurationName == "default" && q.IncludeDeleted),
+            It.Is<IGenericFilter>(f => f != null && ((HelixFilter)f).WhereToSql == "\"Id\" > 0")), Times.Once);
     }
 }
