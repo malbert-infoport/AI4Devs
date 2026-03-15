@@ -47,13 +47,14 @@ namespace InfoportOneAdmon.Back.Api.Infrastructure
                 throw new Exception("Connection string does not specify a database name");
             }
 
-            string envName = builder.Environment.EnvironmentName;
-
-            if (envName == "Development" || envName == "Local")
-            {
-                logger.LogInformation($"{databaseName}: No se aplican migraciones en entorno {envName}");
-                return;
-            }
+            // Restriccion de entorno desactivada temporalmente por necesidad de ejecucion
+            // en Development/Local durante pruebas y tareas puntuales.
+            // string envName = builder.Environment.EnvironmentName;
+            // if (envName == "Development" || envName == "Local")
+            // {
+            //     logger.LogInformation($"{databaseName}: No se aplican migraciones en entorno {envName}");
+            //     return;
+            // }
 
             try
             {

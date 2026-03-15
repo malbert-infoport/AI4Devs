@@ -132,3 +132,7 @@ app.UseSwaggerUI(c =>
 DbUpRunner.Run(builder, app, appSettings);
 
 app.Run();
+
+public partial class Program
+{
+}
