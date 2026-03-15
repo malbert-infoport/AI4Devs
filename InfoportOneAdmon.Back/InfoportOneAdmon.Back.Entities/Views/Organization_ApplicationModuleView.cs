@@ -15,34 +15,28 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 namespace InfoportOneAdmon.Back.Entities.Views
 {
 	[MetadataType(typeof(Organization_ApplicationModuleViewMetadata))]
-    public partial class Organization_ApplicationModuleView : IViewBase
+	public partial class Organization_ApplicationModuleView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
 		public Int32 ApplicationModuleId { get; set; }
 
 		public Int32 OrganizationId { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String AuditCreationUser { get; set; }
 
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String AuditModificationUser { get; set; }
 
 		public DateTime? AuditModificationDate { get; set; }
 
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[ForeignKey("ApplicationModuleId")]
-		[InverseProperty("Organization_ApplicationModule")]
 		public ApplicationModuleView ApplicationModule { get; set; }
 
-		[ForeignKey("OrganizationId")]
-		[InverseProperty("Organization_ApplicationModule")]
 		public OrganizationView Organization { get; set; }
+
 	}
 }
 

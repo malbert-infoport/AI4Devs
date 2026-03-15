@@ -15,60 +15,46 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 namespace InfoportOneAdmon.Back.Entities.Views
 {
 	[MetadataType(typeof(OrganizationViewMetadata))]
-    public partial class OrganizationView : IViewBase
+	public partial class OrganizationView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
 		public Int32 SecurityCompanyId { get; set; }
 
 		public Int32? GroupId { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String Name { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String Acronym { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String TaxId { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String Address { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String City { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String PostalCode { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String Country { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String ContactEmail { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String ContactPhone { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String AuditCreationUser { get; set; }
 
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String AuditModificationUser { get; set; }
 
 		public DateTime? AuditModificationDate { get; set; }
 
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[ForeignKey("GroupId")]
-		[InverseProperty("Organization")]
 		public OrganizationGroupView Group { get; set; }
 
-		[InverseProperty("Organization")]
 		public List<Organization_ApplicationModuleView> Organization_ApplicationModule { get; set; } = new List<Organization_ApplicationModuleView>();
+
 	}
 }
 

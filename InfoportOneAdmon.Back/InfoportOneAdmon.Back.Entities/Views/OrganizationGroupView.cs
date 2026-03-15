@@ -15,31 +15,26 @@ using InfoportOneAdmon.Back.Entities.Views.Metadata;
 namespace InfoportOneAdmon.Back.Entities.Views
 {
 	[MetadataType(typeof(OrganizationGroupViewMetadata))]
-    public partial class OrganizationGroupView : IViewBase
+	public partial class OrganizationGroupView : IViewBase
 	{
-		[Key]
 		public Int32 Id { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String GroupName { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String Description { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String AuditCreationUser { get; set; }
 
 		public DateTime? AuditCreationDate { get; set; }
 
-		[Column(TypeName = "citext")]
 		public String AuditModificationUser { get; set; }
 
 		public DateTime? AuditModificationDate { get; set; }
 
 		public DateTime? AuditDeletionDate { get; set; }
 
-		[InverseProperty("Group")]
 		public List<OrganizationView> Organization { get; set; } = new List<OrganizationView>();
+
 	}
 }
 
