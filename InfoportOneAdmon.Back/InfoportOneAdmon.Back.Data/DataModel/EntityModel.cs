@@ -33,25 +33,12 @@ public partial class EntityModel : DbContext
         modelBuilder.Entity<Application>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Application_pkey");
-
-            entity.Property(e => e.Id).HasComment("ID#Table identifier");
-            entity.Property(e => e.AuditCreationDate).HasComment("Audit - Creation Date#Registry creation date");
-            entity.Property(e => e.AuditCreationUser).HasComment("Audit - Creation User#Registry creation user");
-            entity.Property(e => e.AuditDeletionDate).HasComment("Audit - Deletion Date#Logic registry deletion date");
-            entity.Property(e => e.AuditModificationDate).HasComment("Audit - Modification Date#Last registry modification date");
-            entity.Property(e => e.AuditModificationUser).HasComment("Audit - Modification User#Registry modification User");
         });
 
         modelBuilder.Entity<ApplicationModule>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("ApplicationModule_pkey");
 
-            entity.Property(e => e.Id).HasComment("ID#Table identifier");
-            entity.Property(e => e.AuditCreationDate).HasComment("Audit - Creation Date#Registry creation date");
-            entity.Property(e => e.AuditCreationUser).HasComment("Audit - Creation User#Registry creation user");
-            entity.Property(e => e.AuditDeletionDate).HasComment("Audit - Deletion Date#Logic registry deletion date");
-            entity.Property(e => e.AuditModificationDate).HasComment("Audit - Modification Date#Last registry modification date");
-            entity.Property(e => e.AuditModificationUser).HasComment("Audit - Modification User#Registry modification User");
             entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
 
             entity.HasOne(d => d.Application).WithMany(p => p.ApplicationModule).HasConstraintName("FK_ApplicationModule_Application");
@@ -61,12 +48,6 @@ public partial class EntityModel : DbContext
         {
             entity.HasKey(e => e.Id).HasName("AuditLog_pkey");
 
-            entity.Property(e => e.Id).HasComment("ID#Table identifier");
-            entity.Property(e => e.AuditCreationDate).HasComment("Audit - Creation Date#Registry creation date");
-            entity.Property(e => e.AuditCreationUser).HasComment("Audit - Creation User#Registry creation user");
-            entity.Property(e => e.AuditDeletionDate).HasComment("Audit - Deletion Date#Logic registry deletion date");
-            entity.Property(e => e.AuditModificationDate).HasComment("Audit - Modification Date#Last registry modification date");
-            entity.Property(e => e.AuditModificationUser).HasComment("Audit - Modification User#Registry modification User");
             entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
@@ -74,12 +55,6 @@ public partial class EntityModel : DbContext
         {
             entity.HasKey(e => e.Id).HasName("Organization_pkey");
 
-            entity.Property(e => e.Id).HasComment("ID#Table identifier");
-            entity.Property(e => e.AuditCreationDate).HasComment("Audit - Creation Date#Registry creation date");
-            entity.Property(e => e.AuditCreationUser).HasComment("Audit - Creation User#Registry creation user");
-            entity.Property(e => e.AuditDeletionDate).HasComment("Audit - Deletion Date#Logic registry deletion date");
-            entity.Property(e => e.AuditModificationDate).HasComment("Audit - Modification Date#Last registry modification date");
-            entity.Property(e => e.AuditModificationUser).HasComment("Audit - Modification User#Registry modification User");
             entity.Property(e => e.SecurityCompanyId).ValueGeneratedOnAdd();
 
             entity.HasOne(d => d.Group).WithMany(p => p.Organization)
@@ -90,25 +65,11 @@ public partial class EntityModel : DbContext
         modelBuilder.Entity<OrganizationGroup>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("OrganizationGroup_pkey");
-
-            entity.Property(e => e.Id).HasComment("ID#Table identifier");
-            entity.Property(e => e.AuditCreationDate).HasComment("Audit - Creation Date#Registry creation date");
-            entity.Property(e => e.AuditCreationUser).HasComment("Audit - Creation User#Registry creation user");
-            entity.Property(e => e.AuditDeletionDate).HasComment("Audit - Deletion Date#Logic registry deletion date");
-            entity.Property(e => e.AuditModificationDate).HasComment("Audit - Modification Date#Last registry modification date");
-            entity.Property(e => e.AuditModificationUser).HasComment("Audit - Modification User#Registry modification User");
         });
 
         modelBuilder.Entity<Organization_ApplicationModule>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Organization_ApplicationModule_pkey");
-
-            entity.Property(e => e.Id).HasComment("ID#Table identifier");
-            entity.Property(e => e.AuditCreationDate).HasComment("Audit - Creation Date#Registry creation date");
-            entity.Property(e => e.AuditCreationUser).HasComment("Audit - Creation User#Registry creation user");
-            entity.Property(e => e.AuditDeletionDate).HasComment("Audit - Deletion Date#Logic registry deletion date");
-            entity.Property(e => e.AuditModificationDate).HasComment("Audit - Modification Date#Last registry modification date");
-            entity.Property(e => e.AuditModificationUser).HasComment("Audit - Modification User#Registry modification User");
 
             entity.HasOne(d => d.ApplicationModule).WithMany(p => p.Organization_ApplicationModule).HasConstraintName("FK_OrgAppModule_ApplicationModule");
 
