@@ -8,6 +8,8 @@
     <None Remove="DataModel\Base\EntityModelBase.cs~RFf57cc9.TMP" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Helix6.Base" Version="2.3.3-rc01" />
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
@@ -21,8 +23,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base\Helix6.Base.csproj" />
     <ProjectReference Include="..\InfoportOneAdmon.Back.DataModel\InfoportOneAdmon.Back.DataModel.csproj" />
   </ItemGroup>
   <ItemGroup>

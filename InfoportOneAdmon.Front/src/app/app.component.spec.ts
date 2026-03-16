@@ -61,9 +61,9 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'InfoportOneAdmin 1.0' title`, () => {
+  it(`should have the 'InfoportOneAdmon 1.0' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('InfoportOneAdmin 1.0');
+    expect(app.title).toEqual('InfoportOneAdmon 1.0');
   });
 });

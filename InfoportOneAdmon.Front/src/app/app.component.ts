@@ -31,7 +31,7 @@ export class AppComponent {
   private readonly dateAdapter = inject<DateAdapter<any>>(DateAdapter);
   private readonly confirmCloseService = inject(ConfirmCloseService);
 
-  title = 'InfoportOneAdmin 1.0';
+  title = 'InfoportOneAdmon 1.0';
   titleService = inject(Title);
 
   @HostListener('window:beforeunload')
@@ -50,8 +50,8 @@ export class AppComponent {
     this.meta.removeTag('name="viewport"');
     this.meta.addTags([
       { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no' },
-      { name: 'description', content: 'InfoportOneAdmin 1.0' },
-      { name: 'keywords', content: 'InfoportOneAdmin, Transporte terrestre, contenedores' }
+      { name: 'description', content: 'InfoportOneAdmon 1.0' },
+      { name: 'keywords', content: 'InfoportOneAdmon, Transporte terrestre, contenedores' }
     ]);
   }
 

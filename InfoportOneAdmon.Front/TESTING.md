@@ -1,4 +1,4 @@
-# Testing Guide - InfoportOneAdmin.Front
+# Testing Guide - InfoportOneAdmon.Front
 
 ## Objective
 This document defines the critical test pack and the criteria to evolve tests without losing functional coverage for:

@@ -12,7 +12,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "production": "ng build --configuration production --output-path=\"dist/production\"",
-    "ci": "node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng build  --base-href \"/InfoportOneAdmin/\" --deploy-url \"/InfoportOneAdmin/\" --configuration production --output-path=\"dist/infoport-one-admin\"  --allowed-common-js-dependencies",
+    "ci": "node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng build  --base-href \"/InfoportOneAdmon/\" --deploy-url \"/InfoportOneAdmon/\" --configuration production --output-path=\"dist/infoport-one-admin\"  --allowed-common-js-dependencies",
     "update-api": "nswag run src/webServicesReferences/api/api.nswag",
     "update-cl/common-library": "npm install @cl/common-library@latest",
     "npx:clean:cache": "npx rimraf ./.angular/cache/*",

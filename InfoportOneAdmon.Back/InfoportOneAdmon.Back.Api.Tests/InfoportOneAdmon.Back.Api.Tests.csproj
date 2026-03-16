@@ -12,6 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -27,7 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\InfoportOneAdmon.Back.Api\InfoportOneAdmon.Back.Api.csproj" />
-    <ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -46,7 +46,7 @@ describe('ThemeLeftSidebarService', () => {
     const title = service.getTitle();
 
     expect(title.length).toBe(1);
-    expect(title[0].appName).toBe('InfoportOneAdmin');
+    expect(title[0].appName).toBe('InfoportOneAdmon');
     expect(title[0].version).toContain('VERSION');
   });
 

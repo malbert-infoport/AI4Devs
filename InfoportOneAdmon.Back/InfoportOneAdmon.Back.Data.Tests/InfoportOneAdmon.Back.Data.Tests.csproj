@@ -21,6 +21,8 @@
 	</ItemGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Helix6.Base" Version="2.3.3-rc01" />
+		<PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
 		<PackageReference Include="Microsoft.Identity.Web" Version="4.3.0" />
@@ -40,8 +42,6 @@
 		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj" />
-		<ProjectReference Include="..\..\..\..\Git\Helix6\Helix6Base\Helix6.Base\Helix6.Base.csproj" />
 		<ProjectReference Include="..\InfoportOneAdmon.Back.Api\InfoportOneAdmon.Back.Api.csproj" />
 		<ProjectReference Include="..\InfoportOneAdmon.Back.DataModel\InfoportOneAdmon.Back.DataModel.csproj" />
 		<ProjectReference Include="..\InfoportOneAdmon.Back.Data\InfoportOneAdmon.Back.Data.csproj" />

@@ -17,28 +17,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Data.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfoportOneAdmon.Back.Services.Tests", "InfoportOneAdmon.Back.Services.Tests\InfoportOneAdmon.Back.Services.Tests.csproj", "{A8AA6CC4-F0AB-4DBF-8341-65FB42B77184}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helix6Docker", "Helix6Docker", "{C700154A-00F0-4C84-AA57-44EFAF546E93}"
-	ProjectSection(SolutionItems) = preProject
-		Helix6Docker\database.dev.env = Helix6Docker\database.dev.env
-		Helix6Docker\docker-compose.yml = Helix6Docker\docker-compose.yml
-		Helix6Docker\down.cmd = Helix6Docker\down.cmd
-		Helix6Docker\helix6-realm.json = Helix6Docker\helix6-realm.json
-		Helix6Docker\keycloak.dev.env = Helix6Docker\keycloak.dev.env
-		Helix6Docker\up.cmd = Helix6Docker\up.cmd
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{980EC107-74F5-4DDF-860D-5918EBE3D096}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoportOneAdmon.Back.DB", "InfoportOneAdmon.Back.DB\InfoportOneAdmon.Back.DB.csproj", "{C7E78632-3CFD-4629-8C47-590B51592479}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helix6.Base", "..\..\..\Git\Helix6\Helix6Base\Helix6.Base\Helix6.Base.csproj", "{D2A9C949-0C23-8FCD-884B-024997501482}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helix6.Base.Domain", "..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Domain\Helix6.Base.Domain.csproj", "{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helix6.Base.Utils", "..\..\..\Git\Helix6\Helix6Base\Helix6.Base.Utils\Helix6.Base.Utils.csproj", "{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoportOneAdmon.Back.Api.Tests", "InfoportOneAdmon.Back.Api.Tests\InfoportOneAdmon.Back.Api.Tests.csproj", "{A50D16AE-EB4A-4491-B051-DFD37BB51E74}"
 EndProject
@@ -150,42 +134,6 @@ Global
 		{C7E78632-3CFD-4629-8C47-590B51592479}.Release|x64.Build.0 = Release|Any CPU
 		{C7E78632-3CFD-4629-8C47-590B51592479}.Release|x86.ActiveCfg = Release|Any CPU
 		{C7E78632-3CFD-4629-8C47-590B51592479}.Release|x86.Build.0 = Release|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Debug|x64.Build.0 = Debug|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Debug|x86.Build.0 = Debug|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Release|x64.ActiveCfg = Release|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Release|x64.Build.0 = Release|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Release|x86.ActiveCfg = Release|Any CPU
-		{D2A9C949-0C23-8FCD-884B-024997501482}.Release|x86.Build.0 = Release|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Debug|x64.Build.0 = Debug|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Debug|x86.Build.0 = Debug|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Release|x64.ActiveCfg = Release|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Release|x64.Build.0 = Release|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Release|x86.ActiveCfg = Release|Any CPU
-		{C80A9A46-20F4-D3A5-7A2C-7E4D35A507F6}.Release|x86.Build.0 = Release|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Debug|x64.Build.0 = Debug|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Debug|x86.Build.0 = Debug|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Release|x64.ActiveCfg = Release|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Release|x64.Build.0 = Release|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Release|x86.ActiveCfg = Release|Any CPU
-		{997C9C07-53AB-AF87-FF1C-2F21D85CF9F1}.Release|x86.Build.0 = Release|Any CPU
 		{A50D16AE-EB4A-4491-B051-DFD37BB51E74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A50D16AE-EB4A-4491-B051-DFD37BB51E74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A50D16AE-EB4A-4491-B051-DFD37BB51E74}.Debug|x64.ActiveCfg = Debug|Any CPU

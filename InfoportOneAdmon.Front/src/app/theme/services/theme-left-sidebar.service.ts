@@ -41,7 +41,7 @@ export class ThemeLeftSidebarService {
   getTitle(): TitleNode[] {
     return [
       new TitleNode({
-        appName: 'InfoportOneAdmin',
+        appName: 'InfoportOneAdmon',
         appSlogan: '1.0',
         logo: 'assets/images/logo-app.png',
         disabled: false,
