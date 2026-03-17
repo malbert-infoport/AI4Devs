@@ -474,15 +474,149 @@ Descripción (instrucciones detalladas):
 
 ### **2.4. Infraestructura y despliegue**
 
-## Prompt 2.4.1
+## Prompt 2.4.1 Generar despliegue en Azure Devops para backend
+
+Rol: Eres un DevOps/Arquitecto de Infraestructura con experiencia en contenedores Docker, Azure DevOps Pipelines, y despliegue de aplicaciones .NET (ASP.NET Core) en contenedores (App Service for Containers / AKS / ACR). Conoces buenas prácticas de seguridad (secrets), versión de imágenes y etiquetado.
+
+Objetivo: A partir de la configuración del proyecto backend, generar un `Dockerfile` optimizado si fuese necesario, un `azure-pipelines.yml` completo que construya, etiquete y publique la imagen a un registro (Azure Container Registry u otro), y proporcionar instrucciones paso a paso para desplegar la imagen en Azure usando Azure DevOps (opciones: App Service for Containers y AKS). El resultado debe incluir plantillas y variables listas para integrar en Azure DevOps.
+
+- Descripción (instrucciones detalladas):
+- Basándose en la información del backend y del stack tecnológico, genera desde cero los siguientes artefactos `Dockerfile` o `azure-pipelines.yml`. Considera variables necesarias y dependencias externas (feeds NuGet privados, credenciales, argumentos de build como `FEED_SOURCE`, `FEED_USER`, `FEED_ACCESSTOKEN`).
+- Produce los siguientes artefactos en Markdown y YAML (entregables):
+  1. `Dockerfile` optimizado y comentado (multi-stage, tamaño de imagen, usuario no root, capas cacheables, variables ARG, healthcheck opcional).
+  2. `azure-pipelines.yml` reproducible que incluya etapas: `Restore`, `Build`, `Test` (si aplica), `Publish` (dotnet publish), `BuildImage`, `PushImage` y `Deploy` (opcional, despliegue a entorno staging). El pipeline debe usar variables para `FEED_SOURCE`, `FEED_USER`, `FEED_ACCESSTOKEN`, `ImageName`, `Registry`, `Tag`, y un grupo de variables para credenciales (secure).
+  3. Instrucciones de despliegue detalladas para Azure DevOps: cómo crear la conexión de servicio (service connection) a ACR, permisos requeridos, variables secretas en Library, agentes recomendados (Hosted Ubuntu), y pasos para habilitar despliegue automático desde la pipeline.
+  4. Opciones de despliegue: breves guías para desplegar la imagen en `Azure App Service for Containers` y en `AKS` (manifiesto Kubernetes básico y comando `kubectl apply` o `az webapp config container set`).
+  5. Comandos de ejemplo para pruebas locales: `docker build`, `docker run`, y comandos para probar health endpoint (`curl`).
+  6. Checklist de seguridad y operación: manejo de secrets (Azure Key Vault o pipeline secrets), etiquetas de imagen (`$(Build.BuildId)`), política de retención, limpieza de imágenes antiguas y scans de vulnerabilidades.
+- Requisitos del pipeline `azure-pipelines.yml`:
+  - Declarar variables y permitir inyección desde Variable Groups y Service Connections.
+  - Soportar `BuildArgs` pasados al `docker build` (ej.: `FEED_SOURCE`) sin exponer secretos en logs.
+  - Push a ACR o registro Docker docker.io con login seguro.
+  - Etiquetado: `$(Registry)/$(ImageName):$(Build.BuildId)` y `:latest` opcional.
+  - Paso opcional de `Deploy` que puede parametrizarse por rama (`dev` → staging, `main` → production).
+- Formato de salida:
+  - Entregar `azure-pipelines.yml` listo para pegar en la raíz del repositorio y un `README.md` con las instrucciones de creación de Service Connections, Variable Groups y pasos de despliegue.
+  - Incluir fragmentos de archivo y ejemplos de comandos en bloques de código.
+- Reglas de precisión:
+  - No incluir credenciales reales; usar placeholders como `$(FEED_ACCESSTOKEN)` o referencias a Variable Group.
+  - Si algún ajuste propuesto al `Dockerfile` es opcional, indicarlo como "RECOMENDADO" y justificar el beneficio (tamaño, seguridad, caché).
+  - Marcar como "INFERIDO" cualquier valor que no aparezca en los ficheros (por ejemplo, nombre del registry) y sugerir un valor por defecto razonable (`myregistry.azurecr.io`).
+- Entrega final:
+  - Devuelve el `Dockerfile` (o su mejora), el `azure-pipelines.yml` completo, y un `README.md` con instrucciones de despliegue en Azure DevOps (en Español).
+  - No incluyas instrucciones para hacer commit; solo proporciona los archivos y pasos.
 
 ## Prompt 2.4.2
 
-## Prompt 2.4.3
+Rol: Eres una IA especialista en DevOps para proyectos frontend Angular. Conoces Node.js, Angular CLI, pipelines de Azure DevOps para frontend, Docker con NGINX, y la práctica habitual de usar un `entrypoint.sh` para inyectar variables de entorno en `config.json` en tiempo de arranque.
+
+Objetivo: Generar desde cero todo lo necesario para desplegar el frontend Angular como contenedor mediante Azure DevOps. El entregable esperado al ejecutar este prompt contra una IA son los contenidos de tres ficheros listos para pegar en el repositorio y un pequeño documento de instrucciones de despliegue:
+- `InfoportOneAdmon.Front/azure-pipelines.yml` — pipeline que construye la aplicación, crea la imagen Docker y la publica en un registry.
+- `InfoportOneAdmon.Front/dockerfile` — Dockerfile multi-stage que construye la app Angular (Node 22.12.0), produce `dist/` y empaqueta con NGINX en la imagen final.
+- `InfoportOneAdmon.Front/entrypoint.sh` — script de arranque que genera `assets/config/config.json` a partir de una plantilla y variables de entorno, y arranca NGINX.
+
+Instrucciones para la IA (requerimientos estrictos):
+1. Crea los tres ficheros desde cero; no assumes que existan en el repositorio.
+2. Devuelve únicamente cuatro bloques en este orden: los tres ficheros (`dockerfile`, `entrypoint.sh`, `azure-pipelines.yml`) y después un bloque `deploy-instructions.md` con los pasos de despliegue. Cada bloque debe empezar EXACTAMENTE con la línea: `--- FILE: <ruta_relativa> ---` seguida del contenido.
+3. `dockerfile` debe ser multi-stage: usar `node:22.12.0` para build, activar Kendo license si procede (usar placeholder `KENDO_UI_LICENSE`), ejecutar `npm ci` o `npm install`, generar `ng build --configuration=production`, y usar `nginx:alpine` como runtime copiando `dist/` y `entrypoint.sh`. Debe copiar `web.env` y `assets/config/configCI.json` (plantilla) al contenedor y establecer `ENTRYPOINT ["/entrypoint.sh"]`. Añadir `LABEL` y `EXPOSE 80`.
+4. `entrypoint.sh` debe ser un shell script que verifica la existencia de la plantilla `assets/config/configCI.json`, usa `envsubst` para generar `assets/config/config.json`, imprime variables relevantes y arranca NGINX en primer plano. Manejar errores y permisos.
+5. `azure-pipelines.yml` debe contener pasos: checkout, install Node, build frontend, build Docker image, push Docker image. Debe usar variables para `Registry`, `ImageName`, `Tag`, `CI_NPM_FEED` o `NPM_TOKEN` (placeholders), y un booleano `Flag_ForcePushImageToRegistry` que permita forzar el push. Indica en comentarios dónde configurar Service Connection/Variable Groups. Ejecuta `docker build` y `docker push` (puedes usar tarea `Docker@2`).
+6. Añadir en el pipeline soporte para tags `$(Registry)/$(ImageName):$(Build.BuildId)` y opción `:latest` si `Build.SourceBranch` es `refs/heads/main`.
+7. Incluir en `deploy-instructions.md` los pasos para crear la Service Connection a ACR, configurar Variable Groups (NPM_TOKEN, KENDO_UI_LICENSE, registry credentials), permisos necesarios, y comandos para probar la imagen localmente (`docker run -e API_URL=... -p 8080:80 <image>`).
+8. No incluir secretos reales; usar placeholders como `$(NPM_TOKEN)` o `$(RegistryPassword)`. Si algún valor no está disponible, marca la sugerencia con `INFERIDO` y propone un valor razonable.
+9. Mantén todo conciso, con buenas prácticas (cache de npm, `npm ci`, minimizar capas, no ejecutar processes como root en runtime si es posible).
+10. El idioma del prompt debe ser Español; los ficheros contendrán comentarios en inglés donde sea estándar.
+
+Formato de salida exigido:
+--- FILE: InfoportOneAdmon.Front/dockerfile ---
+<contenido del Dockerfile>
+--- FILE: InfoportOneAdmon.Front/entrypoint.sh ---
+<contenido del entrypoint.sh>
+--- FILE: InfoportOneAdmon.Front/azure-pipelines.yml ---
+<contenido del azure-pipelines.yml>
+--- FILE: InfoportOneAdmon.Front/deploy-instructions.md ---
+<pasos de despliegue>
+
+## Prompt 2.4.3 Generar `docker-compose.yaml` y `.env` para Keycloak + PostgreSQL
+
+Rol: Eres una IA DevOps experta en orquestación con Docker Compose y despliegue local/CI de infraestructuras mínimas. Conoces Keycloak (versiones 26.x), PostgreSQL (v16), buenas prácticas de variables en `.env`, volúmenes persistentes y configuraciones seguras.
+
+Objetivo: Generar desde cero dos ficheros listos para usar que levanten un servicio de Keycloak y una base de datos PostgreSQL con configuración de desarrollo/integrazione: `docker-compose.yaml` y `.env`. La IA debe devolver ambos ficheros como salida única, sin asumir que existen previamente en el repositorio.
+
+Instrucciones para la IA (requerimientos estrictos):
+1. Crea dos ficheros completos: `dockers/docker-compose.yaml` y `dockers/.env` (rutas relativas sugeridas). No asumas que hay archivos existentes.
+2. Devuelve exactamente dos bloques de texto en este formato EXACTO y en este orden:
+  --- FILE: dockers/docker-compose.yaml ---
+  <contenido válido del docker-compose.yml>
+  --- FILE: dockers/.env ---
+  <contenido válido del .env>
+  No añadas texto fuera de estos dos bloques.
+3. Contenido mínimo del `docker-compose.yaml`:
+  - Versión de compose `3.9`.
+  - Servicios: `postgres` (image `postgres:16`) y `keycloak` (image `quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}`).
+  - Variables del servicio leídas desde `.env` (no inline secrets): `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`, `KEYCLOAK_VERSION`, `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD`, `KEYCLOAK_PORT`.
+  - Definir `volumes` para persistencia de Postgres y Keycloak.
+  - Definir `networks` con nombre `InfoportOne`.
+  - Configurar `depends_on` apropiado y `restart: unless-stopped`.
+  - Exponer puertos usando las variables del `.env`.
+  - Incluir comentarios breves (en inglés o español) explicando las secciones principales.
+4. Contenido mínimo del `.env`:
+  - Declarar las variables referenciadas en el compose con valores por defecto seguros para desarrollo: `COMPOSE_PROJECT_NAME`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `KEYCLOAK_VERSION`, `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD`, `KEYCLOAK_PORT`.
+  - NO incluir secretos reales; usar valores de ejemplo como `admin` y marcar con `INFERIDO` cualquier recomendación fuera del contexto (por ejemplo, `KEYCLOAK_VERSION` sugerida `26.5.2` se puede marcar como `INFERIDO`).
+5. Añadir en el `docker-compose.yaml` una breve sección de notas (comentarios) sobre cómo arrancar (`docker compose --env-file dockers/.env up -d`), cómo ver logs, y cómo limpiar volúmenes.
+6. Mantener las configuraciones orientadas a entornos de desarrollo e integración; señalar en comentarios qué habría que cambiar para producción (no secrets en .env, usar Key Vault, backups, replicas, securityContext, etc.).
+7. Formato y validez:
+  - Genera YAML válido que pase una comprobación básica de sintaxis.
+  - El `.env` debe ser texto plano con pares `KEY=VALUE`.
 
 ### **2.5. Seguridad**
 
-## Prompt 2.5.1: Optimización de eventos y prevención de duplicados mediante hashing
+## Prompt 2.5.1: Autenticación y autorización contra keycloak
+
+Rol: Eres una IA experta en frontend Angular y en la integración OIDC/Keycloak dentro del ecosistema Helix6. Conoces el componente OIDC reutilizable que aparece en otros proyectos Helix6 y las convenciones del framework (uso de `HelixConfiguration.ApplicationName`, guards, pipes y mapeo de claims como `c_ids`).
+
+Objetivo: Generar un prompt que pida a otra IA (o a un desarrollador) implementar desde cero la autenticación OIDC (Authorization Code + PKCE) de una SPA Angular tipo Helix6, reutilizando el componente OIDC/`oidc` que existe en otros proyectos Helix6. El prompt resultante debe pedir explícitamente los archivos a crear, la configuración necesaria, y ejemplos de código listos para copiar/pegar.
+
+Instrucciones para la IA receptora del prompt (lo que debe producir):
+- Analizar brevemente cómo un proyecto basado en Helix6 realiza la autenticación (flujo Authorization Code + PKCE, validación stateless de tokens, uso de claim `c_ids`, dependencia en `HelixConfiguration.ApplicationName`) y extraer las prácticas aplicables. Marcar como `INFERIDO` cualquier valor no presente (ej: realm, clientId, URLs). 
+- Generar un conjunto de archivos y cambios que implementen la autenticación OIDC en un proyecto Helix6 Front no configurado. Entregar TODOS los ficheros y fragmentos de código en un único bloque de respuesta con la siguiente estructura de archivos a crear/modificar (exactamente estos nombres y rutas relativas al proyecto Angular):
+  - `src/environments/environment.ts` (ejemplo de variables necesarias)
+  - `src/app/core/auth/oidc-config.ts` (configuración del cliente OIDC, lectura de env vars)
+  - `src/app/core/services/auth.service.ts` (envoltorio del componente OIDC reutilizable: login, logout, getAccessToken(), refreshToken(), getUserClaims())
+  - `src/app/core/interceptors/auth.interceptor.ts` (añadir Authorization header y refresco en 401)
+  - `src/app/guards/auth.guard.ts` (guard basado en estado de autenticación y claims `c_ids`/roles)
+  - `src/app/core/utils/helix-claims-mapper.ts` (uso de `HelixConfiguration.ApplicationName` para mapear permisos/roles)
+  - `src/app/core/auth/README.md` (instrucciones de configuración y despliegue, variables env e INFERIDO)
+  - Cambios mínimos propuestos en `app.module.ts` y `app-routing.module.ts` (fragmentos para importar providers y proteger rutas)
+
+- Requisitos técnicos obligatorios a cumplir en la implementación generada:
+  - Usar Authorization Code Flow + PKCE para SPA.
+  - No almacenar `access_token` ni `refresh_token` en localStorage sin protección; preferir almacenamiento en memoria y usar `sessionStorage` solo si se explica el trade-off. Documentar claramente la elección.
+  - Implementar refresh automático de token antes de expiración; fallback a re-login si el refresh falla.
+  - Proveer un `AuthInterceptor` que adjunte `Bearer` y que trate 401 realizando refresh once-then-retry.
+  - Implementar `AuthGuard` que compruebe `isAuthenticated()` y que valide permisos basados en `c_ids` y roles asociados a `HelixConfiguration.ApplicationName`.
+  - Proveer ejemplos de configuración de cliente público en Keycloak (realm, clientId, redirectUris, PKCE enabled) y de mappers para el claim `c_ids` (marcar valores concretos como `INFERIDO`).
+  - Incluir manejo de logout que cierre sesión en Keycloak (end-session endpoint) y limpie la sesión local.
+  - Explicar cómo validar tokens stateless en backend (no código del backend, solo instrucciones y claims esperados: `iss`, `aud`, `exp`, `c_ids`, roles con prefijo `APP_{HelixConfiguration.ApplicationName}_ROLE_*`).
+
+- Requisitos de formato de la respuesta:
+  - Devuelve SOLO un bloque único que contenga cada archivo con su ruta y contenido entre delimitadores claros (ej: `=== FILE: <ruta> ===`), listo para copiar en el repositorio.
+  - NO incluir secretos reales: usar placeholders `<KEYCLOAK_REALM>`, `<CLIENT_ID>`, `<KEYCLOAK_URL>`, `<INFERIDO>` y marcar con `INFERIDO` cualquier valor sugerido.
+  - Incluir en `src/app/core/auth/README.md` una lista de variables de entorno necesarias y comandos de prueba (login, obtener token, logout).
+  - Añadir breves notas de seguridad (cómo proteger client secret si se necesitara, por qué usar PKCE, riesgos de almacenamiento de tokens).
+
+Restricciones y notas finales para la IA receptora:
+- No asumir la existencia de ningún archivo en el proyecto; generar los ficheros desde cero tal y como se pide.
+- Mantener el estilo de TypeScript y Angular (servicios con `@Injectable`, Interceptor implementando `HttpInterceptor`, Guards con `CanActivate`).
+- Evitar dependencias externas no justificadas; si se propone una librería OIDC (p.ej. `oidc-client-ts` o `@azure/msal-browser`), justificar la elección y preferir la versión ligera usada por otros proyectos Helix6 (marcar como `INFERIDO` si no se conoce la versión exacta).
+- Asegurarse de que `HelixConfiguration.ApplicationName` se usa para resolver permisos y nombres de roles/claims en el `helix-claims-mapper`.
+
+Entrega: el contenido completo de los archivos solicitados, formateado para pegado directo en el repositorio y listo para revisión por un desarrollador frontend.
+
+Nota para el revisor humano: antes de ejecutar en producción, sustituir todos los placeholders (`<...>`) por valores reales y nunca subir secretos a repositorios.
+
+
+## Prompt 2.5.2: Optimización de eventos y prevención de duplicados mediante hashing
 
 **Rol:** Arquitecto de Software especialista en arquitecturas event-driven, optimización de sistemas distribuidos y prevención de eventos duplicados.
 
@@ -517,9 +651,35 @@ Descripción (instrucciones detalladas):
 - Sistema robusto de prevención de eventos duplicados que optimiza el uso del broker y reduce la carga en las aplicaciones satélite
 - Documentación clara del mecanismo de hashing y detección de cambios
 
-## Prompt 2.5.2
+## Prompt 2.5.3: Aplicar permisos en `OrganizationService.cs`
+Rol: Eres una IA experta en control de acceso y seguridad aplicada a servicios .NET dentro del framework Helix6. Tu tarea es generar un prompt claro y accionable que solicite a otra IA (o a un desarrollador) aplicar permisos en `OrganizationService.cs`.
 
-## Prompt 2.5.3
+Origen de la solicitud: el requerimiento y la especificación funcional provienen del ticket `[Ticket_ORG001_T002-BE.md](Epics/Epic1_Gestión_de_Organizaciones/Epic1_UserStories/ORG001_Gestion_Organizacion/ORG001_Tickets/Ticket_ORG001_T002-BE.md)`. Indica explícitamente en la respuesta que el ticket es la fuente autorizada para decidir qué permisos y comportamientos aplicar.
+
+Objetivo del prompt que generas: pedir la aplicación completa y coherente de permisos/validaciones sobre `InfoportOneAdmon.Back.Services.OrganizationService` mediante ingeniería inversa del propio fichero. La IA receptora debe analizar el código del servicio, detectar todos los puntos donde faltan checks de autorización y producir parches C# listos para aplicar junto con un plan de pruebas y un mapa de roles→permisos.
+
+Instrucciones mínimas para la IA receptora (debe cumplir todas):
+- Tomar como ORIGEN AUTORIZADO el ticket indicado arriba y usar su sección "ROLES Y PERMISOS" y "Matriz de Operaciones por Permiso" como la especificación funcional que debe implementarse. Si existe conflicto entre el ticket y el código actual, priorizar el ticket y marcar las divergencias en la salida.
+- Analizar el fichero `InfoportOneAdmon.Back.Services.OrganizationService` y detectar cada punto del control de flujo donde debe aplicarse autorización/permiso (ej: `ValidateView`, `PreviousActions`, `ProcessModuleChangesAsync`, `ProcessGroupChangeAsync`, `HandleManualDeactivateReactivateAsync`, `EndActions`, `GetNewEntity`, `MapEntityToView`, helpers privados y puntos de publicación de eventos). Listar la línea/función y el motivo de la comprobación.
+- Para cada punto detectado, proponer: permiso requerido (usar `Consts.SecurityAccessOption.OrganizationOptions.*` si existe), comportamiento cuando falta (ej: `validations.AddError(...)`, revertir valores, no publicar evento, establecer `EventSent=false`, `return`, log warning) y el fragmento de código C# a insertar (3 líneas de contexto arriba/abajo). Si la constante de permiso no existe, proponer la constante (nombre y valor) y marcarla como `INFERIDO`.
+- Generar un catálogo final de roles informativos (nombres y descripción breve) y mapearlos a los permisos numéricos/constantes del ticket. Si el ticket ya define códigos (ej: 200, 201, 202, 203), usarlos y referenciarlos explícitamente.
+- Crear los parches C# mínimos necesarios para `OrganizationService.cs` (ready-to-apply snippets). No modificar otras clases a menos que sea estrictamente necesario; si se requieren cambios en `Consts` o validaciones (`Consts.Validations.Organization.*`), generar los snippets para esos cambios y marcarlos como `INFERIDO` si el archivo original no contiene dichas entradas.
+- Incluir una sección con pruebas recomendadas (unitarias e integración), indicando el nombre del test, precondiciones, ejecución y resultado esperado (p.ej. Update sin permiso → `validations` incluye `CREATE_FORBIDDEN` o endpoint devuelve 403).
+- Incluir una sección de riesgos y notas de despliegue (impacto en UIs, posibles 403 en clientes, necesidad de sincronizar cambios con Keycloak y Background Worker).
+
+Formato de salida exigido por este prompt (lo que debe devolver la IA receptora):
+1) Encabezado que indique: "Origen: Ticket_ORG001_T002-BE.md" y un breve resumen ejecutivo (<=6 líneas) sobre los cambios propuestos.
+2) Lista detallada punto a punto con ubicación exacta (función y breve fragmento de contexto) + permiso requerido + acción a tomar si falta permiso.
+3) Parches/fragmentos C# listos para aplicar en `OrganizationService.cs` (cada parche con 3 líneas de contexto arriba/abajo). Si se proponen cambios en `Consts` o validaciones, incluir también esos snippets.
+4) Tests recomendados (nombres y pasos) y ejemplos de inputs esperados/outputs esperados.
+5) Riesgos y acciones de mitigación.
+
+Reglas y restricciones:
+- No introducir nuevas dependencias de librerías.
+- Respetar las llamadas `await base.*` en hooks del servicio.
+- No ejecutar cambios; sólo producir la especificación y los parches. Marcar con `INFERIDO` cualquier valor, permiso o constante propuesta que no exista en el código o en el ticket.
+
+Entrega: El prompt generado debe ser inclusivo y autocontenido para que otra IA pueda ejecutar la tarea sin necesidad de información adicional, salvo acceso al archivo `OrganizationService.cs` y al ticket indicado.
 
 ### **2.6. Tests**
 
