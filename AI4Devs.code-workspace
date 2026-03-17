@@ -26,6 +26,9 @@
 		},
 		{
 			"path": "InfoportOneAdmon.Front"
+		},
+		{
+			"path": "../../Git/SintraportV4/SintraportV4.Back"
 		}
 	],
 	"settings": {}

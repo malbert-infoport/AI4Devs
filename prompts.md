@@ -350,11 +350,127 @@ Actualizar toda la documentación para reflejar estos cambios: modelo de datos, 
 
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
-## Prompt 2.3.1
+## Prompt 2.3.1 Extraer arquitectura de Backend de Helix6
 
-## Prompt 2.3.2
+Rol: Eres un arquitecto senior de software y experto en el framework Helix6 (Backend .NET 8) con experiencia en arquitecturas N‑Layer, DDD, EF Core, Dapper y mensajería.
 
-## Prompt 2.3.3
+Objetivo: Extraer y documentar de forma precisa y accionable la arquitectura backend del proyecto Helix6, incluyendo la estructura de carpetas, responsabilidades por capa, convenciones de código y los artefactos operativos necesarios para implementar y desplegar el backend.
+
+Descripción (instrucciones detalladas):
+- Analiza el contenido del archivo Helix6Back.Architecture.md y extrae toda la información relevante para reconstruir la arquitectura backend.
+- Produce un documento Markdown estructurado que incluya:
+  - Resumen ejecutivo (2‑3 frases) del propósito y alcance de la arquitectura.
+  - Diagrama de alto nivel (Mermaid) de contexto y de contenedores (API, Background Worker, DB, Broker, Keycloak).
+  - Descripción por capas (Api, Services, Entities/Views, Data, DataModel, Base/Domain, Utils) con responsabilidades precisas.
+  - Estructura de carpetas y ficheros mostrada como árbol, indicando para cada carpeta los archivos clave y su rol (ej. `[Proyecto].Api/Program.cs`, `Endpoints/Base/Generator/WorkerEndpoints.cs`, `[Proyecto].DataModel/Worker.cs`).
+  - Convenciones de nomenclatura y código (clases, interfaces, archivos, métodos) y reglas obligatorias (nullable, tipo `int` para `Id`, auditoría, un archivo por clase).
+  - Lista de dependencias NuGet principales y propósito de cada una.
+  - Patrón de endpoints y ejemplos de rutas generadas (`/api/[Entidad]/[Método]`) y helpers de generación.
+  - Flujo de eventos y tópicos (nombres de tópicos, esquema de envelope, payload, deduplicación por hash SHA‑256) y diagrama de secuencia para la consolidación de usuarios multi‑organización.
+  - Reglas y transformaciones relevantes para la BD y migraciones (tipos, columnas de auditoría, `SERIAL` para claves primarias).
+  - Hooks del ciclo de vida en servicios (`ValidateView`, `PreviousActions`, `PostActions`) y cuándo sobrescribirlos.
+  - Pautas operativas: configuraciones (`appsettings.*`), puertos, logging (Serilog), despliegue Docker básico y comprobaciones de salud.
+  - Checklist de conformidad que permita revisar un repositorio contra las reglas Helix6 (items verificables).
+  - Lista de archivos/ubicaciones a inspeccionar a continuación para completar la documentación (mínimo 5 rutas concretas).
+- Formato de salida:
+  - Markdown con secciones y subtítulos claros.
+  - Incluir bloques de código para ejemplos C# y JSON.
+  - Incluir diagramas Mermaid para contexto, contenedores y secuencia de eventos.
+  - Incluir enlaces de archivo relativos cuando cites rutas (usar formato de enlace del repositorio).
+- Reglas de precisión:
+  - Si algún dato no está expresamente en el archivo, márcalo como "INFERIDO" y añade una línea breve justificando la inferencia.
+  - Si detectas contradicciones o riesgos (p. ej. tipos PK no compatibles con `IEntityBase`), listalas en una sección "Inconsistencias y riesgos".
+- Entrega final:
+  - Devuelve el documento en Markdown con las secciones solicitadas en Español.
+- Idioma: Español.
+
+## Prompt 2.3.2 Extraer arquitectura de Frontend de Helix6
+
+Rol: Eres un arquitecto senior de frontend con amplia experiencia en Angular (v12+), patrones modularizados, Single Page Applications, Kendo UI/Componentes empresariales, y conoces las convenciones Helix6 para proyectos Front.
+
+Objetivo: Extraer y documentar de forma precisa y accionable la arquitectura frontend de un proyecto que sigue las convenciones Helix6, generando un documento Markdown completo que sirva como referencia técnica y guía de implementación. El archivo final obtenido será Helix6Front.Architecture.md.
+
+Descripción (instrucciones detalladas):
+- Analiza el contexto del repositorio y los ficheros relacionados a la UI (componentes, módulos, servicios, `angular.json`, `src/app`, `tsconfig`, `package.json`, `web.env`) y extrae toda la información necesaria para reconstruir la arquitectura frontend.
+- Produce un documento Markdown estructurado que incluya:
+  - Resumen ejecutivo (2‑3 frases) del propósito y alcance de la arquitectura frontend.
+  - Diagrama de alto nivel (Mermaid) con contenedores (Browser, API Backend, Broker/Events, Auth/Keycloak, CDN/Assets) y flujo de autenticación (PKCE + `c_ids` claim).
+  - Estructura de carpetas mostrada como árbol (`src/app`, `src/assets`, `environments`, `src/app/modules`, `src/app/shared`, `src/app/core`, `src/app/features`) indicando para cada carpeta los archivos clave y su responsabilidad.
+  - Convenciones de código y naming: nombres de módulos, componentes, servicios, modelos, prefijos para roles y módulos, patrones de `lazy-loading`, un componente por archivo, sufijos (`Component`, `Service`, `Module`, `ViewModel`), uso de `OnPush`, y reglas de `strict` TypeScript/`#nullable` equivalentes.
+  - Patrón de módulos y boundaries: Core vs Shared vs Feature Modules, reglas para providers singleton, y cuándo usar `forRoot()`.
+  - Gestión del estado: si se usan servicios locales, stores, o librerías (NgRx/MobX/SignalR), estrategias de cache y sincronización con el backend; ejemplos de abstracción de API.
+  - Rutas y guards: estructura de routing, rutas protegidas por Guards y mapeo de permisos a claims (`c_ids` y roles), manejo de redirecciones y carga perezosa.
+  - Autenticación/Autorización: integración con Keycloak, configuración necesaria (realm, clientId), flujo PKCE, token refresh, manejo de claims `c_ids`, y cómo los guards y pipes usan `HelixConfiguration.ApplicationName` para permisos.
+  - Componentes UI y patrones visuales: uso de Kendo, formularios reactivos, validaciones, componentes reutilizables (tables, grids, dialogs), y accesibilidad básica.
+  - Pruebas: estrategia de pruebas unitarias (Karma/Jasmine o Vitest), tests de integración y e2e (Cypress/Playwright), ejemplos de casos de prueba para componentes y servicios importantes.
+  - Build y CI/CD: comandos de build, `angular.json` relevantes, Dockerfile frontend mínimo, pipeline de pruebas y despliegue, variables de entorno y secretos (dónde se almacenan `web.env`).
+  - Observabilidad y salud: logging en cliente, puntos de telemetría, endpoints de health para interacción con backend, y recomendaciones de métricas front.
+  - Performance y optimización: lazy loading, preloading strategies, bundle splitting, critical CSS, cache headers, y recomendaciones para despliegue en CDN.
+  - Checklist de conformidad Helix6 frontend (items verificables): `appName` coincide con `HelixConfiguration.ApplicationName`, módulos respetan boundaries, guards usan claims correctos, environment files presentes, styles y assets organizados, tests mínimos presentes.
+  - Lista mínima de 7 rutas/archivos específicos a inspeccionar para completar la documentación (por ejemplo `src/app/app.module.ts`, `src/app/core/guards/auth.guard.ts`, `angular.json`, `package.json`, `src/app/shared/ui/`, `src/environments/`, `src/app/modules/*/`).
+- Formato de salida:
+  - Markdown en Español con secciones y subtítulos claros.
+  - Incluir diagramas Mermaid (contexto y componentes) y bloques de código para ejemplos TypeScript/JSON.
+  - Incluir enlaces relativos a archivos cuando cites rutas dentro del repositorio.
+- Reglas de precisión:
+  - Si algún dato no está explícito en los ficheros analizados, márcalo como "INFERIDO" con una breve justificación.
+  - Lista aparte de "Inconsistencias y riesgos" si detectas dependencias rotas, nombres `appName` desalineados, o guards que puedan dejar pantallas en blanco.
+- Entrega final:
+  - Devuelve el documento en Markdown (`Helix6Front.Architecture.md`) en Español con las secciones solicitadas.
+
+## Prompt 2.3.3 Extraer instrucciones de desarrollo del componente Grid de Helix6
+
+Rol: Eres un arquitecto senior de frontend y experto en grids empresariales (Telerik/Kendo), patrones de grids server-side, y en las convenciones Helix6 para frontend.
+
+Objetivo: Generar un conjunto exhaustivo de instrucciones de desarrollo para implementar y mantener el componente Grid en modo server-side dentro de un proyecto Helix6 Front. El archivo resultante debe ser `Helix6Front.ServerGrid.instructions.md` y contener especificaciones técnicas, ejemplos y criterios de aceptación listos para entregarse a un equipo de desarrollo.
+
+Descripción (instrucciones detalladas):
+- Analiza el código y los ficheros relacionados del frontend (por ejemplo `angular.json`, `package.json`, `src/app`, `src/app/modules/**/components/**/*-list/**/*.ts`, `src/app/modules/**/components/**/*-grid/**/*.ts`, `src/app/modules/**/services/**/*.ts`, `src/environments`, `web.env`) para extraer las prácticas y convenciones actuales.
+- Produce un documento Markdown que incluya, como mínimo, las siguientes secciones:
+  - Resumen ejecutivo (2‑3 frases) del propósito del componente Grid y su alcance funcional.
+  - Requisitos funcionales y no funcionales del Grid server-side: paginación, filtrado, ordenación, reordenación de columnas, exportación a Excel, persistencia de configuraciones, manejo de baja lógica (`DeleteUndeleteLogic`), accesibilidad y rendimiento.
+  - Contrato del endpoint backend esperado:
+    - Firma C# de ejemplo para el endpoint que acepta el `KendoFilter`/`DataSourceRequest` (o modelo equivalente) y devuelve `{ TotalCount: int, Items: [] }`.
+    - Ejemplo de modelo TypeScript/JSON del payload que el frontend enviará (estado Kendo normalizado) y del objeto de respuesta esperado.
+  - Especificación del formato de `state` que se debe enviar al backend:
+    - Cómo envolver el estado (`{ data: state }` o `state` plano), manejo de `page`, `pageSize`, `filter`, `sort`, y el filtro por defecto `AuditDeletionDate is null`.
+    - Normalización enviada (camelCase/PascalCase) y ejemplos de transformación en el servicio Angular.
+  - Reglas de filtros y formatos:
+    - Filtro por defecto para baja lógica: `AuditDeletionDate is null` aplicado en la primera carga.
+    - Columnas de fecha: `filter: 'date'` y formato `dd/MM/yyyy`.
+  - Comportamiento de la grid y API del componente:
+    - `onDataStateChange(state)` → actualizar `this.state` → `loadData(state)`.
+    - Política de envío: enviar el `state` completo y no transformarlo destructivamente; si se requiere envoltorio, documentarlo.
+  - Normalizador de respuesta del backend:
+    - Mapear posibles nombres de colección `data || items || list || []` y totales `count || totalCount || total || 0`.
+    - Ejemplos de función TypeScript para normalizar respuesta.
+  - Toolbar y acciones:
+    - Botón refrescar que reutiliza el estado actual.
+    - Configurador de columnas con persistencia (endpoint de configuración) y reglas para aplicar cambios sin romper el estado de la grid.
+  - Exportación a Excel:
+    - Requisitos: debe usar endpoint remoto, mapear la respuesta igual que la grid, y validar contenido del `.xlsx`.
+  - Baja lógica (Delete/Undelete):
+    - Acción de papelera en cada fila, invocar `DeleteUndeleteLogicById`, mostrar mensajes y recargar grid al completar.
+  - Requisitos de pruebas:
+    - Tests unitarios para transformación de payload, mapeo de respuesta y construcción del estado inicial con filtro por defecto.
+    - Pruebas de integración para exportación Excel y acciones de baja lógica.
+  - Criterios de aceptación (DoD minimal) — lista verificable (al menos los 12 ítems del patrón Helix6 Grid Server-Side).
+  - Ejemplos de código:
+    - Servicio Angular `GridService` con método `load(state)` que envía el payload y normaliza la respuesta.
+    - Componente `MyListComponent` con `onDataStateChange`, `state` y plantilla de Kendo Grid configurada para server-side.
+    - Endpoint C# minimal receptor `POST /api/[entity]/query` con modelo `KendoFilter` y respuesta típica.
+  - Checklist de comparación con SintraportV4.Front: reglas de payload, triggers de carga, formato de respuesta y UX en toolbar.
+  - Sección "Inconsistencias y riesgos": listar problemas detectados (ej: `appName` desalineado, falta de tests, endpoints que no admiten filtros esperados).
+  - Lista de rutas/archivos a inspeccionar (mínimo 7) para completar la implementación y la revisión (usar rutas relativas).
+- Formato de salida:
+  - Markdown en Español, bien estructurado, con subtítulos, bloques de código TypeScript/C#/JSON, y ejemplos concretos.
+  - Incluir fragmentos de código y comandos de ejemplo para probar localmente (ejecutar la llamada al endpoint con `curl` o `httpie`).
+- Reglas de precisión:
+  - Si algún dato no se encuentra en el repositorio, marcar como "INFERIDO" y justificar la inferencia.
+  - Señalar claramente cualquier contradicción entre ficheros o prácticas detectadas.
+- Entrega final:
+  - Devuelve el contenido del archivo `Helix6Front.ServerGrid.instructions.md` en Markdown (Español).
+
 
 ### **2.4. Infraestructura y despliegue**
 

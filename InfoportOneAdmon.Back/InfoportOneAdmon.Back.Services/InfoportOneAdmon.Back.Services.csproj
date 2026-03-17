@@ -5,9 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Helix6.Base" Version="2.3.3-rc01" />
-    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
-    <PackageReference Include="Helix6.Base.Utils" Version="2.3.3-rc01" />
+    <PackageReference Include="Helix6.Base" Version="2.3.3-rc02" />
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc02" />
+    <PackageReference Include="Helix6.Base.Utils" Version="2.3.3-rc02" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.3.1" />

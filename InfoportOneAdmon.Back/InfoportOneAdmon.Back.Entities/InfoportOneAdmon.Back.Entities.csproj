@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc02" />
     <PackageReference Include="Mapster" Version="7.4.0" />
   </ItemGroup>
   <ItemGroup>

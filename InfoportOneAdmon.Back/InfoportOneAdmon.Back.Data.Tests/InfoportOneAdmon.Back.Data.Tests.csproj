@@ -21,8 +21,8 @@
 	</ItemGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-		<PackageReference Include="Helix6.Base" Version="2.3.3-rc01" />
-		<PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
+		<PackageReference Include="Helix6.Base" Version="2.3.3-rc02" />
+		<PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc02" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13" />
 		<PackageReference Include="Microsoft.Identity.Web" Version="4.3.0" />

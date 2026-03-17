@@ -17,9 +17,9 @@
   <ItemGroup>
     <PackageReference Include="dbup" Version="5.0.41" />
     <PackageReference Include="dbup-postgresql" Version="6.1.2" />
-    <PackageReference Include="Helix6.Base" Version="2.3.3-rc01" />
-    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc01" />
-    <PackageReference Include="Helix6.Base.Utils" Version="2.3.3-rc01" />
+    <PackageReference Include="Helix6.Base" Version="2.3.3-rc02" />
+    <PackageReference Include="Helix6.Base.Domain" Version="2.3.3-rc02" />
+    <PackageReference Include="Helix6.Base.Utils" Version="2.3.3-rc02" />
     <PackageReference Include="IdentityModel" Version="7.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
