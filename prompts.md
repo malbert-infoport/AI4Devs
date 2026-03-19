@@ -506,7 +506,7 @@ Objetivo: A partir de la configuración del proyecto backend, generar un `Docker
   - Devuelve el `Dockerfile` (o su mejora), el `azure-pipelines.yml` completo, y un `README.md` con instrucciones de despliegue en Azure DevOps (en Español).
   - No incluyas instrucciones para hacer commit; solo proporciona los archivos y pasos.
 
-## Prompt 2.4.2
+## Prompt 2.4.2 Generar despliegue en Azure Devops para frontend Angular
 
 Rol: Eres una IA especialista en DevOps para proyectos frontend Angular. Conoces Node.js, Angular CLI, pipelines de Azure DevOps para frontend, Docker con NGINX, y la práctica habitual de usar un `entrypoint.sh` para inyectar variables de entorno en `config.json` en tiempo de arranque.
 
@@ -801,7 +801,90 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 
 ## Prompt 2.6.2
 
+**Rol:** Ingeniero/a Backend / QA con experiencia en .NET, pruebas de integración y Testcontainers.
+
+**Objetivo:** Generar el conjunto completo de pruebas de integración para `InfoportOneAdmon.Back` usando Testcontainers para PostgreSQL. Estas pruebas deben implementar: arranque de contenedor PostgreSQL efímero, aplicación arrancada con `WebApplicationFactory`, ejecución de DBUp/seed previo a las pruebas, y uso de `Respawn` para limpiar datos entre pruebas. Asumir que los tests previos fueron eliminados y se necesita regenerarlos idénticos o equivalentes en funcionalidad y estructura.
+
+**Requisitos técnicos obligatorios (debe incluirse en la entrega):**
+- Proyecto de pruebas: `InfoportOneAdmon.Back.Api.IntegrationTests` (net8.0) con `xUnit`.
+- Dependencias: `DotNet.Testcontainers` (Testcontainers.PostgreSql), `Respawn`, `Microsoft.AspNetCore.Mvc.Testing`, `xUnit`.
+- Implementar `PostgresContainerFixture : IAsyncLifetime` que arrancará `PostgreSqlContainer` (imagen `postgres:16` por defecto, marcar INFERIDO si se necesita otra versión) y expondrá `ConnectionString`.
+- Implementar `IntegrationTestFactory : WebApplicationFactory<Program>` que sobreescriba la configuración para usar la `ConnectionString` del contenedor y ofrezca opciones de test: bypass de JWT, permitir todos los permisos, y permisos configurables (tal como se hacía con `FixedUserContext` / `AllowAllUserPermissions` / `ConfigurableUserPermissions`).
+- Ejecutar DBUp o aplicar el script de inicialización del esquema en `PostgresContainerFixture.InitializeAsync()` antes de las pruebas.
+- Integrar `Respawn` para reset entre tests con exclusión del journal de DBUp (configurar schemas/tables a ignorar).
+- Proveer utilidades de logging y retry para esperas de disponibilidad del contenedor.
+
+**Cobertura mínima de tests a regenerar (ejemplos y hoja de ruta):**
+1. Smoke: arranque de la API contra el contenedor y endpoints protegidos devuelven `401`/`200` según JWT bypass.
+2. CRUD `Organization`: Insert/GetById/Update/DeleteUndeleteLogicById con comprobación de auditoría y persistencia.
+3. Seguridad funcional: endpoints de permisos y configuraciones de usuario (GetPermissions, GetUserConfiguration).
+4. Kendo/Grid: `GetAllKendoFilter` con filtro/orden/paginación y `IncludeDeleted`.
+5. Attachments: Insert y GetAttachmentContent (si aplica en el proyecto).
+
+**Entregables concretos (archivos y snippets listos):**
+- `InfoportOneAdmon.Back.Api.IntegrationTests/Infrastructure/PostgresContainerFixture.cs`.
+- `InfoportOneAdmon.Back.Api.IntegrationTests/Infrastructure/IntegrationTestFactory.cs`.
+- `InfoportOneAdmon.Back.Api.IntegrationTests/IntegrationTestBase.cs` o `IAsyncLifetime` base que combine fixture + factory y exponga métodos `ResetDatabaseAsync()`.
+- Al menos 5 tests ejemplares (`OrganizationCrudTests.cs`, `SecurityTests.cs`, `KendoFilterTests.cs`, `AttachmentTests.cs`, `SmokeTests.cs`) con código completo y asserts claros.
+- `InfoportOneAdmon.Back.Api.IntegrationTests.csproj` con referencias a paquetes necesarios y versiones sugeridas.
+- `IntegrationTestPlan.md` actualizado con pasos para ejecutar local y en CI.
+
+**Notas de diseño y buenas prácticas que la implementación debe seguir:**
+- Reutilizar el mismo contenedor para la colección de tests y resetear DB entre tests con `Respawn` para velocidad.
+- No depender de Keycloak en pruebas unitarias; usar el bypass JWT configurado en `IntegrationTestFactory` para validar autorizaciones y permisos, o si se prefiere una integración real con Keycloak, documentarlo como opción y generar fixture separado para Keycloak (marcar INFERIDO).
+- Exponer variables de configuración mediante `IConfiguration` override (ej: `ConnectionStrings:DefaultConnection`) en `IntegrationTestFactory`.
+- Añadir timeouts, backoff y logs de diagnostico cuando el contenedor tarde en iniciar.
+- Documentar requisitos: Docker disponible en agente (local o CI), permisos para ejecutar contenedores y recomendaciones para agentes de Azure DevOps (self-hosted si es necesario).
+
+**Formato de entrega solicitado al desarrollador/IA:**
+1. Resumen ejecutivo (4-6 líneas) de la estrategia de regeneración.
+2. Lista de archivos a crear con rutas exactas.
+3. Código completo de `PostgresContainerFixture.cs`, `IntegrationTestFactory.cs`, `IntegrationTestBase.cs` y 5 tests de ejemplo.
+4. `csproj` con dependencias y versiones recomendadas.
+5. Instrucciones de ejecución local y snippet para CI (ejecutar `dotnet test` en un runner con Docker).
+6. Checklist de aceptación: compilable, tests pasan en entorno con Docker, DBUp aplicado, Respawn resetea correctamente.
+
+**Restricciones/INFERIDOS:**
+- Imagen Postgres por defecto `postgres:16` (INFERIDO — confirmar si se requiere otra versión).
+- Si el proyecto exige DBUp, usarlo en lugar de migraciones EF; marcar scripts de seed mínimos necesarios.
+- No generar ni exigir infraestructura externa (Keycloak remoto, DB en cloud) a menos que se acepte explícitamente.
+
+---
+
 ## Prompt 2.6.3
+
+**Rol:** Ingeniero/a Frontend / QA con experiencia en Angular y pruebas unitarias.
+
+**Objetivo:** Generar un prompt para que una IA o desarrollador cree desde cero las pruebas unitarias del frontend `InfoportOneAdmon.Front`. El prompt debe ser autocontenido y describir cómo analizar el proyecto, qué ficheros inspeccionar y los criterios de entrega para producir specs unitarios consistentes con las convenciones del proyecto.
+
+**Instrucciones que debe ejecutar la IA/desarrollador al recibir este prompt:**
+1. Analizar la estructura del proyecto frontend buscando archivos clave: `angular.json`, `package.json`, `tsconfig.json`, `src/app/**/*` (componentes, servicios, guards), `src/environments`, y referencias a `@ngx-translate`, Kendo/Telerik, y clientes generados (`webServicesReferences/api`).
+2. Detectar el framework de pruebas usado (Karma+Jasmine o alternativa) e indicar la versión; si no está claro, proponer `Karma + Jasmine` por compatibilidad con Angular CLI (marcar INFERIDO).
+3. Enumerar las unidades candidatas a testear (componentes, servicios, guards, pipes, helpers) y priorizarlas por criticidad: rutas protegidas, componentes de formularios, servicios HTTP, y lógica de negocio en componentes.
+4. Generar los siguientes artefactos listos para aplicar al repositorio:
+  - Specs unitarios (`*.spec.ts`) para las unidades priorizadas.
+  - Mocks reutilizables propuestos (ej: `MockTranslateService`, `MockEnvConfigurationService`) ubicados en `src/testing/`.
+  - Ejemplos de configuración de `TestBed` usando `HttpClientTestingModule`, providers `useValue`/`useClass`, y uso de spies (`jasmine.createSpy`).
+  - Instrucciones y comandos para ejecutar los tests localmente (`npm run test` / `ng test`) y en CI (snippet para Azure Pipelines/GitHub Actions).
+
+**Requisitos técnicos obligatorios para los specs generados:**
+- Usar `@angular/core/testing` y el estilo `describe/it` de Jasmine (salvo que el proyecto explícitamente use otra herramienta).
+- Evitar pruebas E2E; las pruebas deben ser unitarias y rápidas (TestBed, aisladas con mocks).
+- Para servicios HTTP usar `HttpClientTestingModule` y `HttpTestingController`.
+- Restablecer spies/estado entre tests (`calls.reset()`), y aislar cada spec.
+- Mantener compatibilidad con las convenciones del repo (nombres de imports, rutas relativas, estructura de módulos).
+
+**Entregables concretos y formato de entrega:**
+1. Resumen ejecutivo (3-5 líneas) de la estrategia de testing.
+2. Lista priorizada de unidades a testear con la ruta de cada fichero (por ejemplo: `src/app/app.component.ts`, `src/app/modules/organizations/components/organization-modules/organization-modules.component.ts`).
+3. Código completo de las specs generadas (`*.spec.ts`) y de los mocks ubicados en `src/testing/`.
+4. Snippet de `karma.conf.js` o instrucciones para ejecutar en `ng test` (marcar INFERIDO si no existe `karma.conf.js`).
+5. Checklist de aceptación: `ng test --watch=false` completo sin errores, cobertura mínima sugerida opcional, y pasos para verificar manualmente fallos comunes.
+
+**Buenas prácticas y notas operativas:**
+- Proponer `src/testing/` para mocks y helpers compartidos.
+- Recomendar añadir `data-testid` en componentes con selectores frágiles (para PR separado).
+- Documentar cualquier decisión marcada como INFERIDO (framework, versiones, ubicación de mocks).
 
 ---
 
