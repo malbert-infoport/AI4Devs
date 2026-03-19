@@ -14,7 +14,7 @@
 
 ## Prompt 1.1: Definición inicial del producto
 
-**Rol:** Product Owner especialista en aplicaciones multiorganización, con una gestión centralizada de las organizaciones con acceso a cada aplicación mediante oauth2.
+**Rol:** Product Owner especialista en aplicaciones multiorganización, para una gestión centralizada de las organizaciones y gestión del acceso de estas a las aplicaciones publicadas en el stack de la empresa.
 
 **Objetivo:** Realizar una descripción general del proyecto en formato .md, lo más detallada posible, para la gestión de organizaciones con toda la funcionalidad que debe cubrir para permitir crear organizaciones cuyos usuarios puedan acceder a las distintas aplicaciones del ecosistema. Esta documentación deberá cubrir:
 - Una descripción breve del proyecto de organizaciones
@@ -357,7 +357,7 @@ Rol: Eres un arquitecto senior de software y experto en el framework Helix6 (Bac
 Objetivo: Extraer y documentar de forma precisa y accionable la arquitectura backend del proyecto Helix6, incluyendo la estructura de carpetas, responsabilidades por capa, convenciones de código y los artefactos operativos necesarios para implementar y desplegar el backend.
 
 Descripción (instrucciones detalladas):
-- Analiza el contenido del archivo Helix6Back.Architecture.md y extrae toda la información relevante para reconstruir la arquitectura backend.
+- Analiza el contenido del proyecto plantilla Helix6.Back y extrae toda la información relevante para reconstruir la arquitectura backend.
 - Produce un documento Markdown estructurado que incluya:
   - Resumen ejecutivo (2‑3 frases) del propósito y alcance de la arquitectura.
   - Diagrama de alto nivel (Mermaid) de contexto y de contenedores (API, Background Worker, DB, Broker, Keycloak).
@@ -541,10 +541,10 @@ Formato de salida exigido:
 
 Rol: Eres una IA DevOps experta en orquestación con Docker Compose y despliegue local/CI de infraestructuras mínimas. Conoces Keycloak (versiones 26.x), PostgreSQL (v16), buenas prácticas de variables en `.env`, volúmenes persistentes y configuraciones seguras.
 
-Objetivo: Generar desde cero dos ficheros listos para usar que levanten un servicio de Keycloak y una base de datos PostgreSQL con configuración de desarrollo/integrazione: `docker-compose.yaml` y `.env`. La IA debe devolver ambos ficheros como salida única, sin asumir que existen previamente en el repositorio.
+Objetivo: Generar desde cero dos ficheros listos para usar que levanten un servicio de Keycloak y una base de datos PostgreSQL con configuración de desarrollo/integrazione: `docker-compose.yaml` y `.env`.
 
 Instrucciones para la IA (requerimientos estrictos):
-1. Crea dos ficheros completos: `dockers/docker-compose.yaml` y `dockers/.env` (rutas relativas sugeridas). No asumas que hay archivos existentes.
+1. Crea dos ficheros completos: `dockers/docker-compose.yaml` y `dockers/.env` (rutas relativas sugeridas).
 2. Devuelve exactamente dos bloques de texto en este formato EXACTO y en este orden:
   --- FILE: dockers/docker-compose.yaml ---
   <contenido válido del docker-compose.yml>
@@ -799,7 +799,7 @@ Entrega: El prompt generado debe ser inclusivo y autocontenido para que otra IA 
 **Entrega final:**
 Devuelve la implementación completa del E2E real (archivos y comandos), lista para ejecutar en local, cumpliendo los criterios anteriores.
 
-## Prompt 2.6.2
+## Prompt 2.6.2 Generación de tests de integración de backend usando TestsContainers
 
 **Rol:** Ingeniero/a Backend / QA con experiencia en .NET, pruebas de integración y Testcontainers.
 
@@ -851,8 +851,8 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 
 ---
 
-## Prompt 2.6.3
-
+## Prompt 2.6.3 Implementación de tests unitarios de frontend usando Karma
+ 
 **Rol:** Ingeniero/a Frontend / QA con experiencia en Angular y pruebas unitarias.
 
 **Objetivo:** Generar un prompt para que una IA o desarrollador cree desde cero las pruebas unitarias del frontend `InfoportOneAdmon.Front`. El prompt debe ser autocontenido y describir cómo analizar el proyecto, qué ficheros inspeccionar y los criterios de entrega para producir specs unitarios consistentes con las convenciones del proyecto.
@@ -890,7 +890,99 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 
 ## 3. Modelo de Datos
 
-## Prompt 3.1: Corrección del modelo de datos para alineación con arquitectura Helix6
+## Prompt 3.1
+
+**Rol:** DBA / Ingeniero de Back-end con experiencia en PostgreSQL y DBUp.
+
+**Objetivo:** Generar los scripts SQL PostgreSQL idempotentes necesarios para crear la infraestructura de base de datos del submódulo de organizaciones, basándose en el ticket `Ticket_ORG001_T003-DB.md`. El prompt debe solicitar la creación de los scripts listos para ser incluidos como `EmbeddedResource` en `InfoportOneAdmon.Back.DB` y seguir las convenciones de Helix6 (esquema, campos de auditoría, secuencias, constraints, índices y seeds opcionales).
+
+**Instrucciones para la IA/desarrollador que reciba este prompt:**
+1. Leer el ticket `Epics/Epic1_Gestión_de_Organizaciones/.../Ticket_ORG001_T003-DB.md` (el contenido del ticket está en el repositorio) y usarlo como especificación fuente única.
+2. Generar un script principal idempotente `Scripts/01020004_OrganizationInfrastructure.sql` que cree las siguientes tablas y objetos en el schema `Admon` (todos los identificadores entre comillas dobles):
+  - `ORGANIZATIONGROUP` (Id serial PK, GroupName UNIQUE, Description, campos de auditoría Helix6).
+  - `ORGANIZATION` (Id serial PK, `SecurityCompanyId` entero GENERATED por secuencia independiente iniciando en 1001, `GroupId` FK → `ORGANIZATIONGROUP(Id)`, Name UNIQUE, TaxId UNIQUE, campos de contacto y auditoría Helix6).
+  - `APPLICATION` (Id serial PK, AppName UNIQUE, RolePrefix UNIQUE, descripción y auditoría).
+  - `APPLICATIONMODULE` (Id serial PK, `ApplicationId` FK → `APPLICATION(Id)`, ModuleName, DisplayOrder, unique por (ApplicationId, ModuleName), auditoría).
+  - `ORGANIZATION_APPLICATIONMODULE` (Id serial PK, `ApplicationModuleId` FK → `APPLICATIONMODULE(Id)`, `OrganizationId` FK → `ORGANIZATION(Id)`, unique por (ApplicationModuleId, OrganizationId), auditoría).
+  - `AUDITLOG` (Id bigserial PK, EntityType, EntityId, Action, UserId, Timestamp, CorrelationId y campos de auditoría; tabla tratada como append-only).
+  - Secuencia `ORGANIZATION_SecurityCompanyId_seq` iniciando en 1001 y uso por defecto en `ORGANIZATION.SecurityCompanyId`.
+3. El script debe ser idempotente: usar `CREATE TABLE IF NOT EXISTS`, `CREATE SEQUENCE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS` o bloques `DO $$ ... $$` donde sea necesario. Incluir `CONSTRAINT`s con nombres explícitos y `ON DELETE` adecuados (ej: `ON DELETE CASCADE` para módulos vinculados a aplicación, `ON DELETE SET NULL` para `Organization.GroupId`).
+4. Añadir índices: UKs para unicidad (Name, TaxId, SecurityCompanyId, AppName, RolePrefix), IXs para búsquedas (ej: `IX_Organization_GroupId`, `IX_ApplicationModule_ApplicationId`, `IX_OrgAppModule_OrganizationId`), e índices de auditoría en `AUDITLOG` (`EntityType,EntityId`, `Timestamp DESC`, `UserId`).
+5. Generar un script opcional `Scripts/01020005_OrganizationSeedData.sql` con datos de ejemplo mínimos (grupos, organizaciones, aplicaciones, módulos y asignaciones) usando `INSERT ... ON CONFLICT DO NOTHING` para idempotencia.
+6. Generar un script de rollback sugerido `Scripts/01020006_RollbackOrganizationInfrastructure.sql` que elimine objetos en orden inverso respetando FK.
+7. Incluir en el prompt instrucciones para:
+  - Registrar ambos scripts como `EmbeddedResource` en `InfoportOneAdmon.Back.DB.csproj` (fragmento XML a añadir).
+  - Comprobar la aplicación por DBUp durante el arranque (verificación manual rápida con `psql` o `dotnet run`).
+8. Incluir una sección de verificación con queries SQL para comprobar: existencia de tablas, constraints, índices, secuencia con valor inicial, inserción que devuelve `SecurityCompanyId >= 1001`, y comprobación de soft delete (actualizar `AuditDeletionDate`).
+9. Añadir en la entrega un checklist de aceptación (crear tablas, índices, FKs correctos, secuencia, seeds insertados, scripts idempotentes, `EmbeddedResource` registrado).
+
+**Formato de entrega esperado por el equipo:**
+- Archivo: `InfoportOneAdmon.Back.DB/Scripts/01020004_OrganizationInfrastructure.sql` — contenido completo del DDL idempotente.
+- Archivo: `InfoportOneAdmon.Back.DB/Scripts/01020005_OrganizationSeedData.sql` — seed data idempotente.
+- Archivo: `InfoportOneAdmon.Back.DB/Scripts/01020006_RollbackOrganizationInfrastructure.sql` — script de revert.
+- Snippet para `InfoportOneAdmon.Back.DB.csproj` que registre los EmbeddedResources.
+- Documento corto `Scripts/README.md` con instrucciones de despliegue local y comandos de verificación (`psql` y `dotnet run`).
+
+**Restricciones y notas (marcar INFERIDO cuando aplique):**
+- Usar `Admon` como schema por defecto (INFERIDO si no existe). Si el proyecto usa otro schema, indicarlo y adaptar.
+- Motor PostgreSQL 15+ recomendado (INFERIDO).
+- DBUp es el mecanismo de despliegue; no usar EF Migrations para estos scripts.
+
+---
+
+## Prompt 3.2
+
+**Rol:** DBA / Ingeniero de Back-end con experiencia en PostgreSQL y scripts idempotentes.
+
+**Objetivo:** Generar un prompt para que una IA o desarrollador regenere desde cero el script de *seed* de datos `01000004_SeedOrganizations.sql`. El prompt debe permitir producir un script SQL idempotente que inserte exactamente los conjuntos de datos de organizaciones, grupos, aplicaciones, módulos y asignaciones que el equipo utiliza en `InfoportOneAdmon.Back`. El script resultante debe usar el schema `Admon`, respetar convenciones Helix6 de auditoría y usar `INSERT ... ON CONFLICT DO NOTHING` y patrones seguros para generar Id/ SecurityCompanyId cuando no existan.
+
+Instrucciones que debe incluir el prompt a la IA/desarrollador que genere el seed:
+1. Crear el archivo `InfoportOneAdmon.Back.DB/Scripts/01000004_SeedOrganizations.sql` con transacciones (`BEGIN; ... COMMIT;`) y bloques idempotentes.
+2. Insertar el grupo de organizaciones:
+  - `TransMar Group` con `Description = 'Holding para TransMar y NovaCargo'`.
+3. Insertar las organizaciones (con los campos mostrados y `AuditCreationUser = 1`, timestamps `NOW()`):
+  - `Acme Logistics S.L.` — `TaxId = 'B12345678'`
+  - `Iberia Transportes S.A.` — `TaxId = 'A87654321'`
+  - `TransMar Logistics SL` — `TaxId = 'B23456789'` (pertenece a `TransMar Group`)
+  - `NovaCargo S.L.` — `TaxId = 'B98765432'` (pertenece a `TransMar Group`)
+  - `Grupo Oeste S.A.` — `TaxId = 'A11223344'`
+  - `Alpine Freight GmbH` — `TaxId = 'DE123456789'` (Germany)
+  - `Old Freight S.L.` — `TaxId = 'B00000000'` con `AuditDeletionDate = NOW()` (soft-deleted)
+  - Para generación de `Id` y `SecurityCompanyId` use el patrón seguro `SELECT COALESCE(MAX("Id"),0)+1 AS nid FROM "Admon"."Organization"` y asigne `Id = nid, SecurityCompanyId = nid` si la fila no existe (mantener compatibilidad con prácticas previas).
+4. Insertar aplicaciones y módulos (idempotente):
+  - Aplicaciones: `Sintraport` (RolePrefix `SINTRA`), `Translate` (TLATE), `OneTrack` (ONET), `ShipTrace` (SHIP).
+  - Para `Sintraport` añadir módulos: `SINTRA_Trafico`, `SINTRA_Tarifas`, `SINTRA_Flotas` con `DisplayOrder` 10/20/30.
+  - Para `Translate`: `TLATE_Mensajeria`.
+  - Para `OneTrack`: `TRACK_Tracking`, `TRACK_Maps`.
+  - Para `ShipTrace`: `SHIP_DCSA`, `SHIP_Maps`.
+  - Insertar módulos con `INSERT ... ON CONFLICT ("ApplicationId","ModuleName") DO UPDATE SET ...` para sincronización de descripción/orden.
+5. Insertar asignaciones `ORGANIZATION_APPLICATIONMODULE` (N:M) según estas reglas/idempotencia (ejemplos a regenerar):
+  - Asignar a `Acme Logistics S.L.` (TaxId B12345678) los módulos `SINTRA_Trafico` y `SINTRA_Tarifas`.
+  - Asignar a `Iberia Transportes S.A.` (A87654321) todos los módulos de `Sintraport`.
+  - Asignar a `TransMar Logistics SL` (B23456789) los módulos `SINTRA_Trafico` y módulos de `OneTrack` y `SHIP_Maps`.
+  - Asignar a `NovaCargo S.L.` (B98765432) `SHIP_DCSA` y `SINTRA_Tarifas`.
+  - Asignar a `Grupo Oeste S.A.` (A11223344) `TLATE_Mensajeria`.
+  - Asignar a `Alpine Freight GmbH` (DE123456789) `TRACK_Tracking`.
+  - Para `Old Freight S.L.` (B00000000) insertar la asignación a `SINTRA_Trafico` pero marcando `AuditDeletionDate = NOW()` (revocada).
+  - Todas las inserciones deben usar `ON CONFLICT ("ApplicationModuleId","OrganizationId") DO NOTHING` o `DO UPDATE` cuando se maneje `AuditDeletionDate`.
+6. Utilizar `AuditCreationUser = 1` y `AuditCreationDate = NOW()` en inserts; cuando se actualice `AuditDeletionDate` seguir el patrón mostrado.
+7. Añadir bloques `WITH` y subselects para resolver `ApplicationId`, `ApplicationModuleId` y `Organization.Id` por `AppName`, `ModuleName` y `TaxId` respectivamente, para que el script sea robusto aun sin conocer los Ids preexistentes.
+8. Garantizar idempotencia completa: múltiples ejecuciones no deben crear duplicados y deben mantener `AuditDeletionDate` si ya establecido.
+9. Incluir un segundo bloque transaccional que inserte las asignaciones `Organization_ApplicationModule` usando `SELECT` sobre las tablas ya insertadas (tal como se hace en los seeds existentes).
+10. Incluir un encabezado breve en el script con metadatos (autor, ticket, fecha) y comentarios que expliquen las convenciones de idempotencia.
+
+Entregables del prompt (qué debe generar la IA/desarrollador):
+- `InfoportOneAdmon.Back.DB/Scripts/01000004_SeedOrganizations.sql` — script completo idempotente con los inserts y asignaciones descritas.
+- Instrucciones breves para verificar la ejecución (queries `SELECT` para comprobar que cada `TaxId` existe y que las asignaciones están creadas).
+
+Aceptación mínima:
+- El script se ejecuta sin errores en una BD limpia y deja las filas descritas.
+- Re-ejecutar el script no añade duplicados ni altera registros existentes salvo para actualizar `AuditDeletionDate` cuando se requiere.
+- Todas las referencias a `Application`/`ApplicationModule`/`Organization` se resuelven por `AppName`/`ModuleName`/`TaxId`.
+
+---
+
+## Prompt 3.3: Corrección del modelo de datos para alineación con arquitectura Helix6
 
 **Rol:** Arquitecto de datos especialista en arquitectura Helix6, normalización de bases de datos y mejores prácticas de diseño de esquemas relacionales.
 
@@ -963,19 +1055,126 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 - Nomenclatura consistente de Foreign Keys
 - Documentación completa con ventajas de cada decisión arquitectónica
 
-## Prompt 3.2
-
-## Prompt 3.3
-
 ---
 
 ### 4. Especificación de la API
 
 ## Prompt 4.1
 
+**Rol:** Agente `Helix6 Controller` / DevOps — crear endpoints genéricos Helix6 para la entidad `Organization`.
+
+**Objetivo:** Solicitar al agente `.github/agents/Helix6Back.Controller.agent.md` (script `.github/agents/tools/Manage-Controller.ps1`) la creación de los endpoints genéricos necesarios para implementar la gestión de organizaciones: `GetNewEntity`, `GetById`, `Insert`, `Update`, `DeleteUndeleteLogicById`.
+
+**Instrucciones precisas para el agente / comando a ejecutar:**
+- Ejecutar el script: `.github/agents/tools/Manage-Controller.ps1` con los parámetros:
+  - `-EntityName "Organization"`
+  - `-Methods "GetNewEntity,GetById,Insert,Update,DeleteUndeleteLogicById"`
+  - `-Backup true` (crear copia de seguridad antes de aplicar)
+
+Se recomienda flujo seguro en dos pasos (opcional pero recomendado):
+1. Previsualización: ejecutar con `-DryRun` para revisar los cambios propuestos.
+2. Aplicación: ejecutar sin `-DryRun` y con `-Backup` para aplicar y generar los archivos.
+
+**Expectativas de resultado:**
+- `HelixEntities.xml` actualizado (entrada para `Organization` con los métodos indicados).
+- Archivos generados/actualizados en `*/Endpoints/Base/Generator/OrganizationEndpoints.cs` y `*/Endpoints/Base/GenericEndpoints.cs` según la orquestación del script.
+- Si faltara `OrganizationService.cs`, el script debe invocar `Create-Service.ps1` según su orquestador interno (no ejecutar `Create-Service.ps1` directamente desde este prompt).
+
+**Notas operativas:**
+- NO editar `HelixEntities.xml` manualmente; el agente/script gestiona la coherencia.
+- Revisar el `HelixEntities.xml` resultante y compilar el proyecto tras la generación.
+
 ## Prompt 4.2
 
+**Rol:** Agente `Helix6 Controller` (ver file:Helix6Back.Controller.agent.md)
+
+**Objetivo:** Solicitar al agente/script `.github/agents/tools/Manage-Controller.ps1` la creación del endpoint genérico `GetAllKendoFilter` para habilitar paginado y filtrado server-side sobre las vistas de base de datos utilizadas por la UI.
+
+**Entidades objetivo:**
+- `VTA_Organization` (vista usada para el listado/paginado de organizaciones)
+- `AuditLog` (entidad/table que expone entradas de auditoría para paginado/filtrado)
+
+**Instrucciones precisas para el agente / comando a ejecutar:**
+- Ejecutar el script `.github/agents/tools/Manage-Controller.ps1` para cada entidad en modo preview y, tras validación, aplicar con backup:
+
+  - Previsualización (DryRun) para `VTA_Organization`:
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File \
+      ".github/agents/tools/Manage-Controller.ps1" \
+      -EntityName "VTA_Organization" -Methods "GetAllKendoFilter" -DryRun
+
+    - Previsualización (DryRun) para `AuditLog`:
+
+      powershell -NoProfile -ExecutionPolicy Bypass -File \
+        ".github/agents/tools/Manage-Controller.ps1" \
+        -EntityName "AuditLog" -Methods "GetAllKendoFilter" -DryRun
+
+  - Aplicar (con backup) una vez revisado el DryRun:
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File \
+      ".github/agents/tools/Manage-Controller.ps1" \
+      -EntityName "VTA_Organization" -Methods "GetAllKendoFilter" -Backup
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File \
+      ".github/agents/tools/Manage-Controller.ps1" \
+      -EntityName "AuditLog" -Methods "GetAllKendoFilter" -Backup
+
+**Notas técnicas importantes (reglas a respetar):**
+- `GetAllKendoFilter` debe registrarse sobre la *vista* (`VTA_...`) para listados basados en vistas; NO registrar `GetAllKendoFilter` sobre la tabla base cuando exista una vista dedicada. Para `AuditLog` (entidad/table) registrar `GetAllKendoFilter` sobre `AuditLog`.
+- Si falta el servicio/repository/View/Model asociados a la vista, el script puede orquestar la generación correspondiente (invoca internamente `Create-Service.ps1` cuando proceda) — no invocar `Create-Service.ps1` desde este prompt.
+- Recomendar usar `-DryRun` y revisar los mensajes `Would create:` / `Would write:` antes de aplicar.
+
+**Criterios de aceptación:**
+- `HelixEntities.xml` contiene entradas para `VTA_Organization` y `VTA_AuditLog` con `<Methods>GetAllKendoFilter</Methods>`.
+- Existen archivos generados/actualizados en `*/Endpoints/Base/Generator/` para las vistas indicadas y `*/Endpoints/Base/GenericEndpoints.cs` refleja el cambio.
+- El proyecto `*.Back.Api` compila sin errores después de aplicar los cambios.
+- Pruebas manuales básicas: la llamada al endpoint Kendo (GetAllKendoFilter) devuelve resultados paginados y filtra en servidor (usar parámetros de `Filter`, `Sort`, `Page`, `PageSize`).
+
+**Salida esperada del agent/script en DryRun:**
+- Mensajes `Would create:` / `Would write:` indicando los archivos y cambios previstos. Después de aplicar con `-Backup`, mensajes `Wrote:` o `Updated:`.
+
 ## Prompt 4.3
+
+**Rol:** Agente `Helix6 Controller` (ver file:Helix6Back.Controller.agent.md)
+
+**Objetivo:** Solicitar al agente/script `.github/agents/tools/Manage-Controller.ps1` la creación de los endpoints genéricos necesarios para `Application` y `OrganizationGroup` en modo no interactivo.
+
+**Acciones solicitadas:**
+- Para la entidad `Application`: crear los endpoints `GetById` y `GetAll`.
+- Para la entidad `OrganizationGroup`: crear el endpoint `GetAll`.
+
+**Instrucciones precisas para el agente / comandos a ejecutar:**
+- Previsualizar los cambios (DryRun) para `Application`:
+
+  powershell -NoProfile -ExecutionPolicy Bypass -File \
+    ".github/agents/tools/Manage-Controller.ps1" \
+    -EntityName "Application" -Methods "GetById,GetAll" -DryRun
+
+- Previsualizar los cambios (DryRun) para `OrganizationGroup`:
+
+  powershell -NoProfile -ExecutionPolicy Bypass -File \
+    ".github/agents/tools/Manage-Controller.ps1" \
+    -EntityName "OrganizationGroup" -Methods "GetAll" -DryRun
+
+- Aplicar los cambios con `-Backup` tras revisar los DryRun:
+
+  powershell -NoProfile -ExecutionPolicy Bypass -File \
+    ".github/agents/tools/Manage-Controller.ps1" \
+    -EntityName "Application" -Methods "GetById,GetAll" -Backup
+
+  powershell -NoProfile -ExecutionPolicy Bypass -File \
+    ".github/agents/tools/Manage-Controller.ps1" \
+    -EntityName "OrganizationGroup" -Methods "GetAll" -Backup
+
+**Notas operativas y reglas a respetar:**
+- No modificar `HelixEntities.xml` manualmente; usar el script tal como documenta el agente.
+- Si alguno de los artefactos necesarios (View, Service, Repository) falta, el script orquestará la creación interna (invoca `Create-Service.ps1` si procede). No ejecutar `Create-Service.ps1` directamente.
+- Revisar los mensajes `Would create:` / `Would write:` en `-DryRun` antes de aplicar.
+
+**Criterios de aceptación:**
+- `HelixEntities.xml` contiene entradas para `Application` con `<Methods>GetById,GetAll</Methods>` y para `OrganizationGroup` con `<Methods>GetAll</Methods>`.
+- Se generaron/actualizaron los archivos en `*/Endpoints/Base/Generator/` correspondientes y `*/Endpoints/Base/GenericEndpoints.cs` refleja los cambios.
+- El proyecto `*.Back.Api` compila sin errores tras aplicar los cambios.
 
 ---
 
@@ -1017,7 +1216,7 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 - Priorización clara de requisitos
 - Base sólida para desarrollo, pruebas y validación del producto
 
-## Prompt 5.2
+## Prompt 5.2 DEfinición de casos de uso por requerimiento
 
 **Rol:** Experto en producto y análisis funcional de sistemas empresariales multi-organización.
 
