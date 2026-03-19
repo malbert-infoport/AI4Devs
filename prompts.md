@@ -890,7 +890,7 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 
 ## 3. Modelo de Datos
 
-## Prompt 3.1
+## Prompt 3.1 Creación de modelo de datos para gestionar organizaciones
 
 **Rol:** DBA / Ingeniero de Back-end con experiencia en PostgreSQL y DBUp.
 
@@ -930,7 +930,7 @@ Devuelve la implementación completa del E2E real (archivos y comandos), lista p
 
 ---
 
-## Prompt 3.2
+## Prompt 3.2 Generar script postgres de seed de datos de organizaciones
 
 **Rol:** DBA / Ingeniero de Back-end con experiencia en PostgreSQL y scripts idempotentes.
 
@@ -1059,7 +1059,7 @@ Aceptación mínima:
 
 ### 4. Especificación de la API
 
-## Prompt 4.1
+## Prompt 4.1 Creación de controladores genéricos de Helix6 para organizaciones
 
 **Rol:** Agente `Helix6 Controller` / DevOps — crear endpoints genéricos Helix6 para la entidad `Organization`.
 
@@ -1084,7 +1084,7 @@ Se recomienda flujo seguro en dos pasos (opcional pero recomendado):
 - NO editar `HelixEntities.xml` manualmente; el agente/script gestiona la coherencia.
 - Revisar el `HelixEntities.xml` resultante y compilar el proyecto tras la generación.
 
-## Prompt 4.2
+## Prompt 4.2 Generar controladores de paginalción de Helix6
 
 **Rol:** Agente `Helix6 Controller` (ver file:Helix6Back.Controller.agent.md)
 
@@ -1133,7 +1133,7 @@ Se recomienda flujo seguro en dos pasos (opcional pero recomendado):
 **Salida esperada del agent/script en DryRun:**
 - Mensajes `Would create:` / `Would write:` indicando los archivos y cambios previstos. Después de aplicar con `-Backup`, mensajes `Wrote:` o `Updated:`.
 
-## Prompt 4.3
+## Prompt 4.3 Generación de controladores requeridos para el formulario de organizaciones
 
 **Rol:** Agente `Helix6 Controller` (ver file:Helix6Back.Controller.agent.md)
 
