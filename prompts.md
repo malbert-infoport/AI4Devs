@@ -683,7 +683,121 @@ Entrega: El prompt generado debe ser inclusivo y autocontenido para que otra IA 
 
 ### **2.6. Tests**
 
-## Prompt 2.6.1
+## Prompt 2.6.1 Test End2End con Cypress para verificar envío simulado de evento
+
+**Rol:** QA Automation Engineer senior especialista en pruebas End-to-End para aplicaciones Angular 20 con Cypress, autenticación OAuth2/OIDC con Keycloak y backend .NET 8 sobre PostgreSQL.
+
+**Objetivo:** Implementar un test E2E real en `InfoportOneAdmon.Front` que valide el flujo completo de edición de módulos de una organización (UI -> API real -> lógica de negocio backend -> respuesta), comprobando como criterio principal que al guardar cambios reales de módulos la API devuelve `eventSent = true`.
+
+**Contexto técnico y premisas obligatorias:**
+- El test debe ejecutarse contra infraestructura real de desarrollo, no mocks de backend.
+- Deben estar levantados los contenedores de Keycloak y PostgreSQL.
+- La autenticación en Cypress será real mediante login programático contra Keycloak (sin bypass de auth y sin mock de token).
+- El alcance de esta primera iteración cubre solo el caso positivo: cambio de módulos -> `eventSent = true`.
+- `publishOrganizationEvent` puede validarse como señal secundaria de diagnóstico, pero no es el criterio de aceptación principal.
+
+**Instrucciones detalladas (paso a paso):**
+
+1. **Preparar infraestructura local real**
+   - Levantar servicios desde `AI4Devs/dockers/docker-compose.yaml` con su `.env`.
+   - Verificar que:
+     - Keycloak responde en `http://localhost:8080`
+     - PostgreSQL responde en `localhost:5432`
+   - Documentar comandos exactos de arranque, parada y limpieza de volúmenes.
+
+2. **Configurar autenticación real para el entorno E2E**
+   - Confirmar/crear en Keycloak:
+     - Realm: `infoportone`
+     - Client: `infoportoneadmon` (Authorization Code + PKCE)
+     - Usuario de pruebas con permisos para editar organizaciones.
+   - Verificar coherencia de configuración entre front y back:
+     - `InfoportOneAdmon.Front/src/assets/config/config.json`
+     - `InfoportOneAdmon.Front/src/app/config/config.ts`
+     - `InfoportOneAdmon.Back/InfoportOneAdmon.Back.Api/appsettings.Development.json`
+   - Confirmar que `appName` del front coincide con `HelixConfiguration.ApplicationName` del backend.
+
+3. **Arrancar backend y frontend para E2E**
+   - Backend en perfil `https` con endpoint activo en `https://localhost:42002`.
+   - Frontend en `http://localhost:4200`.
+   - Verificar conectividad front -> API real y validación JWT desde Keycloak.
+
+4. **Habilitar Cypress en el proyecto Front**
+   - Configurar Cypress en el workspace (archivo de configuración y estructura `cypress/`).
+   - Ajustar `angular.json`/scripts para ejecución E2E local (`headed` y `headless`).
+   - Definir `baseUrl` hacia `http://localhost:4200`.
+
+5. **Implementar autenticación programática en Cypress**
+   - Crear comandos/reutilizables en `cypress/support` para:
+     - Solicitar token real a Keycloak.
+     - Inicializar la sesión OIDC en navegador para evitar login UI frágil.
+   - Reutilizar sesión entre tests para reducir tiempos y flakiness.
+
+6. **Preparar selectores estables para UI testing**
+   - Añadir `data-testid` en componentes de organizaciones para evitar selectores frágiles por CSS.
+   - Cubrir al menos:
+     - Acceso al formulario de organización.
+     - Cambio a pestaña de módulos.
+     - Apertura de modal/edición por aplicación.
+     - Selección/deselección de módulo.
+     - Guardado de modal.
+     - Guardado final de organización.
+
+7. **Crear spec E2E del caso positivo**
+   - Flujo mínimo requerido:
+     - Login real programático.
+     - Abrir una organización existente y editable.
+     - Cambiar realmente al menos un módulo en la pestaña Modules.
+     - Guardar cambios.
+   - Interceptar la llamada HTTP de update solo para aserción (no mockear respuesta).
+   - Validar en respuesta real:
+     - Status exitoso.
+     - `response.body.eventSent === true`.
+   - Añadir aserción de evidencia en UI (mensaje/feedback de guardado coherente).
+
+8. **Datos de prueba y estabilidad**
+   - Definir dataset mínimo reproducible para el escenario:
+     - Organización existente
+     - Aplicación asociada
+     - Módulos disponibles para toggling
+   - Evitar dependencia de estado manual no controlado.
+
+9. **Ejecución y evidencia**
+   - Ejecutar el E2E en modo `headed` y `headless`.
+   - Registrar evidencias (resultado de ejecución, logs relevantes, screenshots/videos si aplica).
+   - Documentar troubleshooting de fallos comunes (token expirado, realm/client mal configurado, datos inexistentes).
+
+10. **Resultado esperado de esta iteración**
+   - Queda implementado y pasando al menos un test E2E real que demuestre:
+     - Modificación real de módulos de organización
+     - Respuesta real backend con `eventSent = true`
+   - Dejar explícito como siguiente incremento:
+     - Caso negativo sin cambios -> `eventSent = false`
+     - Integración en pipeline CI
+
+**Criterios de aceptación (DoD):**
+- [ ] El test no usa mocks de backend para el update de organización.
+- [ ] Keycloak y PostgreSQL se usan realmente durante la ejecución.
+- [ ] Cypress autentica con login programático real contra Keycloak.
+- [ ] El flujo UI modifica módulos y guarda correctamente.
+- [ ] La aserción principal valida `eventSent === true` en la respuesta real.
+- [ ] Existe evidencia de ejecución local en modo headed y headless.
+- [ ] La documentación de ejecución local queda clara y repetible.
+
+**Formato de salida exigido:**
+1. Resumen ejecutivo (5-10 líneas) de lo implementado.
+2. Lista de archivos creados/modificados con propósito de cada cambio.
+3. Código completo de configuración Cypress, comandos de auth y spec E2E.
+4. Instrucciones de ejecución local paso a paso (infra, back, front, e2e).
+5. Evidencia de validación de `eventSent=true` y riesgos abiertos.
+
+**Restricciones:**
+- No usar bypass de autenticación.
+- No mockear la respuesta de update de organización.
+- No cambiar la lógica de negocio del backend para forzar el resultado.
+- Mantener compatibilidad con Angular CLI y convenciones del proyecto.
+
+**Entrega final:**
+Devuelve la implementación completa del E2E real (archivos y comandos), lista para ejecutar en local, cumpliendo los criterios anteriores.
 
 ## Prompt 2.6.2
 

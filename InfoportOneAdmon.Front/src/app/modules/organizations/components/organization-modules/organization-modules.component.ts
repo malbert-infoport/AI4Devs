@@ -171,10 +171,23 @@ export class OrganizationModulesComponent implements OnInit {
     this.selectedModuleIds = [];
   }
 
-  toggleModule(moduleId: number) {
+  toggleModule(moduleId: number, checked?: boolean) {
     const idx = this.selectedModuleIds.indexOf(moduleId);
-    if (idx >= 0) this.selectedModuleIds.splice(idx, 1);
-    else this.selectedModuleIds.push(moduleId);
+
+    if (checked === undefined) {
+      if (idx >= 0) this.selectedModuleIds.splice(idx, 1);
+      else this.selectedModuleIds.push(moduleId);
+      return;
+    }
+
+    if (checked && idx < 0) {
+      this.selectedModuleIds.push(moduleId);
+      return;
+    }
+
+    if (!checked && idx >= 0) {
+      this.selectedModuleIds.splice(idx, 1);
+    }
   }
 
   async saveModules() {

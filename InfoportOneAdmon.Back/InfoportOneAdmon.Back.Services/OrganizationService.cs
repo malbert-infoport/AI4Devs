@@ -99,7 +99,7 @@ namespace InfoportOneAdmon.Back.Services
             if (view.Id > 0 && (actionType == HelixEnums.EnumActionType.Update || actionType == HelixEnums.EnumActionType.LogicDelete))
             {
                 var configurationToUse = string.IsNullOrWhiteSpace(configurationName) ? Consts.LoadingConfigurations.Organization.ORGANIZATION_COMPLETE : configurationName;
-                original = await base.GetById(view.Id, new QueryParams(configurationToUse));
+                original = await base.GetById(view.Id, new QueryParams(configurationToUse, true, false));
             }
 
             if (actionType == HelixEnums.EnumActionType.Update && view.Id > 0 && !hasDataModificationPermission)

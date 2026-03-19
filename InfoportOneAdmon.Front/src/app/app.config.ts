@@ -44,7 +44,7 @@ import { TranslateTitleStrategy } from './router/translate-title.strategy';
 
 // registerLocaleData(localeEs);
 
-const resources: Resource[] = [{ prefix: '../assets/i18n/', suffix: '.json' }];
+const resources: Resource[] = [{ prefix: '/assets/i18n/', suffix: '.json' }];
 export function HttpLoaderFactory(_httpBackend: HttpClient) {
   return new ClMultiTranslateHttpLoader(_httpBackend, { resources: resources });
 }
